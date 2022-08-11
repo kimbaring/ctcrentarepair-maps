@@ -1,0 +1,7 @@
+{
+  "name": "ctcrentarepair-4",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue"
+}
