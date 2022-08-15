@@ -5,9 +5,18 @@
             <ion-refresher-content></ion-refresher-content>
         </ion-refresher>
 
+
+        <div class="changeProfileModal" :class="{open:changeProfileMode}">
+            Confirm profile image?
+            <div class="col2">
+                <ion-button expand="block" @click="uploadProfile">Confirm</ion-button>
+                <ion-button expand="block" @click="changeProfileMode = false;">Cancel</ion-button>
+            </div>
+        </div>
+
         <div class="section">
-            <div class="profile_img">
-                <ion-img></ion-img>
+            <div class="profile_img" @click="openChangeTooltip" @dblclick="openCamera">
+                <img id="profile_img_elem"/>
             </div>
         </div>
         <div class="profile_view">
@@ -36,8 +45,7 @@
 <script>
 import { 
     IonPage,
-    IonContent,
-    IonImg
+    IonContent
 } from '@ionic/vue';
 import { 
     bookOutline,
@@ -46,17 +54,18 @@ import {
     logOutOutline
 } from 'ionicons/icons';
 import router from '@/router';
-import { axiosReq, local, openToast } from '@/functions';
+import { axiosReq, local, openToast, optimizeImage, dateFormat } from '@/functions';
 import { ciapi } from '@/js/globals';
-import { auth } from '@/firebase';
+import { auth, storage } from '@/firebase';
 import { signOut } from 'firebase/auth';
+import { Camera, CameraResultType } from '@capacitor/camera';
+import { ref as sref, uploadString, getDownloadURL } from 'firebase/storage';
 
 export default({
     name: "CustomerDashboard",
     components:{
         IonPage,
         IonContent,
-        IonImg,
     },
 
     data(){
@@ -69,14 +78,68 @@ export default({
             //end of ionicons
 
             user: {},
+            changeProfileMode: false,
+
         }
     },
     mounted(){
         this.user = JSON.parse(local.get('user_info'));
         this.user.created = new Date(Date.parse(this.user.created_at.match('[0-9]+-[0-9]+-[0-9]+')[0])); // our Date object
         this.user.created = this.user.created.toLocaleDateString("en-US", {month:'long',day:'numeric',year:'numeric'});
+        document.querySelector('#profile_img_elem').src = local.getObject('user_info').profile_img;
     },
     methods:{
+        openChangeTooltip(){
+            openToast('Double tap to change profile image','dark')
+        },
+        uploadProfile(){
+            const date = new Date();
+            const dateString = date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate() + " " + 
+            date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+            const generateFileName = local.get('user_id')+dateFormat('%y%m%d%h%i%s',dateString);
+
+            openToast('Uploading image...','warning');
+        
+            uploadString(sref(storage,'profile-images/'+generateFileName),document.querySelector('#profile_img_elem').src,'data_url').then(()=>{
+
+                getDownloadURL(sref(storage,'profile-images/'+generateFileName)).then(dlink=>{
+                    console.log(dlink);
+                    document.querySelector('#profile_img_elem').src = dlink;
+                    axiosReq({
+                        method: 'post',
+                        url: ciapi+'users/update?user_id='+local.get('user_id'),
+                        headers:{
+                            PWAuth: local.get('user_token'),
+                            PWAuthUser: local.get('user_id')
+                        },
+                        data: { profile_img:dlink}
+                    }).catch(()=>{
+                        openToast('Something went wrong!', 'danger');
+                    }).then(res=>{
+                        if(res.data.success){
+                            openToast('Profile uploaded successfully!','success');  
+                            local.setInObject('user_info','profile_img',dlink);
+                        }
+                        else if(res.data.msg == 'invalid token') openToast('Token expired!', 'danger');
+                    });
+                });
+            });
+        },
+        async openCamera(){
+            Camera.getPhoto({
+                quality: 100,
+                allowEditing: true,
+                resultType: CameraResultType.DataUrl
+            }).then(img=>{
+                optimizeImage(img.dataUrl).then(src=>{
+                    this.changeProfileMode = true;
+                    document.querySelector('#profile_img_elem').src = src;
+                    this.changeProfileMode = true;
+                });
+            });
+        },
+
+        // async
        
         logout(){
             axiosReq({
@@ -90,7 +153,6 @@ export default({
                 openToast('Something went wrong...', 'danger');
             }).
             then(()=>{
-              
                 signOut(auth).then(() => {
                     local.remove('user_id');
                     local.remove('user_token');
@@ -116,7 +178,7 @@ ion-content{
 top: 30px;
 left: 50px;
 right: 50px;width: 200px;height: 200px;margin: 0 auto;border-radius: 50%;overflow: hidden;border:10px solid #fff;box-shadow: 0 0 5px #000;background: #b7170b;}
-.profile_img ion-img{width:inherit;height: inherit;border-radius: 50%;position: absolute;top: 50%;left: 50%;transform: translateX(-50%) translateY(-50%);}
+.profile_img img{width:inherit;height: inherit;border-radius: 50%;position: absolute;top: 50%;left: 50%;transform: translateX(-50%) translateY(-50%);object-fit: cover;}
 .section{
     background: var(--ion-color-dark-red);
     height: 200px;
@@ -155,6 +217,36 @@ ion-button{--background: #b7170b;
 .link{
   color:#b7170b;
 }
+
+.col2{
+display: flex;
+gap:10px;
+}
+
+.changeProfileModal{
+    padding: 20px 10px;
+    position: fixed;
+    bottom:-100%;
+    z-index: 100;
+    width: 100%;
+    box-shadow: 0 0 10px #ccc;
+    transition:0.4s;
+}
+
+.changeProfileModal.open{
+    bottom:0;
+}
+
+
+
+
+
+.col2 > *{
+    width:48%;
+}
+
+
+
 
 @media only screen and (min-width:500px){
 .profile_view h2{font-size: 30px;}

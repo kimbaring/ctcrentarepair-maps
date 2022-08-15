@@ -108,7 +108,18 @@ export default({
                 return;
             }
 
-            local.setInObject('customer_task','location',this.location);
+            local.setInObject('customer_task','customer_location',this.location);
+
+            //dummy coors/locations
+            local.setInObject('customer_task','customer_location_coors_lat',10.000000);
+            local.setInObject('customer_task','customer_location_coors_long',10.000000);
+
+            if(local.getObject('customer_task').service_type == 'Ride Sharer'){
+                local.setInObject('customer_task','drop_location','123 Street Employee Here, City, State 12345');
+                local.setInObject('customer_task','drop_location_coors_lat',10.000000);
+                local.setInObject('customer_task','drop_location_coors_long',10.000000);
+            }
+
             router.push('/customer/dashboard/location/cardetails');
         }
     }

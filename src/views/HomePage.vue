@@ -21,9 +21,6 @@
             <section>
               <ion-button class="signupbutton" @click="$router.push('/register')" expand="block">Sign Up</ion-button>
             </section>
-            <section>
-              <ion-button class="signupbutton" @click="$router.push('/map')" expand="block">Map</ion-button>
-            </section>
           </ion-card-content>
         </ion-card>
       </div>

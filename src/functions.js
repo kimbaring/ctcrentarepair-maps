@@ -14,6 +14,32 @@ async function axiosReq(params){
 
 
 
+function optimizeImage(src){
+    let cnv = document.createElement('canvas');
+    document.body.appendChild(cnv);
+    let ctx = cnv.getContext('2d');
+    let img = new Image();
+    const maxdim = 700;
+    img.src = src;
+
+    return new Promise((resolve) => {img.onload = ()=>{
+    if(img.width >= img.height){
+        cnv.width = maxdim;
+        cnv.height = maxdim * (img.height / img.width);
+    }else{
+        cnv.height = maxdim;
+        cnv.width = maxdim * (img.width / img.height);
+    }
+        ctx.drawImage(img, 0, 0,cnv.width,cnv.height);
+        const cdata = cnv.toDataURL();
+        cnv.remove();
+        resolve(cdata);
+    }
+});
+}
+
+
+
 
 
 function validateForm(obj,rules){
@@ -152,7 +178,8 @@ async function openToast(msg, type) {
         .create({
         message: msg,
         color:type,
-        duration: 2000
+        duration: 2000,
+        position:'top'
         })
     return toast.present();
 }
@@ -253,5 +280,6 @@ export {
     local,
     dateFormat,
     removeFix,
-    toDataURL
+    toDataURL,
+    optimizeImage
 }; 

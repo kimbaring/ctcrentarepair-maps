@@ -13,12 +13,8 @@
             </div>
             <div class="form">
                 <div>
-                    Upload Image
-                    <label for="imgpick">
-                        {{(car_details.img == null ) ? 'Choose an Image' : ''}}
-                        <img :src="car_details.img" v-if="car_details.img != null">
-                    </label>
-                    <input @change="chooseImg" id="imgpick" type="file" placeholder="e.g. Fortuner" hidden>
+                    <ion-button @click="chooseImg">{{(car_details.img == null) ? 'Upload' : 'Change'}} image</ion-button>
+                    <figure><img :src="car_details.img" v-if="car_details.img != null"></figure>
                 </div>
                 <div>
                     Model
@@ -38,8 +34,8 @@
                 </div>
             </div>
             <div class="submit_btn">
-                <ion-button expand="block" @click="submit" size="large">Save</ion-button>
-                <ion-button expand="block" @click="deleteCar" size="large">Delete Car</ion-button>
+                <ion-button expand="block" @click="submit">Save</ion-button>
+                <ion-button expand="block" @click="deleteCar">Delete Car</ion-button>
             </div>
         </ion-content>
     </ion-page>
@@ -58,12 +54,12 @@ import {
     IonInput,
     IonTextarea
 } from '@ionic/vue';
-import {local, openToast, axiosReq, toDataURL, removeFix, dateFormat} from '@/functions';
+import {local, openToast, axiosReq, removeFix, dateFormat,optimizeImage} from '@/functions';
 import router from '@/router';
 import { ciapi } from '@/js/globals';
 import { storage } from '@/firebase';
 import { ref as sref, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
-
+import { Camera, CameraResultType } from '@capacitor/camera';
 
 export default({
     components:{
@@ -89,10 +85,15 @@ export default({
     },
     methods:{
         chooseImg(){
-            toDataURL(document.getElementById("imgpick").files[0]).then(result=>{
-                this.prev_img_link = this.car_details.img;
-                this.car_details.img = result;
-            })
+            Camera.getPhoto({
+                quality: 100,
+                allowEditing: true,
+                resultType: CameraResultType.DataUrl
+            }).then(img=>{
+                optimizeImage(img.dataUrl).then(src=>{
+                    this.car_details.img = src;
+                });
+            });
         },
         load(to){
             if(to != '/customer/mycar/editcar') return;
@@ -298,7 +299,14 @@ export default({
 }
 .submit_btn{
     position: relative;
+    display: flex;
+    gap:10px;
 }
+.submit_btn ion-button{
+    width: 48%;
+}
+
+
 .submit_btn::before{
   content: "";
   position: absolute;
@@ -332,8 +340,12 @@ ion-toolbar{--background:#b7160b; color: #fff}
 .form ion-textarea{border:1px solid #aaa;border-radius:10px;margin:10px 0 0;--padding-top:15px;--padding-bottom:15px;--padding-start:15px;--padding-end:15px;height:15vh}
 .form img{display: block;margin: 0 auto;}
 .submit_btn{ width:100%;padding:20px;z-index:10}
-.submit_btn ion-button{--background:#b7160b;--color:#fff;font-size:14px;--padding-top:15px;--padding-bottom:15px;--border-radius:10px}
+
 
 label[for="imgpick"]{display: block;padding: 10px;margin: 10px 0;border: 1px dashed #aaa;border-radius: 10px;}
+figure{margin: 0;background: #eee;margin: 10px 0 20px}
+figure img{object-fit: cover;height: 300px;width: 100%;}
+
+ion-button{--background:#b7160b;--color:#fff;margin:0 auto}
 
 </style>

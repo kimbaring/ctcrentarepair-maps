@@ -69,10 +69,6 @@ const routes = [
     component: VerifyEmail
   },
   {
-    path: '/map',
-    component: () => import('@/views/UserMap.vue'),
-  },
-  {
     path: '/addcarnewuser',
     name: 'addcarnewuser',
     component: () => import('@/views/CustomerView/CustomerAddCarViewNewUser.vue'),

@@ -8,6 +8,7 @@
 import { IonApp, IonRouterOutlet } from '@ionic/vue';
 import {local,openToast} from '@/functions.js';
 import router from '@/router';
+import { defineCustomElements } from '@ionic/pwa-elements/loader';
 
 export default ({
   name: 'App',
@@ -35,6 +36,7 @@ export default ({
 
   created(){
     this.routeChanged(this.$route.path);
+    defineCustomElements(window);
   },
 
   methods:{

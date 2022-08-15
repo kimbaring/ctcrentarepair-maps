@@ -148,16 +148,34 @@ export default({
         submit(){
             const valid = validateForm(this.customer,{
                 car_id: 'required',
-                more_information: 'required',
                 callback:()=>{openToast('Required fields are empty!', 'danger')}
             });
+
+            console.log('test');
             if(!valid.allValid) return;
 
             local.setInObject('customer_task','description', this.customer.more_information);
             local.setInObject('customer_task','car_id', this.customer.car_id);
             local.setInObject('customer_task','problems', JSON.stringify(this.customer.problems));
             local.setInObject('customer_task','user_name', `${local.getObject('user_info').firstname} ${local.getObject('user_info').lastname}`);
+
+
+            //dummy locations
+
+            //dummy coors
+            local.setInObject('customer_task','emp_location','123 Street Employee Here, City, State 12345');
+            local.setInObject('customer_task','emp_location_coors_lat',10.000000);
+            local.setInObject('customer_task','emp_location_coors_long',10.000000);
+            
+           
+
+
+
+
+
             delete this.customer.more_information;
+
+
 
             axiosReq({
                 method: 'post',
@@ -170,6 +188,7 @@ export default({
             }).catch(()=>{
                 openToast('Something went wrong', 'danger');
             }).then(res=>{
+                console.log(res.data);
                 if(!res.data.success) return;
                 let task = removeFix(res.data.task_info,'task_'); 
                 router.push('/customer/dashboard/location/cardetails/booked');
