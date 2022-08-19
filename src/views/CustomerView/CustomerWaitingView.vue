@@ -1,18 +1,18 @@
 <template>
     <ion-page class="locationPage" >
-        <ion-header v-if="$route.path == '/customer/dashboard/location'">
+        <ion-header v-if="$route.path == '/customer/dashboard/location/cardetails/waiting'">
             <ion-toolbar>
                 <ion-buttons slot="start">
                     <ion-back-button defaultHref="/customer/dashboard/location"></ion-back-button>
                 </ion-buttons>                
             </ion-toolbar>
-            <ion-title>Pin your location</ion-title>
+            <ion-title>Waiting for someone to accept your request</ion-title>
         </ion-header>
 
-        <ion-content v-if="$route.path == '/customer/dashboard/location'">
+        <ion-content v-if="$route.path == '/customer/dashboard/location/cardetails/waiting'">
         
             <div id="map"></div>
-            <ion-card class="map-form">
+            <ion-card class="map-form" style="display: none;">
                 <div class="travel-info" v-show="awesome">
                     <h2><ion-icon :icon="mapOutline" ></ion-icon> <span id="info1"></span></h2>
                     <h2><ion-icon :icon="timerOutline"></ion-icon> <span id="info2"></span></h2>
@@ -40,6 +40,9 @@ import{local} from '@/functions.js';
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
+import {db} from '@/firebase'
+import {ref, onValue} from 'firebase/database';
+import {sendNotification} from '@/functions-custom';
 
 // Website address
 // https://account.mapbox.com
@@ -112,21 +115,6 @@ export default {
                     duration: 500000
                 });
             return loading.present();
-        },
-        async confirmloc() {
-                this.bookRequest = true;
-                this.bookResponse = '';
-
-                // let currentDate = new Date().toLocaleString().replace(',','');
-                // const pickupCoords      = JSON.parse(localStorage.getItem('getPickupCoords'));
-                // const pickupLocation    = JSON.parse(localStorage.getItem('getPickupLocation'));
-
-                local.setInObject('customer_task','customer_location',JSON.parse(localStorage.getItem('getPickupLocation')));
-                local.setInObject('customer_task','customer_location_coors_lat',JSON.parse(localStorage.getItem('getPickupCoords'))[1]);
-                local.setInObject('customer_task','customer_location_coors_long',JSON.parse(localStorage.getItem('getPickupCoords'))[0]);
-
-                this.$router.push('/customer/dashboard/location/cardetails');
-                local.set('pageLoading',0);
         },
         locationPin(placeName,long,lat){
             const map = this.map;
@@ -577,6 +565,23 @@ export default {
     },
     mounted(){
         this.mapInit();
+
+        onValue(ref(db,`/pending_tasks/${local.getObject('customer_task').task_id}`),snapshot=>{
+            if(snapshot.exists()){
+                let snap = snapshot.val()
+                if(snap.status > 1 && snap.emp_location_coors_long != null){
+                    local.setInObject('customer_task','emp_location_coors_long', snap.emp_location_coors_long);
+                    local.setInObject('customer_task','emp_location_coors_lat', snap.emp_location_coors_lat);
+                    local.setInObject('customer_task','accepted_by_id', snap.accepted_by_id);
+                    sendNotification(
+                        'Your request has been accepted!',
+                        `Please wait patiently for your ${local.getObject('customer_task').service_type} to arrive...`,
+                        '/notifications');
+                    
+                    this.$router.push('/customer/dashboard/location/cardetails/waiting/booked');
+                }
+            }
+        })
     },
     watch:{
         $route(to){
@@ -644,7 +649,7 @@ ion-text h2 {
     left: 0;
     right: 0;
     margin: auto;
-    min-height: 250px;
+    min-height: 170px;
 }
 
 .map-form {
@@ -661,7 +666,7 @@ ion-text h2 {
 }
 
 .map-form.active {
-    padding: 0 15px 250px !important;
+    padding: 0 15px 100% !important;
     background: #fff;
     overflow: hidden;
     transform: none;

@@ -67,12 +67,10 @@ export default ({
 
       signInWithEmailAndPassword(auth, this.loginInput, this.password)
       .then(()=> {
-        
-
         axiosReq({
           method: 'post',
           url: ciapi +'users/login' ,
-          data: {email: this.loginInput}
+          data: {email: this.loginInput,uid_hashed:auth.currentUser.uid}
         }).catch(err=>{
           console.log(err.response);
           openToast('Something went wrong...', 'danger');
@@ -96,9 +94,12 @@ export default ({
         });
         
         
-      });
+      }).catch(err=>{
+        console.log(err.code);
+        if(err.code == 'auth/wrong-password') openToast('Wrong password!', 'danger');
+        else if(err.code == 'auth/user-not-found') openToast('User not registered!', 'danger');
 
-     
+      });
     }
   }
 });
@@ -206,3 +207,4 @@ ion-card-content section{
     text-decoration: none;
 }
 </style>
+

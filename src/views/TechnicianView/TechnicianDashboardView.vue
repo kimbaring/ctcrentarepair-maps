@@ -93,13 +93,10 @@ export default({
         get(child(ref(db), `userwallet/${this.userid}`)).then((snapshot) => {
                 if (snapshot.exists()) {
                     this.wallet = snapshot.val().wallet;
-                    console.log(this.wallet);
                 } else {
                     this.wallet = 0;
-                    console.log(this.wallet);
                 }
-                }).catch((error) => {
-                console.error(error);
+                }).catch(()=> {
                 });
     },
     methods:{

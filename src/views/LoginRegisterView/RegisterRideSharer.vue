@@ -42,8 +42,10 @@
 <script>
 import { IonContent, IonPage,IonBackButton,IonToolbar,IonButtons,IonInput,IonList,IonItem,IonLabel,IonRadio} from '@ionic/vue';
 import {logoApple} from 'ionicons/icons';
-import {axiosReq, validateForm,openToast} from '@/functions';
+import {axiosReq, validateForm,openToast, local} from '@/functions';
 import { ciapi, needEmailVerif } from '@/js/globals';
+import { auth } from '@/firebase';
+import { createUserWithEmailAndPassword, deleteUser } from 'firebase/auth';
 import router from '@/router';
 
 export default ({
@@ -125,25 +127,58 @@ export default ({
         });
 
         if(!valid.allValid) return false;
-        delete this.user.cnfpassword;
         openToast('Registration is inprogress...', 'warning');
-        axiosReq({
-            method: 'post',
-            url: ciapi+'users/register',
-            data: this.user
-        }).catch(()=>{
+        createUserWithEmailAndPassword(auth,this.user.email,this.user.password)
+        .catch(err=>{
+            console.log(err);   
+            openToast(err, 'warning');
+        })
+        .then(userCred=>{
+            this.user.uid_hashed = userCred.user.uid;
+            axiosReq({
+                method: 'post',
+                url: ciapi +'users/register',
+                data: this.user
+            }).catch(()=>{
                 openToast('Something went wrong...', 'danger');
-        }).then(res=>{
-            if(res.data.msg === 'duplicate user'){ openToast('Account already exists!', 'danger');}
-            else{   
-                openToast('Registration Successful!', 'success');
+                deleteUser(userCred);
+            }).then(res=>{ 
                 
-                if(!needEmailVerif) return;
+                if(res.data.msg === 'duplicate user'){ openToast('Account already exists!', 'danger');deleteUser(userCred);}
+                else{
+                    console.log(res.data);   
+                    openToast('Registration Successful!', 'success');
 
-                localStorage.setItem('user_email',this.user.email);
-                router.replace('/verify-email');
-            } 
-            this.user = {role:"Ride Sharer"};
+
+                    if(needEmailVerif){
+                        localStorage.setItem('user_email',this.user.email);
+                        router.replace('/verify-email');
+                        return;
+                    }
+                    axiosReq({
+                        method: 'post',
+                        url: ciapi +'users/login' ,
+                        data: {email: this.user.email}
+                    }).catch(err=>{
+                        console.log(err.response);
+                        openToast('Something went wrong...', 'danger');
+                    }).then(result=>{
+                        openToast('Login Successful', 'success');
+                        local.set('user_id',result.data.user_id);
+                        local.set('user_token',result.data.token);
+                        local.setObject('user_info', result.data.info);
+                        local.set('user_new',true);
+                        if(result.data.msg === 'user not found') openToast('User not registered!', 'danger');
+                        if(needEmailVerif && result.data.msg === 'user not verified') openToast('User not verified!', 'danger');
+                        if(result.data.msg === 'user deactivated') openToast('User deactivated!', 'danger');
+                        if(result.data.msg === 'wrong password') openToast('Wrong password!', 'danger');
+                        if(result.data.success){   
+                            router.replace('/comingsoon');
+                        }
+                    });
+                }
+                this.user = {role:"Ride Sharer"};
+            });
         });
     }
   }

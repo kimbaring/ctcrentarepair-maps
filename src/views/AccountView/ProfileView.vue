@@ -34,6 +34,10 @@
                 <span class="field">Joined On</span>
                 <span class="value">{{ user.created }}</span>
             </div>
+            <div class="profile_grid" v-if="user.role != 'Customer'">
+                <span class="field">Availability Status</span>
+                <div class="value"><ion-toggle id="availableToggle" @ionChange="changeAvailabilityStatus"></ion-toggle></div>
+            </div>
             <ion-button expand="block" @click="$router.push('/customer/profile/update')">Update Profile</ion-button>
             <span class="link" @click="logout">Log Out</span>
         </div>
@@ -45,7 +49,8 @@
 <script>
 import { 
     IonPage,
-    IonContent
+    IonContent,
+    IonToggle
 } from '@ionic/vue';
 import { 
     bookOutline,
@@ -56,9 +61,10 @@ import {
 import router from '@/router';
 import { axiosReq, local, openToast, optimizeImage, dateFormat } from '@/functions';
 import { ciapi } from '@/js/globals';
-import { auth, storage } from '@/firebase';
+import { auth, storage, push,db } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { Camera, CameraResultType } from '@capacitor/camera';
+import{ref,remove,get} from 'firebase/database'
 import { ref as sref, uploadString, getDownloadURL } from 'firebase/storage';
 
 export default({
@@ -66,6 +72,7 @@ export default({
     components:{
         IonPage,
         IonContent,
+        IonToggle
     },
 
     data(){
@@ -79,6 +86,7 @@ export default({
 
             user: {},
             changeProfileMode: false,
+            availabilityStatus: false
 
         }
     },
@@ -87,8 +95,29 @@ export default({
         this.user.created = new Date(Date.parse(this.user.created_at.match('[0-9]+-[0-9]+-[0-9]+')[0])); // our Date object
         this.user.created = this.user.created.toLocaleDateString("en-US", {month:'long',day:'numeric',year:'numeric'});
         document.querySelector('#profile_img_elem').src = local.getObject('user_info').profile_img;
+
+        let role = this.user.role.replaceAll(' ','_').toLowerCase();
+
+
+        if(role == 'customer') return;
+        get(ref(db,`/available/${role}/${local.get('user_id')}`)).then(snapshot=>{
+            if(snapshot.exists()){
+                document.getElementById('availableToggle').setAttribute('checked',true);
+            }else{
+                document.getElementById('availableToggle').removeAttribute('checked');
+            }
+        })
     },
     methods:{
+        changeAvailabilityStatus(){
+            this.availabilityStatus = !this.availabilityStatus;
+            let role = this.user.role.replaceAll(' ','_').toLowerCase();
+            if(this.availabilityStatus){
+                push(`/available/${role}/${local.get('user_id')}`,'active');
+            }else{
+                remove(ref(db,`/available/${role}/${local.get('user_id')}`));
+            }
+        },
         openChangeTooltip(){
             openToast('Double tap to change profile image','dark')
         },
@@ -119,6 +148,7 @@ export default({
                         if(res.data.success){
                             openToast('Profile uploaded successfully!','success');  
                             local.setInObject('user_info','profile_img',dlink);
+                            this.changeProfileMode = false;
                         }
                         else if(res.data.msg == 'invalid token') openToast('Token expired!', 'danger');
                     });
@@ -132,7 +162,6 @@ export default({
                 resultType: CameraResultType.DataUrl
             }).then(img=>{
                 optimizeImage(img.dataUrl).then(src=>{
-                    this.changeProfileMode = true;
                     document.querySelector('#profile_img_elem').src = src;
                     this.changeProfileMode = true;
                 });
@@ -209,11 +238,16 @@ right: 50px;width: 200px;height: 200px;margin: 0 auto;border-radius: 50%;overflo
 .profile_view{background:#fff;padding: 70px 20px 20px;border-radius: 20px 20px 0 0;margin-top: -50px;text-align: center;min-height:calc(100vh - 277px);height: auto;}
 .profile_view h2{white-space: nowrap;text-overflow: ellipsis;overflow: hidden;font-size: 5.7vw;}
 .profile_view small{margin: 0 0 40px;font-size: 18px;display: block;}
-.profile_grid{display: flex;justify-content: space-between;padding: 10px 0;border-bottom: 1px solid #aaa;}
+.profile_grid{display: flex;justify-content: space-between;padding: 10px 0;border-bottom: 1px solid #aaa;align-items: center;}
 .profile_grid .field{font-weight: bold;}
 .profile_grid .value{color:#b7170b;max-width: 60vw;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;}
 ion-button{--background: #b7170b;
     --background-activated: var(--ion-color-hover-red);margin: 20px 0;--padding-top: 20px;--padding-bottom: 20px;}
+
+ion-toggle{
+
+}
+
 .link{
   color:#b7170b;
 }
@@ -231,20 +265,26 @@ gap:10px;
     width: 100%;
     box-shadow: 0 0 10px #ccc;
     transition:0.4s;
+    background: #fff;
 }
+
 
 .changeProfileModal.open{
-    bottom:0;
+    bottom:0
 }
-
-
-
 
 
 .col2 > *{
     width:48%;
 }
 
+ion-toggle {
+  --background: #aaa;
+  --background-checked: #b7170b;
+
+  --handle-background: #222;
+  --handle-background-checked: #b7170b;
+}
 
 
 

@@ -70,7 +70,7 @@ export default({
 
             axiosReq({
                 method: 'post',
-                url: ciapi + `users/notifications?notif_user_id=${local.get('user_id')}&_limit=20&_batch=true`,
+                url: ciapi + `users/notifications?notif_user_id=${local.get('user_id')}&_batch=true`,
                 headers:{
                     PWAuth: local.get('user_token'),
                     PWAuthUser: local.get('user_id'),

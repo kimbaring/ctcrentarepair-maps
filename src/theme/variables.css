@@ -111,3 +111,49 @@
 	--ion-color-shade: var(--ion-color-white-shade);
 	--ion-color-tint: var(--ion-color-white-tint);
 }
+
+.mapboxgl-ctrl-geocoder--input {
+  font: 1rem sans-serif;
+  padding: 5px 45px 5px 15px;
+height: 50px !important;
+}
+
+.mapboxgl-ctrl-geocoder {
+  box-shadow: none;
+}
+
+.mapboxgl-ctrl-geocoder svg {
+display: none !important;
+}
+
+.mapboxgl-ctrl-geocoder--input:focus {
+  outline: none;
+}
+
+#geocoder1 .suggestions-wrapper {
+position: absolute;
+top: 100%;
+width: 100vw;
+height: auto;
+z-index: 123;
+left: 50%;
+right: 50%;
+transform: translateX(-50%);
+}
+
+#geocoder2 .suggestions-wrapper {
+position: absolute;
+top: 100%;
+width: 100vw;
+height: auto;
+z-index: 123;
+left: 50%;
+right: 50%;
+transform: translateX(-50%);
+}
+
+#geocoder .mapboxgl-ctrl-geocoder {
+	width: 100%;
+	display: block;
+	max-width: unset;
+}

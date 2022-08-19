@@ -1,32 +1,40 @@
 <template>
     <ion-page>
         <ion-content>
-            <div class="section">
+            
+            <div class="sections">
+                <h3>We Found You A {{role()}}!</h3>
+                <p>Please wait for few minutes for the {{role().toLowerCase()}} to arrive...</p>
+                <img src="@/img/waiting.svg" />
             </div>
             <div class="form">
                 <div class="worker">
-                    <img src="../../img/maintenancecheck.png">
+                    <img :src="emp_info.profile_img">
                     <div class="workdet">
-                        <h3>Worker Name</h3>
-                        <h3>Car Description</h3>
-                        <h3>Phone number</h3>
+                        <h3>{{emp_info.firstname}} {{emp_info.lastname}}</h3>
+                        <h3>{{emp_info.role}}</h3>
+                        <h3>ID#{{emp_info.id}}</h3>
                     </div>
+                </div>
+                
+                <div class="services" :class="{open: viewBreakdown}">
+                    <h3>Distance Fee</h3>
+                    <h3>${{feeComputation()[1]}}</h3>
+                    <h3>Booking Fee</h3>
+                    <h3>${{feeComputation()[2]}}</h3>
+                    <h3>VAT</h3>
+                    <h3>${{feeComputation()[3]}}</h3>
                 </div>
                 <div class="services">
-                    <div class="servdet">
-                        <h3>Technician Service</h3>
-                        <h3>Estimated Time</h3>
-                        <h3>Distance</h3>
-                    </div>
-                    <div class="servval">
-                        <h3>$40.00</h3>
-                        <h3>25 mins</h3>
-                        <h3>1.5 km</h3>
-                    </div>
+                    <h3>Initial Fee</h3>
+                    <h3>${{feeComputation()[0]}}</h3>
+                    <h3>Estimated Time</h3>
+                    <h3>{{mins}} min/s</h3>
+                    <h3>Distance</h3>
+                    <h3>{{km}} km</h3>                    
                 </div>
-                <div class="map">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d121979.97053401588!2d-74.10890246224842!3d40.685281845644305!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25090129c363d%3A0x40c6a5770d25022b!2sStatue%20of%20Liberty!5e0!3m2!1sen!2sph!4v1657638758299!5m2!1sen!2sph"></iframe>
-                </div>
+                <ion-button @click="viewBreakdown = !viewBreakdown">{{(viewBreakdown) ? 'Hide' : 'View'}} Breakdown</ion-button>
+                
             </div>
             <div class="submit_btn">
                 <ion-button @click="$router.push('/customer/dashboard/location/cardetails/booked/chat')" expand="block" size="large">Chat</ion-button>
@@ -38,73 +46,120 @@
 
 
 <script>
-import {
-    IonPage,
-    IonContent
-} from '@ionic/vue';
-//import {local, openToast,validateForm, axiosReq} from '@/functions';
-//import router from '@/router';
-//import { ciapi } from '@/js/globals';
-//import { push } from '@/firebase';
+import { IonButton} from '@ionic/vue';
+import { locate, compass, navigateCircle, warning, close, mapOutline, timerOutline } from 'ionicons/icons';
+// import { toFormData, send } from '../functions.js';
+import {local,axiosReq,removeFix} from '@/functions';
+import {ciapi} from '@/js/globals';
+import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 
+// Website address
+// https://account.mapbox.com
+// username: speedyrepair
+// password: TGP9!J9n^MYm#Tx
 
+// username: dev
+// password: F77GBCmu2cvL8RF
 
-export default({
-    components:{
-        IonPage,
-        IonContent,
+// username: design
+// password: 3PhmQScz3JFbAFH
+
+// username: tester
+// password: yyi4HgHLeTYi7mD
+
+export default {
+    name: "MapBox",
+    components: {
+       
+        IonButton
     },
-    data(){
-        return{
-            customer:{}
+    data() {
+        return {
+            formResponse: null,
+            address: '',
+            focused: false,
+            awesome: false,
+            bookRequest: false,
+            bookResponse: null,
+
+            km: 0,
+            mins: 0,
+            emp_info:{
+                firstname:''
+            },
+            viewBreakdown: false
         }
     },
-    methods:{
-        // submit(){
-        //     const valid = validateForm(this.customer,{
-        //         name: "required",
-        //         plate_number: "required",
-        //         model: "required",
-        //         brand: "required",
-        //         callback:()=>{openToast('Required fields are empty!', 'danger')}
-        //     });
-        //     if(!valid.allValid) return;
+    setup() {
+        return { locate, compass, navigateCircle, warning, close, mapOutline, timerOutline };
+    },
+    methods: {
+        role(){
+            const service = local.getObject('customer_task').service_type;
+            switch(service.toLowerCase()){
+                case 'towing': return 'Tow Truck Operator';
+                default: return service;
+            }
+        },
+        feeComputation(){
+            const baseFee = 75;
+            const appChargeRate = 0.3;
+            const vat = 0.12;
+            let totalFee = (this.km < 6) ? baseFee: baseFee + ((this.km-5) * 5);
+            const distanceFee = totalFee;
+            const bookFee = (totalFee * appChargeRate);
+            const vatFee = (totalFee * vat);
+            totalFee = totalFee + bookFee + vatFee;
+            return [totalFee,distanceFee,bookFee,vatFee];
+        },
+        async getRoute(pickup,dropoff){
+            const pickupCoords = pickup;
+            const dropoffCoords = dropoff;
+            const token = 'pk.eyJ1Ijoic3BlZWR5cmVwYWlyIiwiYSI6ImNsNWg4cGlzaDA3NTYzZHFxdm1iMTJ2cWQifQ.j_XBhRHLg-CcGzah7uepMA';
+            const query = await fetch(
+                `https://api.mapbox.com/directions/v5/mapbox/driving/${pickupCoords[0]},${pickupCoords[1]};${dropoffCoords[0]},${dropoffCoords[1]}?steps=true&geometries=geojson&access_token=${token}`,
+                { method: 'GET' }
+            );
+            const json = await query.json();
+            const data = json.routes[0];
+            console.log(data);
 
-        //     local.setInObject('customer_task','name', this.customer.name);
-        //     local.setInObject('customer_task','description', this.customer.more_information);
-        //     delete this.customer.more_information;
-        //     delete this.customer.name;
 
-        //     local.setInObject('customer_task','details',this.customer);
-        //     local.setInObject('customer_task','details',JSON.stringify(local.getObject('customer_task').details));
+            this.km = (data.distance / 1000).toFixed(1); // convert meters to kilometers
+            this.mins = Math.floor(data.duration / 60);
 
-        //     axiosReq({
-        //         method: 'post',
-        //         url: ciapi+'task/create',
-        //         headers:{
-        //             PWAuth: local.get('user_token'),
-        //             PWAuthUser: local.get('user_id')
-        //         },
-        //         data: local.getObject('customer_task')
-        //     }).catch(()=>{
-        //         openToast('Something went wrong', 'danger');
-        //     }).then(res=>{
-        //         if(!res.data.success) return;
-        //         let task = res.data.task_info;
-        //         task.details = local.objectify(task.details);
-        //         router.push('/customer/dashboard/location/cardetails/waiting');
-        //         push(`pending_tasks/${task.id}`,task);
-        //         openToast('Request sent!', 'success');
-        //     })
-        // }
+        }
+    },
+    mounted() {
+        console.log(local.getObject('customer_task'));
+        axiosReq({
+            method:'post',
+            url: ciapi+'users?user_id='+local.getObject('customer_task').accepted_by_id,
+            headers:{
+                PWAuth: local.get('user_token'),
+                PWAuthUser: local.get('user_id')
+            }
+        }).then(res=>{
+            
+            if(res.data.success){
+                this.emp_info = removeFix(res.data.result,'user_');
+                console.log(local.getObject('customer_task').accepted_by_id);
+            }
+        });
+        this.getRoute(
+            [local.getObject('customer_task').customer_location_coors_long,local.getObject('customer_task').customer_location_coors_lat],
+            [local.getObject('customer_task').emp_location_coors_long,local.getObject('customer_task').emp_location_coors_lat]
+        );
     }
-});
+
+};
 </script>
 
 <style scoped>
+.mapboxgl-map .mapboxgl-control-container{display: none !important;}
 .map iframe{width:100%;box-sizing:border-box;height:35vh;border:none; border-radius: 10px;}
 .worker img{
-    width:70px;height: 70px;border-radius: 50%;
+    width:70px;height: 70px;border-radius: 50%;object-fit: cover;
 }
 .worker{
     display: flex;
@@ -114,28 +169,45 @@ export default({
     border-bottom: 1px solid #ececec;
     justify-content: center;
 }
-.services{
+.services {
+    padding: 0 ;
+    overflow: hidden;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: center;
+    
     justify-content: center;
-    margin-bottom: 20px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #ccc;
+    height:0;
+    transition: 0.4s;
 }
-.servdet{
+
+.services.open{
+    height:125px;padding:20px 0
+}
+.services h3{
     float: left;
-    padding-right: 25%;
     color: #9b9b9b;
+    width: 43%;
+    margin: 5px 10px;
 }
-.servval{
+.services h3:nth-of-type(even){
     float: right;
     color: #ef867f;
 }
-.servdet h3{
+.services h3{
     font-size: 15px;
-    line-height: 10px;
 }
-.servval h3{
-    font-size: 15px;
-    line-height: 10px;
+.services:last-of-type{border-bottom: none;height:auto;padding:20px 0}
+.form ion-button{
+    font-size: 14px;
+    height: 26px;
+    margin: 10px 10px 30px;
+    display: block;
+    --background: transparent;
+    --color: #555;
+    --box-shadow: none;
+    width: max-content;
 }
 
 .workdet{
@@ -195,17 +267,29 @@ ion-header{color:#fff;}
 ion-header small{text-align: center;display: block;}
 ion-header::after {background-image: none;}
 ion-toolbar{--background:#b7160b; color: #fff}
-.form{min-height:527px; background-color: #fff; padding-top: 20px; border-radius: 20px;
+.form{min-height:250px; background-color: #fff; padding-top: 20px; border-radius: 20px;
 margin-top: -20px;
 position: relative;}
 .form ion-input{border:1px solid #aaa;border-radius:10px;margin:10px 0 0;--padding-top:15px;--padding-bottom:15px;--padding-start:15px;--padding-end:15px}
 .form ion-textarea{border:1px solid #aaa;border-radius:10px;margin:10px 0 0;--padding-top:15px;--padding-bottom:15px;--padding-start:15px;--padding-end:15px;height:15vh}
 .submit_btn{ width:100%;padding:20px;z-index:10}
-.submit_btn ion-button{--background:#fff;--color:#222;font-size:14px;--padding-top:15px;--padding-bottom:15px;--border-radius:10px}
-ion-button{--background: #b7160b;}
+.submit_btn ion-button{--background:#b7160b;--color:#fff;font-size:14px;--padding-top:15px;--padding-bottom:15px;--border-radius:30px}
+ion-button{--background: #b7160b;--border-radius:30px;}
 ion-content{
-    --ion-background-color: #b7160b
+    --ion-background-color: #fff
 }
+
+#map{pointer-events: none;height:50vh}
+
+.sections{height: 50vh;display: flex;align-items: center;justify-content: center;background: #fff;flex-direction: column;padding: 20px;text-align: center;animation-name:waitAnim;animation-duration: 2s;animation-iteration-count: infinite;}
+.sections img{max-width: 300px;width: 60vw;display: block;max-height: 60%;}
+
+@keyframes waitAnim {
+    0%,100%{opacity: 1;}
+    50%{opacity: 0.5;}
+}
+
+
 /* ion-content{--background:#fff;border-radius: 20px 20px 0 0;overflow:hidden}
 .form{min-height:500px}
 .form > div{margin:15px;}
@@ -226,4 +310,6 @@ ion-toolbar{--background:#b7160b; color: #fff}
 ion-input{--background: #fff;--color: #333;}
 .col2{display: flex;justify-content: space-between;}
 .col2 > *{width: 48%;} */
+
+
 </style>

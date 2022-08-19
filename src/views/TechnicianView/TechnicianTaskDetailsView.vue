@@ -3,32 +3,30 @@
     <ion-content>
         <div class="section">
             <a @click="$router.push('/technician/tasks')"><ion-icon :icon="arrowBack"></ion-icon></a>
-            <h3>Maintenance Checkup</h3>
+            <h3>Task Information</h3>
         </div>
         <div class="ioncardimg">
             <img src="../../img/carvertical.png" />
         <ion-card>
             <ion-card-content>
                 <h2>Car Owner:</h2>
-                <h2>{{task_info.user_name}}</h2>
+                <h2 :class="(loading) ? 'loading': null">{{task_info.user_name}}</h2>
                 <br />
-                <h2>Model:</h2>
-                <h2>SUV</h2>
+                <h2>Brand & Model:</h2>
+                <h2 :class="(loading) ? 'loading': null">{{car_info.brand + ' ' + car_info.model}}</h2>
                 <br />
-                <h2>Year:</h2>
-                <h2>2007</h2>
+                <h2>Created:</h2>
+                <h2 :class="(loading) ? 'loading': null">{{task_info.created_at}}</h2>
                 <br />
-                <h2>Location</h2>
-                <h2>{{task_info.location_details}}</h2>
-                <ion-button class="viewbutton" @click="$router.push('/technician/tasks/taskdetails/location')" expand="block">View Location</ion-button>
-                <br />
-                <div class="space"></div>
+                <h2>Location:</h2>
+                <h2 :class="(loading) ? 'loading': null">{{task_info.customer_location}}</h2>
+                <!-- <ion-button class="viewbutton" @click="$router.push('/technician/tasks/taskdetails/location')" expand="block">View in Map</ion-button> -->
                 <div class="buttonflex">
                     <section>
-                    <ion-button expand="block">Accept</ion-button>
+                    <ion-button expand="block" @click="accept">Accept</ion-button>
                     </section>
                     <section>
-                    <ion-button expand="block">Decline</ion-button>
+                    <ion-button expand="block" @click="$router.push('/technician/tasks')">Decline</ion-button>
                     </section>
                 </div>
             </ion-card-content>
@@ -54,9 +52,10 @@ import {
     logOutOutline,
     arrowBack
 } from 'ionicons/icons';
-import{local} from '@/functions';
+import{local,dateFormat,axiosReq,removeFix} from '@/functions';
 import{db} from '@/firebase';
-import{get,onValue,query,ref} from 'firebase/database';
+import{ciapi} from '@/js/globals';
+import{get,onValue,query,ref,set} from 'firebase/database';
 
 export default({
     name: "CustomerDashboard",
@@ -78,34 +77,96 @@ export default({
             arrowBack,
             //end of ionicons
 
-            task_info:{}
+            task_info:{},
+            loading:true,
+            car_info:{model:'',brand:''}
         }
     },
-    mounted(){
-        const que = query(ref(db,'/pending_tasks/'+local.get('view_details')));
+    created(){
+        this.loadInfo();
+    },
+    watch:{
+        $route(to){
+            if(to.path != '/technician/tasks/taskdetails') return;
+            this.loadInfo();
+        }
+    },
+    methods:{
+        loadInfo(){
+            this.loading = true;
+            const que = query(ref(db,'/pending_tasks/'+local.get('view_details')));
 
-        onValue(que,()=>{
-            get(que).then(snapshot=>{
-                if(snapshot.exists()){
-                    this.task_info = snapshot.val();
-                    
+            onValue(que,()=>{
+                get(que).then(snapshot=>{
+                    if(snapshot.exists()){
+                        this.task_info = snapshot.val();
+                        this.task_info.created_at = dateFormat('%lm %d,%y (%h:%i%a)',this.task_info.created_at);
+                        axiosReq({
+                            method:'post',
+                            headers:{
+                                PWAuth: local.get('user_token'),
+                                PWAuthUser: local.get('user_id')
+                            },
+                            url:ciapi+'cars?car_id='+this.task_info.car_id
+                        }).then(res=>{
+                            this.car_info = removeFix(res.data.result,"car_");
+                            this.loading = false;
+                        })
+                    }
+                })
+            });
+        },
+
+        accept(){
+            
+            const getLocation = () => new Promise(
+                (resolve, reject) => {
+                    window.navigator.geolocation.getCurrentPosition(
+                        position => {
+                            const location = {
+                                lat:position.coords.latitude,
+                                long:position.coords.longitude
+                            };
+                            resolve(location); // Resolve with location. location can now be accessed in the .then method.
+                        },
+                        err => {
+                            this.formResponse = `${err.message}`;
+                            this.openToast();
+                            reject(err) // Reject with err. err can now be accessed in the .catch method.
+                        }
+                    );
                 }
-            })
-        });
+            );
+
+            getLocation().then(location => {
+                set(ref(db,'/pending_tasks/'+this.task_info.id+'/status'),2);
+                set(ref(db,'/pending_tasks/'+this.task_info.id+'/emp_location_coors_long'),location.long);
+                set(ref(db,'/pending_tasks/'+this.task_info.id+'/emp_location_coors_lat'),location.lat);
+                set(ref(db,'/pending_tasks/'+this.task_info.id+'/accepted_by_id'),local.get('user_id'));
+                local.setObject('accepted_task',this.task_info);
+
+                this.$router.push('/technician/tasks/taskdetails/location')
+            });
+
+        }
     }
 });
 </script>
 
 <style scoped>
+
+
+ion-button{--border-radius: 10px;}
+ion-card-content h2:last-of-type{margin-bottom: 20px;}
+
 .buttonflex{
     display: flex;
-    flex-wrap: wrap;
+    gap:5px
 }
 .buttonflex section{
-    width: 48%;
+    width: 50%;
 }
 .buttonflex ion-button{
-    --border-radius: 10px;
     --background: #b7170b;
     --background-activated: var(--ion-color-hover-red);
 }
@@ -218,5 +279,35 @@ ion-card-header{
     z-index: 1;
     top: -31px;
     width: 124px;
+}
+
+.loading{
+    animation-name: load;
+    position: relative;
+    padding-left: 10px;
+    overflow: hidden;
+    background: #aaa;
+    min-height:20px
+}
+.loading::before{
+    content:"";
+    position: absolute;
+    height: 200%;
+    width:50%;
+    background: #ccc;
+    top:0;
+    left:0;
+    box-shadow: 0 0 30px #ccc;
+    opacity: 0.7;
+    animation-name: load;
+    animation-duration: 0.4s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+
+
+@keyframes load{
+    0%{left:0}
+    100%{left:100%}
 }
 </style>

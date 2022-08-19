@@ -13,6 +13,9 @@ import TechnicianTabs from '../views/TechnicianView/TechnicianTab.vue';
 import RidesharerTabs from '../views/RideSharerView/RideSharerTab.vue';
 import CustomerTransactionHistoryView from '../views/TransactionView/TransactionHistoryView.vue';
 
+import CustomerLocationView from "@/views/CustomerView/CustomerLocationView.vue";
+import CustomerCarDetailsView from "@/views/CustomerView/CustomerCarDetailsView.vue";
+
 
 const routes = [
   {
@@ -47,6 +50,11 @@ const routes = [
     path: '/registertechnician',
     name: 'RegisterTechnician',
     component: RegisterTechnician
+  },
+  {
+    path: '/map',
+    name: 'map',
+    component: () => import('@/views/UserMap.vue'),
   },
   {
     path: '/registerridesharer',
@@ -111,18 +119,18 @@ const routes = [
       },
       {
         path: "/customer/dashboard/location",
-        component: () => import("@/views/CustomerView/CustomerLocationView.vue")
+        component: CustomerLocationView
       },
       {
         path: "/customer/dashboard/location/cardetails",
-        component: () => import("@/views/CustomerView/CustomerCarDetailsView.vue")
+        component: CustomerCarDetailsView
       },
       {
         path: "/customer/dashboard/location/cardetails/waiting",
-        component: () => import("@/views/CustomerView/CustomerTechnicianWaitingView.vue")
+        component: () => import("@/views/CustomerView/CustomerWaitingView.vue")
       },
       {
-        path: "/customer/dashboard/location/cardetails/booked",
+        path: "/customer/dashboard/location/cardetails/waiting/booked",
         component: () => import("@/views/CustomerView/CustomerBookedView.vue")
       },
       {

@@ -1,42 +1,35 @@
 <template>
-    <ion-page class="locationPage" >
-        <ion-header v-if="$route.path == '/customer/dashboard/location'">
-            <ion-toolbar>
-                <ion-buttons slot="start">
-                    <ion-back-button defaultHref="/customer/dashboard/location"></ion-back-button>
-                </ion-buttons>                
-            </ion-toolbar>
-            <ion-title>Pin your location</ion-title>
-        </ion-header>
-
-        <ion-content v-if="$route.path == '/customer/dashboard/location'">
-        
-            <div id="map"></div>
-            <ion-card class="map-form">
-                <div class="travel-info" v-show="awesome">
-                    <h2><ion-icon :icon="mapOutline" ></ion-icon> <span id="info1"></span></h2>
-                    <h2><ion-icon :icon="timerOutline"></ion-icon> <span id="info2"></span></h2>
+    <ion-text>
+        <h2>RideShare</h2>
+    </ion-text>
+    <ion-card>
+        <div id="map"></div>
+        <ion-card class="map-form">
+            <div class="travel-info" v-show="awesome">
+                <h2><ion-icon :icon="mapOutline" ></ion-icon> <span id="info1"></span></h2>
+                <h2><ion-icon :icon="timerOutline"></ion-icon> <span id="info2"></span></h2>
+            </div>
+            <ion-card-header class="close">
+                <span><ion-icon :icon="close"></ion-icon></span>
+            </ion-card-header>
+            <div id="geocoder" class="input-con">
+                <div id="geocoder1">
+                    <ion-icon id="currentlocation" :icon="compass"></ion-icon>
                 </div>
-                <ion-card-header class="close">
-                    <span><ion-icon :icon="close"></ion-icon></span>
-                </ion-card-header>
-                <div id="geocoder" class="input-con">
-                    <div id="geocoder1">
-                        <ion-icon id="currentlocation" :icon="compass"></ion-icon>
-                    </div>
+                <div id="geocoder2">
+                    <ion-icon :icon="navigateCircle"></ion-icon>
                 </div>
-                <ion-button id="ion-book" expand="block" @click="confirmloc">Confirm Location</ion-button>
-            </ion-card>
-        </ion-content>
-    </ion-page>
+            </div>
+            <ion-button id="ion-book" expand="block" @click="bookNow">Book Now</ion-button>
+        </ion-card>
+    </ion-card>
 </template>
 
 <script>
 import axios from 'axios';
 import { IonCard, IonCardHeader, IonButton, toastController, loadingController } from '@ionic/vue';
 import { locate, compass, navigateCircle, warning, close, mapOutline, timerOutline } from 'ionicons/icons';
-// import { toFormData, send } from '../functions.js';
-import{local} from '@/functions.js';
+import { toFormData, send } from '../functions.js';
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
@@ -69,9 +62,7 @@ export default {
             focused: false,
             awesome: false,
             bookRequest: false,
-            bookResponse: null,
-            map:null,
-            pulsingDot:null
+            bookResponse: null
         }
     },
     setup() {
@@ -113,86 +104,55 @@ export default {
                 });
             return loading.present();
         },
-        async confirmloc() {
-                this.bookRequest = true;
-                this.bookResponse = '';
+        async bookNow() {
+            this.bookRequest = true;
+            this.bookResponse = '';
 
-                // let currentDate = new Date().toLocaleString().replace(',','');
-                // const pickupCoords      = JSON.parse(localStorage.getItem('getPickupCoords'));
-                // const pickupLocation    = JSON.parse(localStorage.getItem('getPickupLocation'));
+            let currentDate = new Date().toLocaleString().replace(',','');
 
-                local.setInObject('customer_task','customer_location',JSON.parse(localStorage.getItem('getPickupLocation')));
-                local.setInObject('customer_task','customer_location_coors_lat',JSON.parse(localStorage.getItem('getPickupCoords'))[1]);
-                local.setInObject('customer_task','customer_location_coors_long',JSON.parse(localStorage.getItem('getPickupCoords'))[0]);
+            const currentUserId     = JSON.parse(localStorage.getItem('currentUser'));
+            const currentUserName   = JSON.parse(localStorage.getItem('currentUserName'));
+            const pickupCoords      = JSON.parse(localStorage.getItem('getPickupCoords'));
+            const pickupLocation    = JSON.parse(localStorage.getItem('getPickupLocation'));
+            const dropoffCoords     = JSON.parse(localStorage.getItem('getDropoffCoords'));
+            const dropoffLocation   = JSON.parse(localStorage.getItem('getDropoffLocation'));
+            const totalDistance     = JSON.parse(localStorage.getItem('getKm'));
 
-                this.$router.push('/customer/dashboard/location/cardetails');
-                local.set('pageLoading',0);
-        },
-        locationPin(placeName,long,lat){
-            const map = this.map;
-            if (map.hasImage('pulsing-dot-a')) map.removeImage('pulsing-dot-a');
-                            map.addImage('pulsing-dot-a', this.pulsingDot, { pixelRatio: 2 });
+            console.log(currentUserId, currentUserName, pickupCoords, dropoffCoords);
 
-                            var userAddress = placeName;
-                            let getPickupCoords = [long, lat];
-                            localStorage.setItem('getPickupCoords', JSON.stringify(getPickupCoords));
-                            localStorage.setItem('getPickupLocation', JSON.stringify(userAddress));
+            let formdata = toFormData({
+                form: 'request_ride',
+                action: 'create',
+                customer_id: currentUserId,
+                customer_name: currentUserName,
+                location_origin: pickupCoords,
+                location_origin_name: pickupLocation,
+                location_destination: dropoffCoords,
+                location_destination_name: dropoffLocation,
+                location_distance: totalDistance,
+                customer_notes: '',
+                created: currentDate,
+                booking_status: '0',
+                rider_id: 'null'
+            });
 
-                            const newpickupPoint = {
-                                type: 'FeatureCollection',
-                                features: [
-                                    {
-                                        type: 'Feature',
-                                        properties: {},
-                                        geometry: {
-                                            type: 'Point',
-                                            coordinates: [long, lat]
-                                        }
-                                    }
-                                ]
-                            }
-
-                            if (map.getLayer('pickupPoint')) {
-                                map.getSource('pickupPoint').setData(newpickupPoint);
-                                map.flyTo({
-                                    center: [long, lat],
-                                    zoom: 15
-                                });
-                            } else {
-                                map.flyTo({
-                                    center: [long, lat],
-                                    zoom: 15
-                                });
-                                map.addSource('pickupPoint', {
-                                    'type': 'geojson',
-                                    'data': {
-                                        'type': 'FeatureCollection',
-                                        'features': [
-                                            {
-                                                'type': 'Feature',
-                                                'properties': {},
-                                                'geometry': {
-                                                    'type': 'Point',
-                                                    'coordinates': [long, lat]
-                                                }
-                                            }
-                                        ]
-                                    }
-                                });
-                                map.addLayer({
-                                    'id': 'pickupPoint',
-                                    'type': 'symbol',
-                                    'source': 'pickupPoint',
-                                    'layout': {
-                                        'icon-image': 'pulsing-dot-a'
-                                    }
-                                });
-                            }
-
-
-            document.querySelector('.mapboxgl-ctrl-geocoder--input').value = placeName;
-        },
-    mapInit() {
+            if (currentUserId !== null && pickupCoords !== null && dropoffCoords !== null) {
+                send('post','https://www.medicalcouriertransportation.com/rentarepair/archive/api.php',formdata)
+                    .then(response=>{
+                    if (response.data == "success") {
+                        console.log(response);
+                        this.openLoader();
+                    } else {
+                        console.log(response);
+                    }
+                });
+                document.querySelector(".map-form").classList.remove('active');
+            } else {
+                console.log('Error!')
+            }            
+        }
+    },
+    mounted() {
 
         mapboxgl.accessToken = 'pk.eyJ1Ijoic3BlZWR5cmVwYWlyIiwiYSI6ImNsNWg4cGlzaDA3NTYzZHFxdm1iMTJ2cWQifQ.j_XBhRHLg-CcGzah7uepMA';
 
@@ -223,9 +183,7 @@ export default {
                 // center: [-122.662323, 45.523751],
                 zoom: 12
             });
-            
 
-            this.map = map;
             // Initialize the geolocate control.
             const locate = new mapboxgl.GeolocateControl({
                 geolocation: window.navigator.geolocation,
@@ -245,6 +203,8 @@ export default {
                     console.log(data);
                     var userCountry = data.features[5].properties.short_code;
                     var userOutbound = data.features[5].bbox;
+                    console.log(userCountry);
+                    console.log(userOutbound);
 
                     // Initialize the geocoder controls.
                     const geocoder1 = new MapboxGeocoder({
@@ -256,10 +216,18 @@ export default {
                         mapboxgl: mapboxgl
                     });
 
-               
+                    const geocoder2 = new MapboxGeocoder({
+                        accessToken: mapboxgl.accessToken,
+                        placeholder: 'Drop Off Address',
+                        countries: userCountry,
+                        bbox: userOutbound,
+                        limit: 10,
+                        mapboxgl: mapboxgl
+                    });
 
                     // Add the geocoder controls to the map.
                     geocoder1.addTo('#geocoder1');
+                    geocoder2.addTo('#geocoder2');
 
                     let input1 = document.querySelectorAll('#geocoder input');
 
@@ -349,8 +317,6 @@ export default {
                         }
                     };
 
-                    this.pulsingDot = pulsingDot;
-
                     geocoder1.on('result', e => {
                         if (map.hasImage('pulsing-dot-a')) map.removeImage('pulsing-dot-a');
                         map.addImage('pulsing-dot-a', pulsingDot, { pixelRatio: 2 });
@@ -433,6 +399,87 @@ export default {
 
                     });
 
+                    geocoder2.on('result', e => {
+                        if (map.hasImage('pulsing-dot-b')) map.removeImage('pulsing-dot-b');
+                        map.addImage('pulsing-dot-b', pulsingDot, { pixelRatio: 2 });
+
+                        console.log(e);
+                        let getDropoffCoords = e.result.center;
+                        let getDropoffLocation = e.result.place_name;
+                        localStorage.setItem('getDropoffCoords', JSON.stringify(getDropoffCoords));
+                        localStorage.setItem('getDropoffLocation', JSON.stringify(getDropoffLocation));
+
+                        const newdropoffPoint = {
+                            type: 'FeatureCollection',
+                            features: [
+                                {
+                                    type: 'Feature',
+                                    properties: {},
+                                    geometry: {
+                                        type: 'Point',
+                                        coordinates: e.result.center
+                                    }
+                                }
+                            ]
+                        }
+
+                        if (map.getLayer('dropoffPoint')) {
+                            map.getSource('dropoffPoint').setData(newdropoffPoint);
+                            map.flyTo({
+                                center: e.result.center,
+                                zoom: 15
+                            });
+                        } else {
+                            map.flyTo({
+                                center: e.result.center,
+                                zoom: 15
+                            });
+                            map.addSource('dropoffPoint', {
+                                'type': 'geojson',
+                                'data': {
+                                    'type': 'FeatureCollection',
+                                    'features': [
+                                        {
+                                            'type': 'Feature',
+                                            'properties': {},
+                                            'geometry': {
+                                                'type': 'Point',
+                                                'coordinates': e.result.center
+                                            }
+                                        }
+                                    ]
+                                }
+                            });
+                            map.addLayer({
+                                'id': 'dropoffPoint',
+                                'type': 'symbol',
+                                'source': 'dropoffPoint',
+                                'layout': {
+                                    'icon-image': 'pulsing-dot-b'
+                                }
+                            });
+                        }
+
+                        const pickupCoords   = JSON.parse(localStorage.getItem('getPickupCoords'));
+                        const dropoffCoords   = JSON.parse(localStorage.getItem('getDropoffCoords'));
+
+                        if (pickupCoords !== null && dropoffCoords !== null) {
+                            try {
+                                map.fitBounds([
+                                    pickupCoords,
+                                    dropoffCoords
+                                ], { 
+                                    padding: 80
+                                });
+                                document.querySelector(".map-form").classList.remove('active');
+                                getRoute(dropoffCoords);
+                                this.awesome = true;
+                            } catch(err) {
+                                console.log(err);
+                            }
+                        }
+                        
+                    });
                     
                     // let coordinates;
 
@@ -460,33 +507,90 @@ export default {
                     //     });
                     // }
 
-                    document.getElementById('currentlocation').onclick = ()=>{
+                    document.getElementById('currentlocation').onclick = function(){
                         // locate.trigger();
-                        
-                        this.locationPin(data.features[0].place_name,location.long,location.lat);
-                        document.querySelector("#geocoder1 .mapboxgl-ctrl-geocoder--input").value = data.features[0].place_name;
+                        if (map.hasImage('pulsing-dot-a')) map.removeImage('pulsing-dot-a');
+                        map.addImage('pulsing-dot-a', pulsingDot, { pixelRatio: 2 });
 
-                        // const a = document.querySelector("#geocoder1 .mapboxgl-ctrl-geocoder--input").value;
-                        // // const b = document.querySelector("#geocoder2 .mapboxgl-ctrl-geocoder--input").value;
+                        var userAddress = data.features[0].place_name;
+                        let getPickupCoords = [location.long, location.lat];
+                        localStorage.setItem('getPickupCoords', JSON.stringify(getPickupCoords));
+                        localStorage.setItem('getPickupLocation', JSON.stringify(userAddress));
 
-                        // // const pickupCoords = [location.long, location.lat];
-                        // // const dropoffCoords = JSON.parse(localStorage.getItem('getDropoffCoords'));
+                        const newpickupPoint = {
+                            type: 'FeatureCollection',
+                            features: [
+                                {
+                                    type: 'Feature',
+                                    properties: {},
+                                    geometry: {
+                                        type: 'Point',
+                                        coordinates: [location.long, location.lat]
+                                    }
+                                }
+                            ]
+                        }
 
-                        // // if (a !== null && b !== null) {
-                        // //     try {
-                        // //         map.fitBounds([
-                        // //             pickupCoords,
-                        // //             dropoffCoords
-                        // //         ], { 
-                        // //             padding: 60 
-                        // //         });
-                        // //         document.querySelector(".map-form").classList.remove('active');
-                        // //         getRoute(pickupCoords);
-                        // //         this.awesome = true;
-                        // //     } catch(err) {
-                        // //         console.log(err);
-                        // //     }
-                        // // }
+                        if (map.getLayer('pickupPoint')) {
+                            map.getSource('pickupPoint').setData(newpickupPoint);
+                            map.flyTo({
+                                center: [location.long, location.lat],
+                                zoom: 15
+                            });
+                        } else {
+                            map.flyTo({
+                                center: [location.long, location.lat],
+                                zoom: 15
+                            });
+                            map.addSource('pickupPoint', {
+                                'type': 'geojson',
+                                'data': {
+                                    'type': 'FeatureCollection',
+                                    'features': [
+                                        {
+                                            'type': 'Feature',
+                                            'properties': {},
+                                            'geometry': {
+                                                'type': 'Point',
+                                                'coordinates': [location.long, location.lat]
+                                            }
+                                        }
+                                    ]
+                                }
+                            });
+                            map.addLayer({
+                                'id': 'pickupPoint',
+                                'type': 'symbol',
+                                'source': 'pickupPoint',
+                                'layout': {
+                                    'icon-image': 'pulsing-dot-a'
+                                }
+                            });
+                        }
+
+                        document.querySelector("#geocoder1 .mapboxgl-ctrl-geocoder--input").value = userAddress;
+
+                        const a = document.querySelector("#geocoder1 .mapboxgl-ctrl-geocoder--input").value;
+                        const b = document.querySelector("#geocoder2 .mapboxgl-ctrl-geocoder--input").value;
+
+                        const pickupCoords = [location.long, location.lat];
+                        const dropoffCoords = JSON.parse(localStorage.getItem('getDropoffCoords'));
+
+                        if (a !== null && b !== null) {
+                            try {
+                                map.fitBounds([
+                                    pickupCoords,
+                                    dropoffCoords
+                                ], { 
+                                    padding: 60 
+                                });
+                                document.querySelector(".map-form").classList.remove('active');
+                                getRoute(pickupCoords);
+                                this.awesome = true;
+                            } catch(err) {
+                                console.log(err);
+                            }
+                        }
 
                     }
 
@@ -552,14 +656,6 @@ export default {
                 map.resize();
                 localStorage.removeItem('getPickupCoords');
                 localStorage.removeItem('getDropoffCoords');
-                let loc = {
-                    name: local.getObject('customer_task').customer_location,
-                    long: local.getObject('customer_task').customer_location_coors_long,
-                    lat: local.getObject('customer_task').customer_location_coors_lat
-                };
-                if(loc.name == null) document.getElementById('currentlocation').click();
-                else this.locationPin(loc.name,loc.long,loc.lat);
-                
                 // getRoute(start);
                 // locate.trigger();
                 // const suggestWrapper = document.getElementsByClassName('suggestions-wrapper');
@@ -570,55 +666,18 @@ export default {
 
         });
 
-        
-
     }
-        
-    },
-    mounted(){
-        this.mapInit();
-    },
-    watch:{
-        $route(to){
-            if(to.path != '/customer/dashboard/location') return;
-            this.mapInit();
-        }
-        
-    }
-
-    
 };
 </script>
 
-
 <style scoped>
-.ion-page{min-height: 600px;}
-ion-content{--ion-background-color:#222;border-radius:20px 20px 0 0;overflow:hidden;--color:#fff}#map {
+#map {
     border: none;
     width: 100%;
     height: calc(100% - 156px);
     border-radius: 20px 20px 0 0;
     overflow: hidden;
 }
-
-ion-back-button{
-    color:#fff
-}
-
-
-ion-header{
-    background:#b7160b;
-    color:#fff;
-}
-ion-toolbar{
-    --background:#b7160b;
-}
-
-ion-title{
-    text-align: center;
-    padding: 20px;
-}
-
 
 ion-card {
     position: relative;
@@ -644,7 +703,6 @@ ion-text h2 {
     left: 0;
     right: 0;
     margin: auto;
-    min-height: 250px;
 }
 
 .map-form {
@@ -661,7 +719,7 @@ ion-text h2 {
 }
 
 .map-form.active {
-    padding: 0 15px 250px !important;
+    padding: 0 15px 100% !important;
     background: #fff;
     overflow: hidden;
     transform: none;
@@ -769,7 +827,7 @@ ion-button {
 	text-align: center;
 	line-height: 100%;
     transition: all 500ms ease-in-out;
-    /* border-radius: 20px 20px 0 0; */
+    border-radius: 20px 20px 0 0;
 }
 
 .travel-info h2 {
@@ -792,7 +850,4 @@ ion-button {
     height: 20px;
     margin-right: 10px;
 }
-
-ion-button{--background: #b7170b;color:#fff;--padding-top:20px;--padding-bottom:20px}
-
 </style>

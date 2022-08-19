@@ -15,7 +15,7 @@
             <ion-card-content>
                 <div class="col2">
                     <p>Location</p>
-                    <p>{{t.location_details}}</p>
+                    <p>{{t.customer_location}}</p>
                     <em>Created at {{date(t.created_at)}}</em>
                 </div>
                 <ion-button @click="viewDetails(t.id);$router.push('/technician/tasks/taskdetails');" class="viewbutton" expand="block">Findings</ion-button>

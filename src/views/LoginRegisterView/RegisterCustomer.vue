@@ -104,8 +104,10 @@ export default ({
                 openToast('Something went wrong...', 'danger');
                 deleteUser(userCred);
             }).then(res=>{ 
+                
                 if(res.data.msg === 'duplicate user'){ openToast('Account already exists!', 'danger');deleteUser(userCred);}
                 else{
+                    this.user.uid_hashed = auth.currentUser.uid;
                     console.log(res.data);   
                     openToast('Registration Successful!', 'success');
 

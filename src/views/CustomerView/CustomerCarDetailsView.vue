@@ -1,13 +1,13 @@
 <template>
     <ion-page>
-         <ion-header>
+         <ion-header v-if="$route.path == '/customer/dashboard/location/cardetails'">
             <ion-toolbar>
                 <ion-buttons slot="start">
                     <ion-back-button defaultHref="/customer/dashboard/location"></ion-back-button>
                 </ion-buttons>                
             </ion-toolbar>
         </ion-header>
-        <ion-content>
+        <ion-content v-if="$route.path == '/customer/dashboard/location/cardetails'">
             <div class="section">
                 <ion-title>Car Details</ion-title>
                 <small>Please choose the car that needs service<br /> and describe the problem.</small>
@@ -79,8 +79,7 @@ import {local, openToast,validateForm, axiosReq, removeFix} from '@/functions';
 import router from '@/router';
 import { ciapi } from '@/js/globals';
 import { push } from '@/firebase';
-
-
+import { sendNotification } from '@/functions-custom';
 
 export default({
     components:{
@@ -116,7 +115,12 @@ export default({
         }
     },
     mounted(){
+
+        // local.set('pageLoading',local.get('pageLoading') + 1);
+        // if(local.get('pageLoading') == 1) window.location.reload();
+        // else 
         this.loadVehicles(this.$route.path);
+
     },
     methods:{
         handleProblemChecklist(tech_types){
@@ -159,23 +163,7 @@ export default({
             local.setInObject('customer_task','problems', JSON.stringify(this.customer.problems));
             local.setInObject('customer_task','user_name', `${local.getObject('user_info').firstname} ${local.getObject('user_info').lastname}`);
 
-
-            //dummy locations
-
-            //dummy coors
-            local.setInObject('customer_task','emp_location','123 Street Employee Here, City, State 12345');
-            local.setInObject('customer_task','emp_location_coors_lat',10.000000);
-            local.setInObject('customer_task','emp_location_coors_long',10.000000);
-            
-           
-
-
-
-
-
             delete this.customer.more_information;
-
-
 
             axiosReq({
                 method: 'post',
@@ -191,30 +179,21 @@ export default({
                 console.log(res.data);
                 if(!res.data.success) return;
                 let task = removeFix(res.data.task_info,'task_'); 
-                router.push('/customer/dashboard/location/cardetails/booked');
+                
                 push(`pending_tasks/${task.id}`,task);
                 openToast('Request sent!', 'success');
+                local.setInObject('customer_task','task_id',task.id);
 
-                axiosReq({
-                    method: 'post',
-                    url: ciapi+'users/notifications/create',
-                    headers:{
-                        PWAuth: local.get('user_token'),
-                        PWAuthUser: local.get('user_id')
-                    },
-                    data:{
-                        title: 'Your request was successfully sent!',
-                        description: `RentARepair is currently looking for ${task.service_type.toLowerCase()}s that can cater your request.`,
-                        url: '/notification'
-                    }
-                }).catch(()=>{
+                sendNotification(
+                'Your request was successfully sent!',
+                `RentARepair is currently looking for ${task.service_type.toLowerCase()}s that can cater your request.`,
+                '/notification').catch(()=>{
                     openToast('Something went wrong...', 'danger');
-                }).then(res=>{
-                    let notif = removeFix(res.data.notif_info,'notif_');
-                    push(`notifications/${notif.id}`,notif);
-                })
+                }).then(()=>{
+                    router.push('/customer/dashboard/location/cardetails/waiting');
+                });
             
-            })
+            });
         },
         vehiclesearch(){
             if(this.vehicle_search == '') {this.vehicle_search_results = [...this.vehicles];return;}
@@ -239,6 +218,8 @@ export default({
     }
 });
 </script>
+
+
 
 <style scoped>
 h2{
@@ -267,6 +248,8 @@ ion-header::after{
     color: #b7170b;
     text-align: center;
 }
+
+
 
 .section small{
     font-size: 16px;
