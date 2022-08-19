@@ -251,6 +251,8 @@ export default {
   box-shadow: 0 0 0 0 #fff; /* This is where the magic happens! */
   left: 0;
 }
+
+
 .submit_btn::after{
     content: "";
     position: absolute;
