@@ -12,7 +12,17 @@ async function axiosReq(params){
 }
 
 
-
+function elementLoad(selector){
+    return new Promise(resolve=>{
+        var check = setInterval(function(){
+            if(document.querySelector(selector) != null){
+                clearInterval(check);
+                resolve(document.querySelector(selector));
+            }
+        }, 100);
+    })
+    
+}
 
 function optimizeImage(src){
     let cnv = document.createElement('canvas');
@@ -281,5 +291,6 @@ export {
     dateFormat,
     removeFix,
     toDataURL,
-    optimizeImage
+    optimizeImage,
+    elementLoad
 }; 

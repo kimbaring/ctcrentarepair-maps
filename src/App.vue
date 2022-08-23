@@ -35,7 +35,6 @@ export default ({
         "/verify-email",
         "/forgotpassword",
         "/register",
-        "/map",
         "/location-settings"
       ],
       interval: null,

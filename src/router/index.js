@@ -19,6 +19,11 @@ import CustomerCarDetailsView from "@/views/CustomerView/CustomerCarDetailsView.
 
 const routes = [
   {
+    path: '/map',
+    name: 'map',
+    component: ()=> import('@/views/UserMap.vue')
+  },
+  {
     path: '/',
     redirect: '/home'
   },
@@ -51,11 +56,11 @@ const routes = [
     name: 'RegisterTechnician',
     component: RegisterTechnician
   },
-  {
-    path: '/map',
-    name: 'map',
-    component: () => import('@/views/UserMap.vue'),
-  },
+  // {
+  //   path: '/map',
+  //   name: 'map',
+  //   component: () => import('@/views/UserMap.vue'),
+  // },
   {
     path: '/registerridesharer',
     name: 'RegisterRidesharer',

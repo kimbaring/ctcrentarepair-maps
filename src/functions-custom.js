@@ -27,6 +27,18 @@ function sendNotification(title,description,url){
         
 }
 
+function mapsData(long,lat,callback){
+    const accessToken = 'pk.eyJ1Ijoic3BlZWR5cmVwYWlyIiwiYSI6ImNsNWg4cGlzaDA3NTYzZHFxdm1iMTJ2cWQifQ.j_XBhRHLg-CcGzah7uepMA';
+    return axiosReq({
+        method: 'GET',
+        url: `https://api.mapbox.com/geocoding/v5/mapbox.places/${long},${lat}.json?access_token=${accessToken}`,
+    }).then(res=>{
+        callback(res.data);
+    })
+}
+
+
 export {
-    sendNotification
+    sendNotification,
+    mapsData
 };

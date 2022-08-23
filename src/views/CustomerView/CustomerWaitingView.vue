@@ -10,40 +10,23 @@
         </ion-header>
 
         <ion-content v-if="$route.path == '/customer/dashboard/location/cardetails/waiting'">
-        
-            <div id="map"></div>
-            <ion-card class="map-form" style="display: none;">
-                <div class="travel-info" v-show="awesome">
-                    <h2><ion-icon :icon="mapOutline" ></ion-icon> <span id="info1"></span></h2>
-                    <h2><ion-icon :icon="timerOutline"></ion-icon> <span id="info2"></span></h2>
-                </div>
-                <ion-card-header class="close">
-                    <span><ion-icon :icon="close"></ion-icon></span>
-                </ion-card-header>
-                <div id="geocoder" class="input-con">
-                    <div id="geocoder1">
-                        <ion-icon id="currentlocation" :icon="compass"></ion-icon>
-                    </div>
-                </div>
-                <ion-button id="ion-book" expand="block" @click="confirmloc">Confirm Location</ion-button>
-            </ion-card>
+            <MapComp
+            hideForm="true"
+            :pinPickupCoorsLong="pickupCoors[0]"
+            :pinPickupCoorsLat="pickupCoors[1]"
+            ></MapComp>
         </ion-content>
     </ion-page>
 </template>
 
 <script>
-import axios from 'axios';
-import { IonCard, IonCardHeader, IonButton, toastController, loadingController } from '@ionic/vue';
-import { locate, compass, navigateCircle, warning, close, mapOutline, timerOutline } from 'ionicons/icons';
+// import { IonCard, IonCardHeader, IonButton } from '@ionic/vue';
 // import { toFormData, send } from '../functions.js';
-import{local} from '@/functions.js';
-import mapboxgl from 'mapbox-gl';
-import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
-import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
+import{local, openToast} from '@/functions.js';
 import {db} from '@/firebase'
-import {ref, onValue} from 'firebase/database';
+import {ref, onValue,set } from 'firebase/database';
 import {sendNotification} from '@/functions-custom';
-
+import MapComp from '@/views/MapComp';
 // Website address
 // https://account.mapbox.com
 // username: speedyrepair
@@ -61,511 +44,16 @@ import {sendNotification} from '@/functions-custom';
 export default {
     name: "MapBox",
     components: {
-        IonCard,
-        IonCardHeader,
-        IonButton
+        MapComp
     },
     data() {
         return {
-            formResponse: null,
-            address: '',
-            focused: false,
-            awesome: false,
-            bookRequest: false,
-            bookResponse: null,
-            map:null,
-            pulsingDot:null
+            pickupCoors: [],
         }
     },
-    setup() {
-        return { locate, compass, navigateCircle, warning, close, mapOutline, timerOutline };
-    },
-    methods: {
-        async openToast() {
-            try {
-                await toastController.dismiss();
-            } catch(e) {
-                console.log(e);
-            }
-
-            if (this.formResponse === "User denied geolocation prompt") {
-                this.color = 'primary';
-                this.icon = warning;
-            }
-            if (this.formResponse === "Origin does not have permission to use Geolocation service") {
-                this.color = 'dark';
-                this.icon = warning;
-            }
-
-            const toast = await toastController
-                .create({
-                    message: this.formResponse,
-                    position: 'top',
-                    color: this.color,
-                    icon: this.icon,
-                    cssClass: 'custom-toast',
-                    duration: 10000
-                })
-            return toast.present();
-        },
-        async openLoader() {
-            const loading = await loadingController
-                .create({
-                    message: 'Looking for drivers around your area',
-                    duration: 500000
-                });
-            return loading.present();
-        },
-        locationPin(placeName,long,lat){
-            const map = this.map;
-            if (map.hasImage('pulsing-dot-a')) map.removeImage('pulsing-dot-a');
-                            map.addImage('pulsing-dot-a', this.pulsingDot, { pixelRatio: 2 });
-
-                            var userAddress = placeName;
-                            let getPickupCoords = [long, lat];
-                            localStorage.setItem('getPickupCoords', JSON.stringify(getPickupCoords));
-                            localStorage.setItem('getPickupLocation', JSON.stringify(userAddress));
-
-                            const newpickupPoint = {
-                                type: 'FeatureCollection',
-                                features: [
-                                    {
-                                        type: 'Feature',
-                                        properties: {},
-                                        geometry: {
-                                            type: 'Point',
-                                            coordinates: [long, lat]
-                                        }
-                                    }
-                                ]
-                            }
-
-                            if (map.getLayer('pickupPoint')) {
-                                map.getSource('pickupPoint').setData(newpickupPoint);
-                                map.flyTo({
-                                    center: [long, lat],
-                                    zoom: 15
-                                });
-                            } else {
-                                map.flyTo({
-                                    center: [long, lat],
-                                    zoom: 15
-                                });
-                                map.addSource('pickupPoint', {
-                                    'type': 'geojson',
-                                    'data': {
-                                        'type': 'FeatureCollection',
-                                        'features': [
-                                            {
-                                                'type': 'Feature',
-                                                'properties': {},
-                                                'geometry': {
-                                                    'type': 'Point',
-                                                    'coordinates': [long, lat]
-                                                }
-                                            }
-                                        ]
-                                    }
-                                });
-                                map.addLayer({
-                                    'id': 'pickupPoint',
-                                    'type': 'symbol',
-                                    'source': 'pickupPoint',
-                                    'layout': {
-                                        'icon-image': 'pulsing-dot-a'
-                                    }
-                                });
-                            }
-
-
-            document.querySelector('.mapboxgl-ctrl-geocoder--input').value = placeName;
-        },
-    mapInit() {
-
-        mapboxgl.accessToken = 'pk.eyJ1Ijoic3BlZWR5cmVwYWlyIiwiYSI6ImNsNWg4cGlzaDA3NTYzZHFxdm1iMTJ2cWQifQ.j_XBhRHLg-CcGzah7uepMA';
-
-        const getLocation = () => new Promise(
-            (resolve, reject) => {
-                window.navigator.geolocation.getCurrentPosition(
-                    position => {
-                        const location = {
-                            lat:position.coords.latitude,
-                            long:position.coords.longitude
-                        };
-                        resolve(location); // Resolve with location. location can now be accessed in the .then method.
-                    },
-                    err => {
-                        this.formResponse = `${err.message}`;
-                        this.openToast();
-                        reject(err) // Reject with err. err can now be accessed in the .catch method.
-                    }
-                );
-            }
-        );
-
-        getLocation().then(location => { // Initiate getLocation function
-            const map = new mapboxgl.Map({
-                container: 'map',
-                style: 'mapbox://styles/speedyrepair/cl5h8u6it000116omwkioew0k',
-                center: [location.long, location.lat],
-                // center: [-122.662323, 45.523751],
-                zoom: 12
-            });
-            
-
-            this.map = map;
-            // Initialize the geolocate control.
-            const locate = new mapboxgl.GeolocateControl({
-                geolocation: window.navigator.geolocation,
-                positionOptions: {
-                    enableHighAccuracy: true
-                },
-                showUserHeading: true,
-                showUserLocation: true,
-                trackUserLocation: true
-            });
-
-            // Add the geolocate control to the map.
-            map.addControl(locate);
-
-            axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${location.long},${location.lat}.json?access_token=${mapboxgl.accessToken}`)
-                .then(({data}) => {
-                    console.log(data);
-                    var userCountry = data.features[5].properties.short_code;
-                    var userOutbound = data.features[5].bbox;
-
-                    // Initialize the geocoder controls.
-                    const geocoder1 = new MapboxGeocoder({
-                        accessToken: mapboxgl.accessToken,
-                        placeholder: 'Pick Up Address',
-                        countries: userCountry,
-                        bbox: userOutbound,
-                        limit: 10,
-                        mapboxgl: mapboxgl
-                    });
-
-               
-
-                    // Add the geocoder controls to the map.
-                    geocoder1.addTo('#geocoder1');
-
-                    let input1 = document.querySelectorAll('#geocoder input');
-
-                    input1.forEach(i => {
-                        i.addEventListener('click', function() {
-                            document.querySelector(".map-form").classList.add('active');
-                        });
-                    });
-
-                    let input2 = document.querySelectorAll('.close');
-
-                    input2.forEach(i => {
-                        i.addEventListener('click', function() {
-                            document.querySelector(".map-form").classList.remove('active');
-                        });
-                    });
-
-                    const size = 130;
- 
-                    // This implements `StyleImageInterface`
-                    // to draw a pulsing dot icon on the map.
-                    const pulsingDot = {
-                            width: size,
-                            height: size,
-                            data: new Uint8Array(size * size * 4),
-                        
-                        // When the layer is added to the map,
-                        // get the rendering context for the map canvas.
-                        onAdd: function () {
-                            const canvas = document.createElement('canvas');
-                            canvas.width = this.width;
-                            canvas.height = this.height;
-                            this.context = canvas.getContext('2d');
-                        },
-                        
-                        // Call once before every frame where the icon will be used.
-                        render: function () {
-                            const duration = 1000;
-                            const t = (performance.now() % duration) / duration;
-                            
-                            const radius = (size / 2) * 0.3;
-                            const outerRadius = (size / 2) * 0.7 * t + radius;
-                            const context = this.context;
-                            
-                            // Draw the outer circle.
-                            context.clearRect(0, 0, this.width, this.height);
-                            context.beginPath();
-                            context.arc(
-                            this.width / 2,
-                            this.height / 2,
-                            outerRadius,
-                            0,
-                            Math.PI * 2
-                            );
-                            context.fillStyle = `rgba(183, 22, 11, ${1 - t})`;
-                            context.fill();
-                            
-                            // Draw the inner circle.
-                            context.beginPath();
-                            context.arc(
-                            this.width / 2,
-                            this.height / 2,
-                            radius,
-                            0,
-                            Math.PI * 2
-                            );
-                            context.fillStyle = 'rgba(183, 22, 11, 1)';
-                            context.strokeStyle = 'white';
-                            context.lineWidth = 2 + 4 * (1 - t);
-                            context.fill();
-                            context.stroke();
-                            
-                            // Update this image's data with data from the canvas.
-                            this.data = context.getImageData(
-                            0,
-                            0,
-                            this.width,
-                            this.height
-                            ).data;
-                            
-                            // Continuously repaint the map, resulting
-                            // in the smooth animation of the dot.
-                            map.triggerRepaint();
-                            
-                            // Return `true` to let the map know that the image was updated.
-                            return true;
-                        }
-                    };
-
-                    this.pulsingDot = pulsingDot;
-
-                    geocoder1.on('result', e => {
-                        if (map.hasImage('pulsing-dot-a')) map.removeImage('pulsing-dot-a');
-                        map.addImage('pulsing-dot-a', pulsingDot, { pixelRatio: 2 });
-
-                        console.log(e);
-                        let getPickupCoords = e.result.center;
-                        let getPickupLocation = e.result.place_name;
-                        localStorage.setItem('getPickupCoords', JSON.stringify(getPickupCoords));
-                        localStorage.setItem('getPickupLocation', JSON.stringify(getPickupLocation));
-
-                        const newpickupPoint = {
-                            type: 'FeatureCollection',
-                            features: [
-                                {
-                                    type: 'Feature',
-                                    properties: {},
-                                    geometry: {
-                                        type: 'Point',
-                                        coordinates: e.result.center
-                                    }
-                                }
-                            ]
-                        }
-
-                        if (map.getLayer('pickupPoint')) {
-                            map.getSource('pickupPoint').setData(newpickupPoint);
-                            map.flyTo({
-                                center: e.result.center,
-                                zoom: 15
-                            });
-                        } else {
-                            map.flyTo({
-                                center: e.result.center,
-                                zoom: 15
-                            });
-                            map.addSource('pickupPoint', {
-                                'type': 'geojson',
-                                'data': {
-                                    'type': 'FeatureCollection',
-                                    'features': [
-                                        {
-                                            'type': 'Feature',
-                                            'properties': {},
-                                            'geometry': {
-                                                'type': 'Point',
-                                                'coordinates': e.result.center
-                                            }
-                                        }
-                                    ]
-                                }
-                            });
-                            map.addLayer({
-                                'id': 'pickupPoint',
-                                'type': 'symbol',
-                                'source': 'pickupPoint',
-                                'layout': {
-                                    'icon-image': 'pulsing-dot-a'
-                                }
-                            });
-                        }
-                        
-                        const pickupCoords = JSON.parse(localStorage.getItem('getPickupCoords'));
-                        const dropoffCoords = JSON.parse(localStorage.getItem('getDropoffCoords'));
-
-                        if (pickupCoords !== null && dropoffCoords !== null) {
-                            try {
-                                map.fitBounds([
-                                    pickupCoords,
-                                    dropoffCoords
-                                ], { 
-                                    padding: 80
-                                });
-                                document.querySelector(".map-form").classList.remove('active');
-                                getRoute(pickupCoords);
-                                this.awesome = true;
-                            } catch(err) {
-                                console.log(err);
-                            }
-                        }
-
-                    });
-
-                    
-                    // let coordinates;
-
-                    // if (navigator.geolocation) {
-                    //     navigator.geolocation.getCurrentPosition(function(position) {
-                    //         coordinates = [position.coords.latitude, position.coords.longitude];
-                    //         console.log(coordinates);
-
-                    //         map.flyTo({
-                    //             center: [
-                    //                 position.coords.longitude,
-                    //                 position.coords.latitude
-                    //         ],
-                    //             essential: true // this animation is considered essential with respect to prefers-reduced-motion
-                    //         });
-
-                    //     });
-                    // } else {
-                    //     map.flyTo({
-                    //         center: [
-                    //             -122.662323,
-                    //             45.523751
-                    //     ],
-                    //         essential: true // this animation is considered essential with respect to prefers-reduced-motion
-                    //     });
-                    // }
-
-                    document.getElementById('currentlocation').onclick = ()=>{
-                        // locate.trigger();
-                        
-                        this.locationPin(data.features[0].place_name,location.long,location.lat);
-                        document.querySelector("#geocoder1 .mapboxgl-ctrl-geocoder--input").value = data.features[0].place_name;
-
-                        // const a = document.querySelector("#geocoder1 .mapboxgl-ctrl-geocoder--input").value;
-                        // // const b = document.querySelector("#geocoder2 .mapboxgl-ctrl-geocoder--input").value;
-
-                        // // const pickupCoords = [location.long, location.lat];
-                        // // const dropoffCoords = JSON.parse(localStorage.getItem('getDropoffCoords'));
-
-                        // // if (a !== null && b !== null) {
-                        // //     try {
-                        // //         map.fitBounds([
-                        // //             pickupCoords,
-                        // //             dropoffCoords
-                        // //         ], { 
-                        // //             padding: 60 
-                        // //         });
-                        // //         document.querySelector(".map-form").classList.remove('active');
-                        // //         getRoute(pickupCoords);
-                        // //         this.awesome = true;
-                        // //     } catch(err) {
-                        // //         console.log(err);
-                        // //     }
-                        // // }
-
-                    }
-
-                    // create a function to make a directions request
-                    async function getRoute() {
-                        // make a directions request using driving profile
-                        const pickupCoords = JSON.parse(localStorage.getItem('getPickupCoords'));
-                        const dropoffCoords = JSON.parse(localStorage.getItem('getDropoffCoords'));
-                        const query = await fetch(
-                            `https://api.mapbox.com/directions/v5/mapbox/driving/${pickupCoords[0]},${pickupCoords[1]};${dropoffCoords[0]},${dropoffCoords[1]}?steps=true&geometries=geojson&access_token=${mapboxgl.accessToken}`,
-                            { method: 'GET' }
-                        );
-                        const json = await query.json();
-                        const data = json.routes[0];
-                        const route = data.geometry.coordinates;
-                        const geojson = {
-                            type: 'Feature',
-                            properties: {},
-                            geometry: {
-                                type: 'LineString',
-                                coordinates: route
-                            }
-                        };
-                        console.log(data);
-                        
-                        if (map.getSource('route')) { // if the route already exists on the map, we'll reset it using setData
-                            map.getSource('route').setData(geojson);
-                        }
-                        else { // otherwise, we'll make a new request
-                            map.addLayer({
-                            id: 'route',
-                            type: 'line',
-                            source: {
-                                type: 'geojson',
-                                data: geojson
-                            },
-                            layout: {
-                                'line-join': 'round',
-                                'line-cap': 'round'
-                            },
-                            paint: {
-                                'line-color': '#b7160b',
-                                'line-width': 4,
-                                'line-opacity': 1
-                            }
-                            });
-                        }
-
-                        let getKm = data.distance / 1000; // convert meters to kilometers
-
-                        const info1 = document.getElementById('info1');
-                        const info2 = document.getElementById('info2');
-                        info1.innerHTML = `${Math.floor(data.duration / 60)} min ride`;
-                        info2.innerHTML = `${getKm.toFixed(1) + " km"}`;
-
-                        localStorage.setItem('getKm', JSON.stringify(getKm));
-
-                    }
-
-            });
-
-            map.on('style.load', () => {
-                map.resize();
-                localStorage.removeItem('getPickupCoords');
-                localStorage.removeItem('getDropoffCoords');
-                let loc = {
-                    name: local.getObject('customer_task').customer_location,
-                    long: local.getObject('customer_task').customer_location_coors_long,
-                    lat: local.getObject('customer_task').customer_location_coors_lat
-                };
-                if(loc.name == null) document.getElementById('currentlocation').click();
-                else this.locationPin(loc.name,loc.long,loc.lat);
-                
-                // getRoute(start);
-                // locate.trigger();
-                // const suggestWrapper = document.getElementsByClassName('suggestions-wrapper');
-                // const div1 = suggestWrapper[0];
-                // const div2 = suggestWrapper[1];
-                // document.getElementById('geocoder').appendChild(div1, div2);
-            });
-
-        });
-
-        
-
-    }
-        
-    },
     mounted(){
-        this.mapInit();
-
+        this.pickupCoors = [local.getObject('customer_task').customer_location_coors_long,local.getObject('customer_task').customer_location_coors_lat];
+        console.log(this.pickupCoors);
         onValue(ref(db,`/pending_tasks/${local.getObject('customer_task').task_id}`),snapshot=>{
             if(snapshot.exists()){
                 let snap = snapshot.val()
@@ -582,12 +70,26 @@ export default {
                 }
             }
         })
-    },
-    watch:{
-        $route(to){
-            if(to.path != '/customer/dashboard/location') return;
-            this.mapInit();
-        }
+
+        
+        // mock-up accept
+
+        // openToast('Simulating accept function in 5s with 20 W 34th St., New York, NY 10001, USA as mock up location','success');
+        // setTimeout(() => {
+        //     set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/status'),2);
+        //     set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/emp_location_coors_long'),73.9857);
+        //     set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/emp_location_coors_lat'),40.7484);
+        //     set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/accepted_by_id'),local.get('user_id'));
+        // }, 5000);
+
+         openToast('Simulating accept function in 5s with Lapu-Lapu Airport Rd, Lapu-Lapu City, 6016 Cebu, Philippines as mock up location','success');
+        setTimeout(() => {
+            set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/status'),2);
+            set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/emp_location_coors_long'),123.9802);
+            set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/emp_location_coors_lat'),10.3107);
+            set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/accepted_by_id'),local.get('user_id'));
+        }, 5000);
+
         
     }
 

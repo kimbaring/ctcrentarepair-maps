@@ -51,7 +51,6 @@ import { locate, compass, navigateCircle, warning, close, mapOutline, timerOutli
 // import { toFormData, send } from '../functions.js';
 import {local,axiosReq,removeFix} from '@/functions';
 import {ciapi} from '@/js/globals';
-import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 
 // Website address
 // https://account.mapbox.com
@@ -113,25 +112,23 @@ export default {
             return [totalFee,distanceFee,bookFee,vatFee];
         },
         async getRoute(pickup,dropoff){
+            console.log(pickup);
+            console.log(dropoff);
             const pickupCoords = pickup;
             const dropoffCoords = dropoff;
             const token = 'pk.eyJ1Ijoic3BlZWR5cmVwYWlyIiwiYSI6ImNsNWg4cGlzaDA3NTYzZHFxdm1iMTJ2cWQifQ.j_XBhRHLg-CcGzah7uepMA';
-            const query = await fetch(
-                `https://api.mapbox.com/directions/v5/mapbox/driving/${pickupCoords[0]},${pickupCoords[1]};${dropoffCoords[0]},${dropoffCoords[1]}?steps=true&geometries=geojson&access_token=${token}`,
-                { method: 'GET' }
-            );
-            const json = await query.json();
-            const data = json.routes[0];
-            console.log(data);
-
-
-            this.km = (data.distance / 1000).toFixed(1); // convert meters to kilometers
-            this.mins = Math.floor(data.duration / 60);
+            axiosReq({   
+                method:'get',
+                url:`https://api.mapbox.com/directions/v5/mapbox/driving/${pickupCoords[0]},${pickupCoords[1]};${dropoffCoords[0]},${dropoffCoords[1]}?steps=true&geometries=geojson&access_token=${token}`,
+            }).then(res=>{
+                this.km = (res.data.routes[0].distance / 1000).toFixed(1); // convert meters to kilometers
+                this.mins = Math.floor(res.data.routes[0].duration / 60);
+            });
+            
 
         }
     },
     mounted() {
-        console.log(local.getObject('customer_task'));
         axiosReq({
             method:'post',
             url: ciapi+'users?user_id='+local.getObject('customer_task').accepted_by_id,
