@@ -125,16 +125,18 @@ export default ({
                         console.log(err.response);
                         openToast('Something went wrong...', 'danger');
                     }).then(result=>{
-                        openToast('Login Successful', 'success');
-                        local.set('user_id',result.data.user_id);
-                        local.set('user_token',result.data.token);
-                        local.setObject('user_info', result.data.info);
-                        local.set('user_new',true);
+                        
                         if(result.data.msg === 'user not found') openToast('User not registered!', 'danger');
                         if(needEmailVerif && result.data.msg === 'user not verified') openToast('User not verified!', 'danger');
                         if(result.data.msg === 'user deactivated') openToast('User deactivated!', 'danger');
                         if(result.data.msg === 'wrong password') openToast('Wrong password!', 'danger');
                         if(result.data.success){   
+                            openToast('Login Successful', 'success');
+                            local.set('user_id',result.data.user_id);
+                            local.set('user_token',result.data.token);
+                            local.setObject('user_info', result.data.info);
+                            local.set('user_new',true);
+                            
                             router.replace('/addcarnewuser');
                         }
                     });

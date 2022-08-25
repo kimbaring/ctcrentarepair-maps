@@ -19,7 +19,7 @@
                     <span>Customer ID</span>
                     <span>{{task_info.user_id}}</span>
                     <ion-button router-link="/technician/tasks/taskdetail">Task Details</ion-button>
-                    <ion-button>Chat</ion-button>
+                    <ion-button router-link="/technician/tasks/taskdetails/location/chat">Chat</ion-button>
                 </div>
             </div>
         </ion-content>
@@ -322,6 +322,7 @@ export default {
     mounted(){
         this.mapInit();
         this.task_info = local.getObject('accepted_task');
+        local.set('chat_id', this.task_info.id);
     },
     watch:{
         $route(to){

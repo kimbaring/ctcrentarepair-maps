@@ -1,21 +1,14 @@
 <template>
-    <ion-page class="locationPage" >
-        <ion-header v-if="$route.path == '/customer/dashboard/location'">
-            <ion-toolbar>
-                <ion-buttons slot="start">
-                    <ion-back-button defaultHref="/customer/dashboard/location"></ion-back-button>
-                </ion-buttons>                
-            </ion-toolbar>
-            <ion-title>Pin your location</ion-title>
-        </ion-header>
-
+    <ion-page>
         <ion-content v-if="$route.path == '/customer/dashboard/location'">
+            <h3>Pin your location</h3>
             <MapComp
                 @pickup-coors="(n)=>pickupCoors = n"
-                @dropoff-coors="(n)=>dropoffCoors = n"
+                @dropoff-coors="(n)=>{dropoffCoors = n;}"
                 @current-coors="setCurrentCoors"
-                
-                hideDestination="true"
+
+                :displayRoute="displayRoute"
+                :hideDestination="(serviceType != 'Ride Sharer')"
                 :pinPickupCoorsLong="setCoors[0]"
                 :pinPickupCoorsLat="setCoors[1]"
             ></MapComp>
@@ -30,8 +23,11 @@
 import { IonButton } from '@ionic/vue';
 import { locate, compass, navigateCircle, warning, close, mapOutline, timerOutline } from 'ionicons/icons';
 import MapComp from '@/views/MapComp';
-import {local} from '@/functions';
-import {mapsData} from '@/functions-custom'
+import {local,openToast,axiosReq,removeFix} from '@/functions';
+import {sendNotification} from '@/functions-custom';
+import {mapsData} from '@/functions-custom';
+import {ciapi} from '@/js/globals';
+import {push} from '@/firebase';
 // import { toFormData, send } from '../functions.js';
 
 // Website address
@@ -58,11 +54,18 @@ export default {
         return {
             setCoors:[],
             pickupCoors: [],
-            dropoffCoors: []
+            dropoffCoors: [],
+            serviceType: local.getObject('customer_task').service_type,
+            displayRoute: false
+        }
+    },
+    watch:{
+        $dropoffCoors(){
+            console.log('test');    
         }
     },
     mounted(){
-        console.log(this.setCoors);
+        local.set('task_linear_path', '/customer/dashboard/location');
     },
     setup() {
         return { locate, compass, navigateCircle, warning, close, mapOutline, timerOutline };
@@ -72,15 +75,66 @@ export default {
             this.setCoors = [n.long,n.lat]
         },
         submit(){
-            console.log(this.pickupCoors);
+            if(this.pickupCoors.length != 2){
+                openToast('Please pin your location!','danger')
+                return;
+            }
+
             mapsData(this.pickupCoors[0],this.pickupCoors[1],res=>{
                 local.setInObject('customer_task','customer_location',res.features[0].place_name);
                 local.setInObject('customer_task','customer_location_coors_lat',this.pickupCoors[1]);
                 local.setInObject('customer_task','customer_location_coors_long',this.pickupCoors[0]);
-
-                this.$router.push('/customer/dashboard/location/cardetails');
             })
+
+            if(this.serviceType == 'Ride Sharer'){
+                if(this.dropoffCoors.length != 2) {
+                    openToast('Please pin your destination!','danger')
+                    return;
+                }
+                
+                mapsData(this.dropoffCoors[0],this.dropoffCoors[1],res=>{
+                    local.setInObject('customer_task','drop_location',res.features[0].place_name);
+                    local.setInObject('customer_task','drop_location_coors_lat',this.dropoffCoors[1]);
+                    local.setInObject('customer_task','drop_location_coors_long',this.dropoffCoors[0]);
+                    local.setInObject('customer_task','user_name', `${local.getObject('user_info').firstname} ${local.getObject('user_info').lastname}`);
+
+                    axiosReq({
+                        method: 'post',
+                        url: ciapi+'task/create',
+                        headers:{
+                            PWAuth: local.get('user_token'),
+                            PWAuthUser: local.get('user_id')
+                        },
+                        data: local.getObject('customer_task')
+                    }).catch(()=>{
+                        openToast('Something went wrong', 'danger');    
+                    }).then(res=>{
+                        console.log(res.data);
+                        if(!res.data.success) return;
+                        let task = removeFix(res.data.task_info,'task_');                           
+                        
+                        push(`pending_tasks/${task.id}`,task);
+                        openToast('Request sent!', 'success');
+                        local.setInObject('customer_task','task_id',task.id);
+
+                        sendNotification(
+                        'Your request was successfully sent!',
+                        `RentARepair is currently looking for ride sharers that can cater your request.`,
+                        '/notification').catch(()=>{
+                            openToast('Something went wrong...', 'danger');
+                        }).then(()=>{
+                            this.$router.push('/customer/dashboard/location/cardetails/waiting');
+                        });
+                    
+                    });
+                })
+
+                
+
+                return;
+            }
             
+            this.$router.push('/customer/dashboard/location/cardetails');
         }
     }
     
@@ -98,6 +152,19 @@ ion-content{border-radius:20px 20px 0 0;overflow:hidden;--color:#fff}#map {
     overflow: hidden;
 }
 
+ion-content h3{
+    margin: 0;
+    text-align: center;
+    position: absolute;
+    z-index: 200;
+    background: #b7160b;
+    width: max-content;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px;
+    border-radius: 10px;
+}
 
 ion-header{
     background:#b7160b;

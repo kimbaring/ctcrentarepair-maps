@@ -144,7 +144,7 @@ const routes = [
       },
       {
         path: "/customer/dashboard/location/cardetails/booked/chat",
-        component: () => import("@/views/ChatView/ChatView.vue")
+        component: () => import("@/views/ChatRider.vue")
       },
       {
         path: "/customer/mycar/editcar",
@@ -183,6 +183,10 @@ const routes = [
       {
         path: '/technician/tasks/taskdetails/location',
         component: () => import('@/views/TechnicianView/TechnicianTaskLocationView.vue')
+      },
+      {
+        path: '/technician/tasks/taskdetails/location/chat',
+        component: () => import('@/views/ChatRider.vue')
       },
       {
         path: '/technician/transactionhistory',

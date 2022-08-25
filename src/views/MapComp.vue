@@ -23,7 +23,7 @@
 
 <script defer>
 import {IonCard,IonCardHeader,IonIcon} from '@ionic/vue';
-import {compass,navigateCircle} from 'ionicons/icons';
+import {compass,navigateCircle,close} from 'ionicons/icons';
 import axios from 'axios';  
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
@@ -38,12 +38,15 @@ export default({
         IonIcon
     },
     setup() {
-        return { compass,navigateCircle };
+        return { compass,navigateCircle,close };
     },
     data(){
         return{
             awesome: null,
             map: null,
+
+            pickupCoors: [],
+            dropoffCoors: []
 
         }
     },
@@ -52,12 +55,24 @@ export default({
     },
     watch:{
         map(){
-            if(this.pinPickupCoorsLong != null && this.pinPickupCoorsLat != null) this.pin(this.pinPickupCoorsLong,this.pinPickupCoorsLat,'a')
-            if(this.pinDropoffCoorsLong != null && this.pinDropoffCoorsLat != null) this.pin(this.pinDropoffCoorsLong,this.pinDropoffCoorsLat,'b')
+            if(this.pinPickupCoorsLong != null && this.pinPickupCoorsLat != null) {
+                this.pin(this.pinPickupCoorsLong,this.pinPickupCoorsLat,'a');
+                this.pickupCoors = [this.pinPickupCoorsLong,this.pinPickupCoorsLat];
+            }
+            if(this.pinDropoffCoorsLong != null && this.pinDropoffCoorsLat != null) {
+                this.pin(this.pinDropoffCoorsLong,this.pinDropoffCoorsLat,'b')
+                this.dropoffCoors = [this.pinDropoffCoorsLong,this.pinDropoffCoorsLat];
+            }   
         },
         $route(){
-            if(this.pinPickupCoorsLong != null && this.pinPickupCoorsLat != null) this.pin(this.pinPickupCoorsLong,this.pinPickupCoorsLat,'a')
-            if(this.pinDropoffCoorsLong != null && this.pinDropoffCoorsLat != null) this.pin(this.pinDropoffCoorsLong,this.pinDropoffCoorsLat,'b')
+            if(this.pinPickupCoorsLong != null && this.pinPickupCoorsLat != null) {
+                this.pin(this.pinPickupCoorsLong,this.pinPickupCoorsLat,'a');
+                this.pickupCoors = [this.pinPickupCoorsLong,this.pinPickupCoorsLat];
+            }
+            if(this.pinDropoffCoorsLong != null && this.pinDropoffCoorsLat != null) {
+                this.pin(this.pinDropoffCoorsLong,this.pinDropoffCoorsLat,'b')
+                this.dropoffCoors = [this.pinDropoffCoorsLong,this.pinDropoffCoorsLat];
+            }
         }
     },
     methods:{
@@ -116,6 +131,7 @@ export default({
             }
             else if(pinFix == 'b'){
                 this.$emit('dropoffCoors',[long,lat]);
+                this.getRoute(this.pickupCoors,[long,lat])
                 mapsData(long,lat,res=>{
                     if(document.querySelector("#geocoder2 .mapboxgl-ctrl-geocoder--input")) 
                     document.querySelector("#geocoder2 .mapboxgl-ctrl-geocoder--input").value = res.features[0].place_name;
@@ -596,7 +612,7 @@ ion-button {
     border: none;
     width: 100%;
     min-height: 600px;
-    height: calc(100vh - 150px);
+    height: calc(100vh - 200px);
     border-radius: 20px 20px 0 0;
     overflow: hidden;
 }

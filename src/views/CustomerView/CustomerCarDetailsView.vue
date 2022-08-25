@@ -119,6 +119,7 @@ export default({
         // local.set('pageLoading',local.get('pageLoading') + 1);
         // if(local.get('pageLoading') == 1) window.location.reload();
         // else 
+        local.set('task_linear_path', '/customer/dashboard/location/cardetails');
         this.loadVehicles(this.$route.path);
 
     },

@@ -52,22 +52,31 @@ export default {
         }
     },
     mounted(){
+        local.set('task_linear_path', '/customer/dashboard/location/cardetails/waiting');
+        local.set('pageLoading', 0);    
         this.pickupCoors = [local.getObject('customer_task').customer_location_coors_long,local.getObject('customer_task').customer_location_coors_lat];
         console.log(this.pickupCoors);
         onValue(ref(db,`/pending_tasks/${local.getObject('customer_task').task_id}`),snapshot=>{
             if(snapshot.exists()){
-                let snap = snapshot.val()
-                if(snap.status > 1 && snap.emp_location_coors_long != null){
-                    local.setInObject('customer_task','emp_location_coors_long', snap.emp_location_coors_long);
-                    local.setInObject('customer_task','emp_location_coors_lat', snap.emp_location_coors_lat);
-                    local.setInObject('customer_task','accepted_by_id', snap.accepted_by_id);
+                let snap = snapshot.val();
+                
+
+                if(snap.status > 1 && snap.emp_location_coors_long != null && local.getObject('customer_task').emp_location_coors_long == null){    
                     sendNotification(
                         'Your request has been accepted!',
                         `Please wait patiently for your ${local.getObject('customer_task').service_type} to arrive...`,
                         '/notifications');
-                    
-                    this.$router.push('/customer/dashboard/location/cardetails/waiting/booked');
                 }
+
+                local.setInObject('customer_task','accepted_by_id', snap.accepted_by_id);
+                local.setInObject('customer_task','emp_location_coors_lat', snap.emp_location_coors_lat);
+                local.setInObject('customer_task','emp_location_coors_long', snap.emp_location_coors_long);
+
+                if(local.getObject('customer_task').emp_location_coors_long != null) this.$router.push('/customer/dashboard/location/cardetails/waiting/booked');
+
+                
+                
+                
             }
         })
 
@@ -100,13 +109,7 @@ export default {
 
 <style scoped>
 .ion-page{min-height: 600px;}
-ion-content{--ion-background-color:#222;border-radius:20px 20px 0 0;overflow:hidden;--color:#fff}#map {
-    border: none;
-    width: 100%;
-    height: calc(100% - 156px);
-    border-radius: 20px 20px 0 0;
-    overflow: hidden;
-}
+ion-content{--ion-background-color:#222;border-radius:20px 20px 0 0;overflow:hidden;--color:#fff}
 
 ion-back-button{
     color:#fff

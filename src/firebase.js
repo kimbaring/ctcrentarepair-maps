@@ -2,7 +2,8 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, set} from "firebase/database";
 import { getStorage } from "firebase/storage";
-import { getAuth } from 'firebase/auth';
+import { getAuth, indexedDBLocalPersistence, initializeAuth } from 'firebase/auth';
+import { Capacitor } from "@capacitor/core";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -23,7 +24,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase();
 const storage =  getStorage();
-const auth = getAuth(app);
+let authN;
+
+if (Capacitor.isNativePlatform()){
+  authN = initializeAuth(app, {
+    persistence: indexedDBLocalPersistence
+  })
+}else{
+  authN = getAuth()
+}
+
+const auth = authN;
 
 function pull(path){return ref(db,path);}
 function push(path,value){

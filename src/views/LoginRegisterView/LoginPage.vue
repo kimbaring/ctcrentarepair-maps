@@ -13,10 +13,15 @@
             <ion-input v-model="password" type="password" placeholder="Password"></ion-input>
             <div class="buttonflex">
                 <section>
-                <ion-button v-on:click="login" class="loginbutton" expand="block">Log in</ion-button>
+                  <ion-button v-on:click="login" class="loginbutton" expand="block">
+                    <span v-if="!formLoading">Login</span>
+                    <span v-if="formLoading">
+                        <ion-spinner name="dots"></ion-spinner>
+                    </span>
+                  </ion-button>
                 </section>
                 <section>
-                <ion-button @click="$router.push('/register')" class="signupbutton" expand="block">Register</ion-button>
+                  <ion-button @click="$router.push('/register')" class="signupbutton" expand="block">Register</ion-button>
                 </section>
             </div>
             <section>
@@ -30,12 +35,12 @@
 </template>
 
 <script>
-import { IonContent, IonPage, IonCard,IonCardHeader,IonCardContent,IonButton,IonInput} from '@ionic/vue';
+import { IonContent, IonPage, IonCard,IonCardHeader, IonCardContent, IonButton, IonInput, IonSpinner } from '@ionic/vue';
 import { axiosReq, validateForm,openToast, local } from '@/functions';
 import router from '@/router';
 import { ciapi, needEmailVerif } from '@/js/globals';
 import{ signInWithEmailAndPassword } from 'firebase/auth';
-import {auth} from '@/firebase';
+import { auth } from '@/firebase';
 
 export default ({
   name: 'LoginPage',
@@ -46,12 +51,14 @@ export default ({
     IonCardHeader,
     IonCardContent,
     IonButton,
-    IonInput
+    IonInput,
+    IonSpinner
   },
   data(){
     return{
       loginInput: "",
-      password: ""
+      password: "",
+      formLoading: false,
     };
   },
   methods:{
@@ -64,6 +71,8 @@ export default ({
       
       const valid = validateForm(input,rules);
       if(!valid.allValid) return;
+      
+      this.formLoading = true;
 
       signInWithEmailAndPassword(auth, this.loginInput, this.password)
       .then(()=> {
@@ -83,7 +92,8 @@ export default ({
             if(needEmailVerif && res.data.msg === 'user not verified') openToast('User not verified!', 'danger');
             if(res.data.msg === 'user deactivated') openToast('User deactivated!', 'danger');
             if(res.data.msg === 'wrong password') openToast('Wrong password!', 'danger');
-            if(res.data.success){   
+            if(res.data.success){
+              this.formLoading = false;
               switch(res.data.info.role){
                 case 'Customer': router.replace('/customer/dashboard'); break;
                 case 'Technician': router.replace('/technician/dashboard'); break;
@@ -95,6 +105,7 @@ export default ({
         
         
       }).catch(err=>{
+        this.formLoading = false;
         console.log(err.code);
         if(err.code == 'auth/wrong-password') openToast('Wrong password!', 'danger');
         else if(err.code == 'auth/user-not-found') openToast('User not registered!', 'danger');

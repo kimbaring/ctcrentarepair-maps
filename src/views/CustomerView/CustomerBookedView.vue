@@ -109,11 +109,9 @@ export default {
             const bookFee = (totalFee * appChargeRate);
             const vatFee = (totalFee * vat);
             totalFee = totalFee + bookFee + vatFee;
-            return [totalFee,distanceFee,bookFee,vatFee];
+            return [totalFee.toFixed(2),distanceFee.toFixed(2),bookFee.toFixed(2),vatFee.toFixed(2)];
         },
         async getRoute(pickup,dropoff){
-            console.log(pickup);
-            console.log(dropoff);
             const pickupCoords = pickup;
             const dropoffCoords = dropoff;
             const token = 'pk.eyJ1Ijoic3BlZWR5cmVwYWlyIiwiYSI6ImNsNWg4cGlzaDA3NTYzZHFxdm1iMTJ2cWQifQ.j_XBhRHLg-CcGzah7uepMA';
@@ -129,6 +127,16 @@ export default {
         }
     },
     mounted() {
+        local.set('task_linear_path', '/customer/dashboard/location/cardetails/waiting/booked');
+        
+        local.set('pageLoading',local.get('pageLoading') + 1);  
+        if(local.get('pageLoading') == 1) {window.location.reload(); return;}
+        else local.set('pageLoading', 0);
+
+
+        local.set('chat_id',local.getObject('customer_task').task_id);
+
+
         axiosReq({
             method:'post',
             url: ciapi+'users?user_id='+local.getObject('customer_task').accepted_by_id,
@@ -140,7 +148,6 @@ export default {
             
             if(res.data.success){
                 this.emp_info = removeFix(res.data.result,'user_');
-                console.log(local.getObject('customer_task').accepted_by_id);
             }
         });
         this.getRoute(

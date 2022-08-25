@@ -109,6 +109,10 @@ export default({
             //end of ionicons
         }
     },
+    mounted(){
+        local.set('task_linear_path', '/customer/dashboard');
+        
+    },
     methods:{
         startService(service){
             localStorage.removeItem('customer_task');
