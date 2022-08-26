@@ -4,14 +4,24 @@
         <div class="section">
             <h3>Notifications</h3>
         </div>
-        <ion-card v-for="(n,i) in notifications" :key="i">
-            <ion-card-content :class="(n.is_read == 1) ? 'notifRead': ''" :data-key="n.id" @click="readNotif(i)">
-                <h3>{{n.title}}</h3>
-                <p>{{n.description}}</p>
-                <em>{{n.dateString}}</em>
-            </ion-card-content>
-        </ion-card>
-      
+        <div v-if="isLoading">
+            <ion-card>
+                <ion-card-content>
+                    <h3><ion-skeleton-text :animated="true"></ion-skeleton-text></h3>
+                    <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                    <em><ion-skeleton-text :animated="true"></ion-skeleton-text></em>
+                </ion-card-content>
+            </ion-card>
+        </div>
+        <div v-if="!isLoading">
+            <ion-card v-for="(n,i) in notifications" :key="i">
+                <ion-card-content :class="(n.is_read == 1) ? 'notifRead': ''" :data-key="n.id" @click="readNotif(i)">
+                    <h3>{{n.title}}</h3>
+                    <p>{{n.description}}</p>
+                    <em>{{n.dateString}}</em>
+                </ion-card-content>
+            </ion-card>
+        </div>
     </ion-content>
 </ion-page>
 </template>
@@ -23,6 +33,7 @@ import {
     IonContent,
     IonCard,
     IonCardContent,
+    IonSkeletonText
 } from '@ionic/vue';
 import { 
     bookOutline,
@@ -43,6 +54,7 @@ export default({
         IonContent,
         IonCard,
         IonCardContent,
+        IonSkeletonText
     },
 
     data(){
@@ -55,7 +67,8 @@ export default({
             //end of ionicons
 
             notifications:[],
-            originLoad: false
+            originLoad: false,
+            isLoading: true
         }
     },
     created(){
@@ -88,6 +101,7 @@ export default({
                     return  parseInt(b.id) - parseInt(a.id);
                 });
                 this.notifications = [...result];
+                this.isLoading = false;
             });
             
         });

@@ -37,7 +37,7 @@
                 
             </div>
             <div class="submit_btn">
-                <ion-button @click="$router.push('/customer/dashboard/location/cardetails/booked/chat')" expand="block" size="large">Chat</ion-button>
+                <ion-button @click="$router.push('/customer/dashboard/location/cardetails/waiting/booked/chat')" expand="block" size="large">Chat</ion-button>
             </div>
             
         </ion-content>

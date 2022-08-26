@@ -1,5 +1,12 @@
 <template>
-    <ion-page>  
+    <ion-page>
+        <ion-header>
+            <ion-toolbar>
+                <ion-buttons slot="start">
+                    <ion-back-button defaultHref="/customer/dashboard/location/cardetails/waiting/booked"></ion-back-button>
+                </ion-buttons>                
+            </ion-toolbar>
+        </ion-header>
 
         <ion-content color="customred">
             <h2 class="ion-text-center title">Chat</h2>
@@ -90,7 +97,7 @@
 </template>
 
 <script>
-import { IonPage, IonContent, IonItem, IonLabel, IonList, IonIcon, IonInput, IonButton, IonThumbnail, IonImg, IonGrid, IonRow, IonCol, IonSpinner } from '@ionic/vue';
+import { IonPage, IonBackButton, IonHeader, IonButtons, IonContent, IonItem, IonLabel, IonList, IonIcon, IonInput, IonButton, IonThumbnail, IonImg, IonGrid, IonRow, IonCol, IonSpinner } from '@ionic/vue';
 import { personCircle, chatboxEllipses, send, image, trash, create, ellipsisVertical, backspace, camera } from 'ionicons/icons';
 import Autolinker from 'autolinker';
 import VueEasyLightbox from 'vue-easy-lightbox';
@@ -102,7 +109,7 @@ import { getDatabase, ref, remove, onValue, set, onChildAdded } from "firebase/d
 import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL, deleteObject, uploadString } from "firebase/storage";
 
 export default ({
-    components: { IonPage, IonContent, IonItem, IonLabel, IonList, IonIcon, IonInput, IonButton, IonThumbnail, IonImg, IonGrid, IonRow, IonCol, VueEasyLightbox, IonSpinner },
+    components: { IonPage, IonBackButton, IonHeader, IonButtons,IonContent, IonItem, IonLabel, IonList, IonIcon, IonInput, IonButton, IonThumbnail, IonImg, IonGrid, IonRow, IonCol, VueEasyLightbox, IonSpinner },
     setup() {
         return {
             personCircle, chatboxEllipses, send, image, trash, create, ellipsisVertical, backspace, camera
@@ -197,6 +204,7 @@ export default ({
         },
         setUpdateMessage(){
             this.updateMode = true;
+            
             for(let msg in this.messageList){
                 if(this.messageList[msg].ID == this.showButtonId){
                     this.showMessage = this.messageList[msg].Message;
@@ -294,6 +302,7 @@ export default ({
             );
         },
         deleteText(ID) {
+            
 
             if(!confirm('Are you sure you want to delete?')) {
                 this.showButton = true;
@@ -319,7 +328,7 @@ export default ({
             }
 
             const db = getDatabase();
-            for(let msg2 in this.messageList){
+            for(let msg2 = 0; msg2 < this.messageList.length; msg2++){
                 if(this.messageList[msg2].ID == ID){
                     remove(ref(db, `/Messages/${local.get('chat_id')}/msgs/${msg2}`));
                     break;
@@ -380,6 +389,7 @@ export default ({
             this.myFunction = true;
             this.messageList = data;
             let messageArray = [];
+            for(let m in this.messageList) this.messageList.ID = m;
             for(let m in this.messageList) messageArray.push(this.messageList[m]);
             messageArray.sort((a,b)=>{
                 var d1 = new Date(a.Send_Date);
@@ -387,6 +397,10 @@ export default ({
                 
                 return d1 - d2;
             })
+            console.log(this.messageList);
+
+
+            for(let m in this.messageList) messageArray.push(this.messageList[m]);
 
             this.messageList = messageArray;
         });
@@ -408,6 +422,12 @@ export default ({
 </script>
 
 <style scoped>
+
+ion-back-button{color: #fff}
+ion-header{color:#fff;}
+ion-header small{text-align: center;display: block;}
+ion-header::after {background-image: none;}
+ion-toolbar{--background:#b7160b; color: #fff}
 
 ion-buttons{background: #b7160b; padding: 12px 0 0 12px;}
 .title{font-size: 26px; margin: 35px 0 68px;}

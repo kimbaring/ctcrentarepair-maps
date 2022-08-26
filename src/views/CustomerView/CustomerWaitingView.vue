@@ -1,11 +1,6 @@
 <template>
     <ion-page class="locationPage" >
         <ion-header v-if="$route.path == '/customer/dashboard/location/cardetails/waiting'">
-            <ion-toolbar>
-                <ion-buttons slot="start">
-                    <ion-back-button defaultHref="/customer/dashboard/location"></ion-back-button>
-                </ion-buttons>                
-            </ion-toolbar>
             <ion-title>Waiting for someone to accept your request</ion-title>
         </ion-header>
 
@@ -22,9 +17,9 @@
 <script>
 // import { IonCard, IonCardHeader, IonButton } from '@ionic/vue';
 // import { toFormData, send } from '../functions.js';
-import{local, openToast} from '@/functions.js';
+import{local} from '@/functions.js';
 import {db} from '@/firebase'
-import {ref, onValue,set } from 'firebase/database';
+import {ref, onValue } from 'firebase/database';
 import {sendNotification} from '@/functions-custom';
 import MapComp from '@/views/MapComp';
 // Website address
@@ -72,7 +67,7 @@ export default {
                 local.setInObject('customer_task','emp_location_coors_lat', snap.emp_location_coors_lat);
                 local.setInObject('customer_task','emp_location_coors_long', snap.emp_location_coors_long);
 
-                if(local.getObject('customer_task').emp_location_coors_long != null) this.$router.push('/customer/dashboard/location/cardetails/waiting/booked');
+                if(local.getObject('customer_task').emp_location_coors_long != null) this.$router.replace('/customer/dashboard/location/cardetails/waiting/booked');
 
                 
                 
@@ -91,13 +86,13 @@ export default {
         //     set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/accepted_by_id'),local.get('user_id'));
         // }, 5000);
 
-         openToast('Simulating accept function in 5s with Lapu-Lapu Airport Rd, Lapu-Lapu City, 6016 Cebu, Philippines as mock up location','success');
-        setTimeout(() => {
-            set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/status'),2);
-            set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/emp_location_coors_long'),123.9802);
-            set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/emp_location_coors_lat'),10.3107);
-            set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/accepted_by_id'),local.get('user_id'));
-        }, 5000);
+        // // openToast('Simulating accept function in 5s with Lapu-Lapu Airport Rd, Lapu-Lapu City, 6016 Cebu, Philippines as mock up location','success');
+        // // setTimeout(() => {
+        // //     set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/status'),2);
+        // //     set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/emp_location_coors_long'),123.9802);
+        // //     set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/emp_location_coors_lat'),10.3107);
+        // //     set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/accepted_by_id'),local.get('user_id'));
+        // // }, 5000);
 
         
     }

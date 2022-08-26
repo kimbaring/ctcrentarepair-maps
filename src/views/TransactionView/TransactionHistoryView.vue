@@ -4,27 +4,50 @@
         <div class="section">
             <h3>Transaction History</h3>
         </div>
-        <h2></h2>
-        <ion-card v-for="(t,i) in transactions" :key="i">
-            <ion-card-header>
-                <ion-card-title>
-                    {{ t.name }}
-                </ion-card-title>
-                <ion-card-subtitle>
-                    {{ t.service_type }} Service
-                </ion-card-subtitle>
-                <div class="date">{{ t.create_at }}</div>
-            </ion-card-header>
-            <ion-card-content>
-                <div class="cardsection">
-                    <p>Address</p>
-                    <p>{{ t.location_details }}</p>
-                    <p>Created</p>
-                    <p>{{date(t.created_at)}}</p>
-                </div>
-                <ion-button @click="open(t.id)" class="viewbutton" expand="block">Print Invoice</ion-button>
-            </ion-card-content>
-        </ion-card>
+        <div v-if="isLoading">
+            <ion-card>
+                <ion-card-header>
+                    <ion-card-title>
+                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
+                    </ion-card-title>
+                    <ion-card-subtitle>
+                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
+                    </ion-card-subtitle>
+                    <div class="date"><ion-skeleton-text :animated="true"></ion-skeleton-text></div>
+                </ion-card-header>
+                <ion-card-content>
+                    <div class="cardsection">
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                    </div>
+                    <ion-button expand="block"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
+                </ion-card-content>
+            </ion-card>
+        </div>
+        <div v-if="!isLoading">
+            <ion-card v-for="(t,i) in transactions" :key="i">
+                <ion-card-header>
+                    <ion-card-title>
+                        {{ t.name }}
+                    </ion-card-title>
+                    <ion-card-subtitle>
+                        {{ t.service_type }} Service
+                    </ion-card-subtitle>
+                    <div class="date">{{ t.create_at }}</div>
+                </ion-card-header>
+                <ion-card-content>
+                    <div class="cardsection">
+                        <p>Address</p>
+                        <p>{{ t.location_details }}</p>
+                        <p>Created</p>
+                        <p>{{date(t.created_at)}}</p>
+                    </div>
+                    <ion-button @click="open(t.id)" class="viewbutton" expand="block">Print Invoice</ion-button>
+                </ion-card-content>
+            </ion-card>
+        </div>
     </ion-content>
 </ion-page>
 </template>
@@ -40,6 +63,7 @@ import {
     IonCardSubtitle,
     IonCardTitle,
     IonButton,
+    IonSkeletonText
 } from '@ionic/vue';
 import { 
     bookOutline,
@@ -62,6 +86,7 @@ export default({
         IonCardSubtitle,
         IonCardTitle,
         IonButton,
+        IonSkeletonText
     },
 
     data(){
@@ -73,7 +98,8 @@ export default({
             logOutOutline,
             //end of ionicons
 
-            transactions:[]
+            transactions:[],
+            isLoading: true
         }
     },
     created(){
@@ -85,6 +111,7 @@ export default({
             this.transactions = [];
                 if(snapshot.exists()) for(let snap in snapshot.val()) this.transactions.push(snapshot.val()[snap]);
             });
+            this.isLoading = false;
         });
     },
     watch:{

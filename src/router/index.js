@@ -16,12 +16,46 @@ import CustomerTransactionHistoryView from '../views/TransactionView/Transaction
 import CustomerLocationView from "@/views/CustomerView/CustomerLocationView.vue";
 import CustomerCarDetailsView from "@/views/CustomerView/CustomerCarDetailsView.vue";
 
+import UserMap from '@/views/UserMap.vue';
+import ChatRider from '@/views/ChatRider.vue';
+import ComingSoon from '@/views/ComingSoon.vue';
+import CustomerAddCarViewNewUser from '@/views/CustomerView/CustomerAddCarViewNewUser.vue';
+
+import CustomerDashboardView from '@/views/CustomerView/CustomerDashboardView.vue';
+import ProfileView from '@/views/AccountView/ProfileView.vue';
+import UpdateProfile from '@/views/AccountView/UpdateProfile.vue';
+import ChangePassword from '@/views/AccountView/ChangePassword.vue';
+
+import CustomerWaitingView from '@/views/CustomerView/CustomerWaitingView.vue';
+import CustomerMyCarDetailsView from '@/views/CustomerView/CustomerMyCarDetailsView.vue';
+
+import CustomerBookedView from '@/views/CustomerView/CustomerBookedView.vue';
+import CustomerCarView from '@/views/CustomerView/CustomerCarView.vue';
+import CustomerEditCarDetails from '@/views/CustomerView/CustomerEditCarDetails.vue';
+import NotificationView from '@/views/NotificationView/NotificationView.vue';
+import CustomerAddCarView from '@/views/CustomerView/CustomerAddCarView.vue';
+
+import TechnicianDashboardView from '@/views/TechnicianView/TechnicianDashboardView.vue';
+import TechnicianTaskView from '@/views/TechnicianView/TechnicianTaskView.vue';
+import TechnicianTaskDetailsView from '@/views/TechnicianView/TechnicianTaskDetailsView.vue';
+import TechnicianTaskLocationView from '@/views/TechnicianView/TechnicianTaskLocationView.vue';
+import TechnicianAddWalletView from '@/views/TechnicianView/TechnicianAddWalletView.vue';
+import RideSharerDashboardView from '@/views/RideSharerView/RideSharerDashboardView.vue';
+
+
+
+
+
 
 const routes = [
   {
     path: '/map',
     name: 'map',
-    component: ()=> import('@/views/UserMap.vue')
+    component: ()=> UserMap
+  },
+  {
+    path: '/chat',
+    component: () => ChatRider
   },
   {
     path: '/',
@@ -29,7 +63,7 @@ const routes = [
   },
   {
     path: '/comingsoon',
-    component: ()=> import('@/views/ComingSoon.vue'),
+    component: ComingSoon,
   },
   {
     path: '/home',
@@ -84,7 +118,7 @@ const routes = [
   {
     path: '/addcarnewuser',
     name: 'addcarnewuser',
-    component: () => import('@/views/CustomerView/CustomerAddCarViewNewUser.vue'),
+    component: () => CustomerAddCarViewNewUser,
   },
   {
     path: '/customer',
@@ -96,7 +130,7 @@ const routes = [
       },
       {
         path: '/customer/dashboard',
-        component: () => import('@/views/CustomerView/CustomerDashboardView.vue'),
+        component: CustomerDashboardView,
       },
       {
         path: "/customer/transactionhistory",
@@ -104,23 +138,23 @@ const routes = [
       },
       {
         path: '/customer/profile',
-        component: () => import('@/views/AccountView/ProfileView.vue'),
+        component: ProfileView,
       },
       {
         path: "/customer/profile/update",
-        component: () => import("@/views/AccountView/UpdateProfile.vue")
+        component: UpdateProfile
       },
       {
         path: "/customer/profile/changepassword",
-        component: () => import("@/views/AccountView/ChangePassword.vue")
+        component: ChangePassword
       },
       {
         path: "/customer/transactionhistory/transactiondetails",
-        component: () => import("@/views/TransactionView/TransactionDetailsView.vue")
+        component: CustomerWaitingView
       },
       {
         path: "/customer/mycar/cardetails",
-        component: () => import('@/views/CustomerView/CustomerMyCarDetailsVIew.vue')
+        component: CustomerMyCarDetailsView
       },
       {
         path: "/customer/dashboard/location",
@@ -132,31 +166,31 @@ const routes = [
       },
       {
         path: "/customer/dashboard/location/cardetails/waiting",
-        component: () => import("@/views/CustomerView/CustomerWaitingView.vue")
+        component: CustomerWaitingView
       },
       {
         path: "/customer/dashboard/location/cardetails/waiting/booked",
-        component: () => import("@/views/CustomerView/CustomerBookedView.vue")
+        component: CustomerBookedView
       },
       {
         path:"/customer/mycar",
-        component: () => import("@/views/CustomerView/CustomerCarView.vue")
+        component: CustomerCarView
       },
       {
-        path: "/customer/dashboard/location/cardetails/booked/chat",
-        component: () => import("@/views/ChatRider.vue")
+        path: "/customer/dashboard/location/cardetails/waiting/booked/chat",
+        component: ChatRider
       },
       {
         path: "/customer/mycar/editcar",
-        component: () => import("@/views/CustomerView/CustomerEditCarDetails.vue")
+        component: CustomerEditCarDetails
       },
       {
         path: "/notification",
-        component: () => import("@/views/NotificationView/NotificationView.vue")
+        component: NotificationView
       },
       {
         path: "/customer/mycar/addcar",
-        component: () => import("@/views/CustomerView/CustomerAddCarView.vue")
+        component: CustomerAddCarView
       }
     ]
   },
@@ -170,19 +204,19 @@ const routes = [
       },
       {
         path: '/technician/dashboard',
-        component: () => import('@/views/TechnicianView/TechnicianDashboardView.vue'),
+        component: TechnicianDashboardView,
       },
       {
         path: '/technician/tasks',
-        component: () => import('@/views/TechnicianView/TechnicianTaskView.vue')
+        component: TechnicianTaskView,
       },
       {
         path: '/technician/tasks/taskdetails',
-        component: () => import('@/views/TechnicianView/TechnicianTaskDetailsView.vue')
+        component: TechnicianTaskDetailsView,
       },
       {
         path: '/technician/tasks/taskdetails/location',
-        component: () => import('@/views/TechnicianView/TechnicianTaskLocationView.vue')
+        component: TechnicianTaskLocationView,
       },
       {
         path: '/technician/tasks/taskdetails/location/chat',
@@ -194,15 +228,15 @@ const routes = [
       },
       {
         path: '/technician/notification',
-        component: () => import("@/views/NotificationView/NotificationView.vue")
+        component: NotificationView
       },
       {
         path: '/technician/profile',
-        component: () => import('@/views/AccountView/ProfileView.vue')
+        component: ProfileView
       },
       {
         path: '/technician/wallet',
-        component: () => import('@/views/TechnicianView/TechnicianAddWalletView.vue')
+        component: TechnicianAddWalletView,
       }
     ]
   },
@@ -216,7 +250,7 @@ const routes = [
       },
       {
         path: '/ridesharer/dashboard',
-        component: () => import('@/views/RideSharerView/RideSharerDashboardView.vue')
+        component: RideSharerDashboardView
       }
     ]
   }
@@ -228,3 +262,4 @@ const router = createRouter({
 })
 
 export default router
+

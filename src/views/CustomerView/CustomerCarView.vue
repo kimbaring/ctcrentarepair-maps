@@ -5,26 +5,46 @@
             <h3>My Car</h3>
             <ion-button class="viewbutton" expand="block" @click="$router.push('/customer/mycar/addcar')">Add Car</ion-button>
         </div>
-        <ion-card v-for="(c,i) in cars" :key="i">
-            <ion-card-content>
-                
-                <img :src="c.img">
-                <ion-card-title>
-                    {{c.brand}} {{c.model}} 
-                </ion-card-title>
-                <div class="cardsection">
-                    <p>Plate Number</p>
-                    <p>{{c.plate_number}}</p>
-                </div>
-                {{c.more_info}}
-                <div class="col2">
-                    <ion-button class="viewbutton" expand="block" :data-item="c.id" @click="viewDetails($event)">View</ion-button>
-                    <ion-button class="viewbutton" expand="block" :data-item="c.id" @click="editDetails($event)">Edit</ion-button>
-                </div>
-                <!-- <ion-button class="viewbutton" expand="block">View History</ion-button> For tracing purpose sa technician -->
-            </ion-card-content>
-        </ion-card>
-      
+        <div v-if="isLoading">
+            <ion-card>
+                <ion-card-content>
+                    <ion-skeleton-text :animated="true" style="min-height: 200px;"></ion-skeleton-text>
+                    <ion-card-title>
+                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
+                    </ion-card-title>
+                    <div class="cardsection">
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                    </div>
+                    <ion-skeleton-text :animated="true"></ion-skeleton-text>
+                    <div class="col2">
+                        <ion-button expand="block"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
+                        <ion-button expand="block"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
+                    </div>
+                    <!-- <ion-button class="viewbutton" expand="block">View History</ion-button> For tracing purpose sa technician -->
+                </ion-card-content>
+            </ion-card>
+        </div>
+        <div v-if="!isLoading">
+            <ion-card v-for="(c,i) in cars" :key="i">
+                <ion-card-content>
+                    <img :src="c.img">
+                    <ion-card-title>
+                        {{c.brand}} {{c.model}} 
+                    </ion-card-title>
+                    <div class="cardsection">
+                        <p>Plate Number</p>
+                        <p>{{c.plate_number}}</p>
+                    </div>
+                    {{c.more_info}}
+                    <div class="col2">
+                        <ion-button class="viewbutton" expand="block" :data-item="c.id" @click="viewDetails($event)">View</ion-button>
+                        <ion-button class="viewbutton" expand="block" :data-item="c.id" @click="editDetails($event)">Edit</ion-button>
+                    </div>
+                    <!-- <ion-button class="viewbutton" expand="block">View History</ion-button> For tracing purpose sa technician -->
+                </ion-card-content>
+            </ion-card>
+        </div>
     </ion-content>
 </ion-page>
 </template>
@@ -38,6 +58,7 @@ import {
     IonCardContent,
     IonCardTitle,
     IonButton,
+    IonSkeletonText
 } from '@ionic/vue';
 import { 
     bookOutline,
@@ -57,6 +78,7 @@ export default({
         IonCardContent,
         IonCardTitle,
         IonButton,
+        IonSkeletonText
     },
 
     data(){
@@ -69,6 +91,7 @@ export default({
             //end of ionicons
 
             cars:[],
+            isLoading: true
             
         }
     },
@@ -109,6 +132,7 @@ export default({
                 openToast('Something went wrong!', 'danger');
             }).then(res=>{
                 if(res.data.success){
+                    this.isLoading = false;
                     this.cars = [];
                     let result = res.data.result;
                     for(let c in result ) {
@@ -205,6 +229,11 @@ ion-card-header{
     color: #B7160B;
 }
 .viewbutton{
+    --background: #b7170b;
+    --background-activated: var(--ion-color-hover-red);
+}
+
+ion-button{
     --background: #b7170b;
     --background-activated: var(--ion-color-hover-red);
 }
