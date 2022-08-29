@@ -104,7 +104,7 @@ import VueEasyLightbox from 'vue-easy-lightbox';
 import { Camera, CameraResultType } from '@capacitor/camera';
 import { defineCustomElements } from '@ionic/pwa-elements/loader';
 import '@/firebase';
-import {dateFormat, local} from '@/functions';
+import {dateFormat, local, formatDateString} from '@/functions';
 import { getDatabase, ref, remove, onValue, set, onChildAdded } from "firebase/database";
 import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL, deleteObject, uploadString } from "firebase/storage";
 
@@ -153,7 +153,6 @@ export default ({
             return dateFormat('%lm %d, %y at %h:%i%a',date);
         },
         isSender(id){
-            console.log(id)
             if(id==local.get('user_id')) return true;
             return false;
         },
@@ -211,12 +210,17 @@ export default ({
                     break;
                 }
             }
+            let regex = /(<([^>]+)>)/gi;
+            this.showMessage = this.showMessage.replace(regex, "");
+
             this.showButton = true;
         },
         sendMessage() {
             if(this.showMessage == '' && this.currentImg == '') {
                 return;
             }
+
+            this.showMessage = Autolinker.link(this.showMessage, { className: 'btnLink', sanitizeHtml: true });
 
             if(this.updateMode){
 
@@ -226,7 +230,8 @@ export default ({
 
                         if(this.showMessage == '') return;
 
-                        set(ref(db, `/Messages/${local.get('chat_id')}/msgs/${msg}`),this.showMessage);
+                        set(ref(db, `/Messages/${local.get('chat_id')}/msgs/${msg}/Message`),this.showMessage);
+                        this.updateMode = false;
                         break;
                     }
                 }
@@ -234,20 +239,18 @@ export default ({
                 this.showButton = true;
                 this.showMessage = '';
 
-                setTimeout(()=> {
-                    document.querySelector('.box_inner').scrollTo({
-                        top: this.showMessage,
-                        left: 0,
-                        behavior: 'auto'
-                    });
-                }, 100)
+                // setTimeout(()=> {
+                //     document.querySelector('.box_inner').scrollTo({
+                //         top: this.showMessage,
+                //         left: 0,
+                //         behavior: 'auto'
+                //     });
+                // }, 100)
 
                 return;
             }
 
             // this.showMessage = this.showMessage.replaceAll(/(http||https):\/\/[^\s]+/gi,'<a target="_blank" href="$&" v-html>$&</a>');
-
-            this.showMessage = Autolinker.link(this.showMessage, { className: 'btnLink', sanitizeHtml: true });
 
             const db = getDatabase();
             const userID = Math.floor(Math.random(1) * 999);
@@ -388,22 +391,18 @@ export default ({
             const data = snapshot.val();
             this.myFunction = true;
             this.messageList = data;
-            let messageArray = [];
-            for(let m in this.messageList) this.messageList.ID = m;
-            for(let m in this.messageList) messageArray.push(this.messageList[m]);
-            messageArray.sort((a,b)=>{
-                var d1 = new Date(a.Send_Date);
-                var d2 = new Date(b.Send_Date);
-                
-                return d1 - d2;
-            })
-            console.log(this.messageList);
-
-
-            for(let m in this.messageList) messageArray.push(this.messageList[m]);
-
-            this.messageList = messageArray;
+            Object.keys(this.messageList).sort((a,b)=> {
+                const c = formatDateString(data[a].Send_Date);
+                const d = formatDateString(data[b].Send_Date);
+                console.log(new Date(d).getTime() < new Date(c).getTime());
+                return new Date(d).getTime() < new Date(c).getTime()
+            }).map(item => item[0]);
+            console.log(data);
+            
         });
+
+
+                
         
         onChildAdded(getMessage, () =>{
             setTimeout(()=> {
@@ -412,7 +411,7 @@ export default ({
                     left: 0,
                     behavior: 'smooth'
                 });
-            }, 100);
+            }, 200);
         })
 
         defineCustomElements(window);

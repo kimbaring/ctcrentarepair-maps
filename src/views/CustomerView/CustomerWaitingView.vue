@@ -1,12 +1,15 @@
 <template>
     <ion-page class="locationPage" >
-        <ion-header v-if="$route.path == '/customer/dashboard/location/cardetails/waiting'">
+        <ion-header>
             <ion-title>Waiting for someone to accept your request</ion-title>
         </ion-header>
 
-        <ion-content v-if="$route.path == '/customer/dashboard/location/cardetails/waiting'">
+        <ion-content>
             <MapComp
             hideForm="true"
+            rerender="true"
+            v-if="$route.path == '/customer/dashboard/location/cardetails/waiting'"
+            
             :pinPickupCoorsLong="pickupCoors[0]"
             :pinPickupCoorsLat="pickupCoors[1]"
             ></MapComp>
@@ -21,7 +24,7 @@ import{local} from '@/functions.js';
 import {db} from '@/firebase'
 import {ref, onValue } from 'firebase/database';
 import {sendNotification} from '@/functions-custom';
-import MapComp from '@/views/MapComp';
+import MapComp from '@/views/MapComp2';
 // Website address
 // https://account.mapbox.com
 // username: speedyrepair

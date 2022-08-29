@@ -3,6 +3,8 @@
         <ion-content v-if="$route.path == '/customer/dashboard/location'">
             <h3>Pin your location</h3>
             <MapComp
+                rerender="true"
+                
                 @pickup-coors="(n)=>pickupCoors = n"
                 @dropoff-coors="(n)=>{dropoffCoors = n;}"
                 @current-coors="setCurrentCoors"
@@ -11,6 +13,7 @@
                 :hideDestination="(serviceType != 'Ride Sharer')"
                 :pinPickupCoorsLong="setCoors[0]"
                 :pinPickupCoorsLat="setCoors[1]"
+                
             ></MapComp>
             <ion-button expand="block" @click="submit">
                 Confirm Location
@@ -65,6 +68,10 @@ export default {
         }
     },
     mounted(){
+        local.set('pageLoading',local.get('pageLoading') + 1);  
+        if(local.get('pageLoading') == 1) {window.location.reload(); return;}
+        else local.set('pageLoading', 0);
+        
         local.set('task_linear_path', '/customer/dashboard/location');
     },
     setup() {
@@ -72,7 +79,7 @@ export default {
     },
     methods:{
         setCurrentCoors(n){
-            this.setCoors = [n.long,n.lat]
+            this.setCoors = [n.long,n.lat];
         },
         submit(){
             if(this.pickupCoors.length != 2){

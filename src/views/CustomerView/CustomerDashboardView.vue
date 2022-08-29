@@ -111,6 +111,7 @@ export default({
     },
     mounted(){
         local.set('task_linear_path', '/customer/dashboard');
+        local.set('pageLoading', 0);
         
     },
     methods:{

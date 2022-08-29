@@ -10,8 +10,14 @@
         </ion-header>
 
         <ion-content v-if="$route.path == '/technician/tasks/taskdetails/location'">
-            <p><strong>Address: </strong><br />{{task_info.customer_location}}</p>
-            <div id="map"></div>
+            <MapComp
+                hideForm="true"
+                rerender="true"
+                v-if="$route.path == '/technician/tasks/taskdetails/location'"
+
+                :pinPickupCoorsLong="task_info.customer_location_coors_long"
+                :pinPickupCoorsLat="task_info.customer_location_coors_lat"
+            ></MapComp>
             <div class="task_info">
                 <div class="col2">
                     <span>Customer Name</span>
@@ -27,12 +33,10 @@
 </template>
 
 <script>
-import {IonButton, toastController, loadingController } from '@ionic/vue';
-import { locate, compass, navigateCircle, warning, close, mapOutline, timerOutline } from 'ionicons/icons';
+import {IonButton, IonPage, IonContent } from '@ionic/vue';
 // import { toFormData, send } from '../functions.js';
 import{local} from '@/functions.js';
-import mapboxgl from 'mapbox-gl';
-import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
+import MapComp from '@/views/MapComp3.vue'
 // Website address
 // https://account.mapbox.com
 // username: speedyrepair
@@ -50,287 +54,23 @@ import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 export default {
     name: "MapBox",
     components: {
-        IonButton
+        IonButton,
+        IonPage,
+        IonContent,
+        MapComp
     },
     data() {
         return {
-            formResponse: null,
-            address: '',
-            focused: false,
-            awesome: false,
-            bookRequest: false,
-            bookResponse: null,
-            map:null,
-            pulsingDot:null,
             task_info: local.getObject('accepted_task')
         }
     },
-    setup() {
-        return { locate, compass, navigateCircle, warning, close, mapOutline, timerOutline };
-    },
     methods: {
-        async openToast() {
-            try {
-                await toastController.dismiss();
-            } catch(e) {
-                console.log(e);
-            }
 
-            if (this.formResponse === "User denied geolocation prompt") {
-                this.color = 'primary';
-                this.icon = warning;
-            }
-            if (this.formResponse === "Origin does not have permission to use Geolocation service") {
-                this.color = 'dark';
-                this.icon = warning;
-            }
-
-            const toast = await toastController
-                .create({
-                    message: this.formResponse,
-                    position: 'top',
-                    color: this.color,
-                    icon: this.icon,
-                    cssClass: 'custom-toast',
-                    duration: 10000
-                })
-            return toast.present();
-        },
-        async openLoader() {
-            const loading = await loadingController
-                .create({
-                    message: 'Looking for drivers around your area',
-                    duration: 500000
-                });
-            return loading.present();
-        },
-        locationPin(placeName,long,lat){
-
-            const size = 130;
- 
-                    // This implements `StyleImageInterface`
-            // to draw a pulsing dot icon on the map.
-            const pulsingDot = {
-                    width: size,
-                    height: size,
-                    data: new Uint8Array(size * size * 4),
-                
-                // When the layer is added to the map,
-                // get the rendering context for the map canvas.
-                onAdd: function () {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = this.width;
-                    canvas.height = this.height;
-                    this.context = canvas.getContext('2d');
-                },
-                
-                // Call once before every frame where the icon will be used.
-                render: function () {
-                    const duration = 1000;
-                    const t = (performance.now() % duration) / duration;
-                    
-                    const radius = (size / 2) * 0.3;
-                    const outerRadius = (size / 2) * 0.7 * t + radius;
-                    const context = this.context;
-                    
-                    // Draw the outer circle.
-                    context.clearRect(0, 0, this.width, this.height);
-                    context.beginPath();
-                    context.arc(
-                    this.width / 2,
-                    this.height / 2,
-                    outerRadius,
-                    0,
-                    Math.PI * 2
-                    );
-                    context.fillStyle = `rgba(183, 22, 11, ${1 - t})`;
-                    context.fill();
-                    
-                    // Draw the inner circle.
-                    context.beginPath();
-                    context.arc(
-                    this.width / 2,
-                    this.height / 2,
-                    radius,
-                    0,
-                    Math.PI * 2
-                    );
-                    context.fillStyle = 'rgba(183, 22, 11, 1)';
-                    context.strokeStyle = 'white';
-                    context.lineWidth = 2 + 4 * (1 - t);
-                    context.fill();
-                    context.stroke();
-                    
-                    // Update this image's data with data from the canvas.
-                    this.data = context.getImageData(
-                    0,
-                    0,
-                    this.width,
-                    this.height
-                    ).data;
-                    
-                    // Continuously repaint the map, resulting
-                    // in the smooth animation of the dot.
-                    map.triggerRepaint();
-                    
-                    // Return `true` to let the map know that the image was updated.
-                    return true;
-                }
-            };
-            
-            const map = this.map;
-            if (map.hasImage('pulsing-dot-a')) map.removeImage('pulsing-dot-a');
-                            map.addImage('pulsing-dot-a', pulsingDot, { pixelRatio: 2 });
-
-                            var userAddress = placeName;
-                            let getPickupCoords = [long, lat];
-                            localStorage.setItem('getPickupCoords', JSON.stringify(getPickupCoords));
-                            localStorage.setItem('getPickupLocation', JSON.stringify(userAddress));
-
-                            const newpickupPoint = {
-                                type: 'FeatureCollection',
-                                features: [
-                                    {
-                                        type: 'Feature',
-                                        properties: {},
-                                        geometry: {
-                                            type: 'Point',
-                                            coordinates: [long, lat]
-                                        }
-                                    }
-                                ]
-                            }
-
-                            if (map.getLayer('pickupPoint')) {
-                                map.getSource('pickupPoint').setData(newpickupPoint);
-                                map.flyTo({
-                                    center: [long, lat],
-                                    zoom: 15
-                                });
-                            } else {
-                                map.flyTo({
-                                    center: [long, lat],
-                                    zoom: 15
-                                });
-                                map.addSource('pickupPoint', {
-                                    'type': 'geojson',
-                                    'data': {
-                                        'type': 'FeatureCollection',
-                                        'features': [
-                                            {
-                                                'type': 'Feature',
-                                                'properties': {},
-                                                'geometry': {
-                                                    'type': 'Point',
-                                                    'coordinates': [long, lat]
-                                                }
-                                            }
-                                        ]
-                                    }
-                                });
-                                map.addLayer({
-                                    'id': 'pickupPoint',
-                                    'type': 'symbol',
-                                    'source': 'pickupPoint',
-                                    'layout': {
-                                        'icon-image': 'pulsing-dot-a'
-                                    }
-                                });
-                            }
-        },
-    mapInit() {
-
-        mapboxgl.accessToken = 'pk.eyJ1Ijoic3BlZWR5cmVwYWlyIiwiYSI6ImNsNWg4cGlzaDA3NTYzZHFxdm1iMTJ2cWQifQ.j_XBhRHLg-CcGzah7uepMA';
-
-        const getLocation = () => new Promise(
-            (resolve, reject) => {
-                window.navigator.geolocation.getCurrentPosition(
-                    position => {
-                        const location = {
-                            lat:position.coords.latitude,
-                            long:position.coords.longitude
-                        };
-                        resolve(location); // Resolve with location. location can now be accessed in the .then method.
-                    },
-                    err => {
-                        this.formResponse = `${err.message}`;
-                        this.openToast();
-                        reject(err) // Reject with err. err can now be accessed in the .catch method.
-                    }
-                );
-            }
-        );
-
-        getLocation().then((location) => { // Initiate getLocation function
-            const map = new mapboxgl.Map({
-                container: 'map',
-                style: 'mapbox://styles/speedyrepair/cl5h8u6it000116omwkioew0k',
-                center: [location.long, location.lat],
-                // center: [-122.662323, 45.523751],
-                zoom: 12
-            })
-
-            this.map = map;
-            
-            map.on('load', ()=>{
-                this.mapInit2();
-            });
-            // Initialize the geolocate control.
-            
-        });
-        
-
-    },
-    mapInit2(){
-        const map = this.map;
-        const locate = new mapboxgl.GeolocateControl({
-                geolocation: window.navigator.geolocation,
-                positionOptions: {
-                    enableHighAccuracy: true
-                },
-                showUserHeading: true,
-                showUserLocation: true,
-                trackUserLocation: true
-            });
-
-            
-                
-            // Add the geolocate control to the map.
-            map.addControl(locate);
-            
-            const taskCoors = {
-                loc: this.task_info.customer_location,
-                long: this.task_info.customer_location_coors_long,
-                lat: this.task_info.customer_location_coors_lat
-            };
-            this.locationPin(taskCoors.loc,taskCoors.long,taskCoors.lat);
-
-            map.on('style.load', () => {
-                map.resize();
-                
-                // getRoute(start);
-                // locate.trigger();
-                // const suggestWrapper = document.getElementsByClassName('suggestions-wrapper');
-                // const div1 = suggestWrapper[0];
-                // const div2 = suggestWrapper[1];
-                // document.getElementById('geocode r').appendChild(div1, div2);
-            });
-        
-    }
-        
     },
     mounted(){
-        this.mapInit();
         this.task_info = local.getObject('accepted_task');
-        local.set('chat_id', this.task_info.id);
-    },
-    watch:{
-        $route(to){
-            if(to.path != '/technician/tasks/taskdetails/location') return;
-            this.mapInit();
-        }
-        
-    }
+        local.set('chat_id',this.task_info.id);
+    }, 
 
     
 };

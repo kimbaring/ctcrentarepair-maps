@@ -202,6 +202,29 @@ function toFormData(obj){
     return fd;
 }
 
+
+function formatDateString(dateString){
+    let digits = dateString.matchAll(/[0-9]+/g);
+    let digitsArr = [];
+    for (const d of digits) {
+        if(new String(d).length == 1) digitsArr.push("0" + d);
+        else digitsArr.push(d);
+    }
+    let newString = '';
+    for (let i = 0; i < digitsArr.length; i++) {
+        if(i < 2) newString = newString + digitsArr[i] + "-";
+        else if(i == 2) newString = newString + digitsArr[i] + " ";
+        else if(i > 2 && i != digitsArr.length-1) newString = newString + digitsArr[i] + ":";
+        else if(i == digitsArr.length-1) newString = newString + digitsArr[i];
+    }
+    
+
+    return newString;
+}
+
+
+
+
 function dateFormat(stringFormat,dateString){
     let dateParse = dateString.match('[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+')[0];
     dateParse = dateParse.replaceAll('-','/');
@@ -294,5 +317,6 @@ export {
     removeFix,
     toDataURL,
     optimizeImage,
-    elementLoad
+    elementLoad,
+    formatDateString
 }; 

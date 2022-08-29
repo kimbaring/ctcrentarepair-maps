@@ -287,8 +287,6 @@ export default({
                     var userCountry = data.features[5].properties.short_code;
                     var userOutbound = data.features[5].bbox;
 
-                    this.$forceUpdate();
-
                     // Initialize the geocoder controls.
                     const geocoder1 = new MapboxGeocoder({
                         accessToken: mapboxgl.accessToken,
