@@ -25,6 +25,7 @@
     "@ionic/vue": "^6.0.0",
     "@ionic/vue-router": "^6.0.0",
     "@mapbox/mapbox-gl-geocoder": "^5.0.1",
+    "autolinker": "^3.16.0",
     "axios": "^0.27.2",
     "capacitor-native-settings": "^4.0.0",
     "core-js": "^3.6.5",
@@ -32,6 +33,7 @@
     "ionicons": "^6.0.2",
     "mapbox-gl": "^2.9.2",
     "vue": "^3.2.21",
+    "vue-easy-lightbox": "^1.8.2",
     "vue-router": "^4.0.12"
   },
   "devDependencies": {

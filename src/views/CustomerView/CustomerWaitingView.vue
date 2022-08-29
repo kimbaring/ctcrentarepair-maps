@@ -8,7 +8,7 @@
             <MapComp
             hideForm="true"
             rerender="true"
-            v-if="$route.path == '/customer/dashboard/location/cardetails/waiting'"
+            v-if="$route.path == '/customer/waiting'"
             
             :pinPickupCoorsLong="pickupCoors[0]"
             :pinPickupCoorsLat="pickupCoors[1]"
@@ -24,7 +24,7 @@ import{local} from '@/functions.js';
 import {db} from '@/firebase'
 import {ref, onValue } from 'firebase/database';
 import {sendNotification} from '@/functions-custom';
-import MapComp from '@/views/MapComp2';
+import MapComp from '@/views/MapComp';
 // Website address
 // https://account.mapbox.com
 // username: speedyrepair
@@ -50,7 +50,7 @@ export default {
         }
     },
     mounted(){
-        local.set('task_linear_path', '/customer/dashboard/location/cardetails/waiting');
+        local.set('task_linear_path', '/customer/waiting');
         local.set('pageLoading', 0);    
         this.pickupCoors = [local.getObject('customer_task').customer_location_coors_long,local.getObject('customer_task').customer_location_coors_lat];
         console.log(this.pickupCoors);
@@ -70,7 +70,7 @@ export default {
                 local.setInObject('customer_task','emp_location_coors_lat', snap.emp_location_coors_lat);
                 local.setInObject('customer_task','emp_location_coors_long', snap.emp_location_coors_long);
 
-                if(local.getObject('customer_task').emp_location_coors_long != null) this.$router.replace('/customer/dashboard/location/cardetails/waiting/booked');
+                if(local.getObject('customer_task').emp_location_coors_long != null) this.$router.replace('/customer/booked');
 
                 
                 

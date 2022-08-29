@@ -1,9 +1,10 @@
 <template>
     <ion-page>
-        <ion-content v-if="$route.path == '/customer/dashboard/location'">
+        <ion-content v-if="$route.path == '/customer/location'">
             <h3>Pin your location</h3>
             <MapComp
                 rerender="true"
+                v-if="$route.path == '/customer/location'"
                 
                 @pickup-coors="(n)=>pickupCoors = n"
                 @dropoff-coors="(n)=>{dropoffCoors = n;}"
@@ -72,7 +73,7 @@ export default {
         if(local.get('pageLoading') == 1) {window.location.reload(); return;}
         else local.set('pageLoading', 0);
         
-        local.set('task_linear_path', '/customer/dashboard/location');
+        local.set('task_linear_path', '/customer/location');
     },
     setup() {
         return { locate, compass, navigateCircle, warning, close, mapOutline, timerOutline };
@@ -130,7 +131,7 @@ export default {
                         '/notification').catch(()=>{
                             openToast('Something went wrong...', 'danger');
                         }).then(()=>{
-                            this.$router.push('/customer/dashboard/location/cardetails/waiting');
+                            this.$router.push('/customer/waiting');
                         });
                     
                     });
@@ -141,7 +142,7 @@ export default {
                 return;
             }
             
-            this.$router.push('/customer/dashboard/location/cardetails');
+            this.$router.push('/customer/requestdetails');
         }
     }
     

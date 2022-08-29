@@ -66,6 +66,7 @@ export default({
         },
         $route(){
             this.$forceUpdate();
+            this.map.remove();
             if(this.pinPickupCoorsLong != null && this.pinPickupCoorsLat != null) {
                 this.pin(this.pinPickupCoorsLong,this.pinPickupCoorsLat,'a');   
                 this.pickupCoors = [this.pinPickupCoorsLong,this.pinPickupCoorsLat];

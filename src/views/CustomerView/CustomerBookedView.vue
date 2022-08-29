@@ -37,7 +37,7 @@
                 
             </div>
             <div class="submit_btn">
-                <ion-button @click="$router.push('/customer/dashboard/location/cardetails/waiting/booked/chat')" expand="block" size="large">Chat</ion-button>
+                <ion-button @click="$router.push('/customer/chat')" expand="block" size="large">Chat</ion-button>
             </div>
             
         </ion-content>
@@ -127,7 +127,7 @@ export default {
         }
     },
     mounted() {
-        local.set('task_linear_path', '/customer/dashboard/location/cardetails/waiting/booked');
+        local.set('task_linear_path', '/customer/booked');
         
         local.set('pageLoading',local.get('pageLoading') + 1);  
         if(local.get('pageLoading') == 1) {window.location.reload(); return;}

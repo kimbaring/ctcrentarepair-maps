@@ -66,6 +66,9 @@ export default({
         },
         $route(){
             this.$forceUpdate();
+            setTimeout(() => {
+                this.map.remove();
+            }, 200);
             if(this.pinPickupCoorsLong != null && this.pinPickupCoorsLat != null) {
                 this.pin(this.pinPickupCoorsLong,this.pinPickupCoorsLat,'a');   
                 this.pickupCoors = [this.pinPickupCoorsLong,this.pinPickupCoorsLat];
@@ -290,11 +293,13 @@ export default({
                     this.$forceUpdate();
 
                     // Initialize the geocoder controls.
+                  
+                    // Add the geocoder controls to the map.e
                     const geocoder1 = new MapboxGeocoder({
                         accessToken: mapboxgl.accessToken,
                         placeholder: 'Pick Up Address',
                         countries: userCountry,
-                        bbox: userOutbound,
+                        bbox: userOutbound, 
                         limit: 5,
                         mapboxgl: mapboxgl
                     });
@@ -307,8 +312,6 @@ export default({
                         limit: 5,
                         mapboxgl: mapboxgl
                     });
-
-                    // Add the geocoder controls to the map.
                     geocoder1.addTo('#geocoder1');
                     geocoder2.addTo('#geocoder2');
 
@@ -343,6 +346,7 @@ export default({
                         this.pin(e.result.center[0],e.result.center[1],'b');
                         document.querySelector("#geocoder2 .mapboxgl-ctrl-geocoder--input").value = e.result.place_name;
                     });
+                    
                     
                     // let coordinates;
 

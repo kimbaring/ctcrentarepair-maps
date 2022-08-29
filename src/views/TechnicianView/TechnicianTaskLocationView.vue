@@ -36,7 +36,7 @@
 import {IonButton, IonPage, IonContent } from '@ionic/vue';
 // import { toFormData, send } from '../functions.js';
 import{local} from '@/functions.js';
-import MapComp from '@/views/MapComp3.vue'
+import MapComp from '@/views/MapComp.vue'
 // Website address
 // https://account.mapbox.com
 // username: speedyrepair

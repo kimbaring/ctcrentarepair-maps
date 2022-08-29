@@ -141,11 +141,11 @@ const routes = [
         component: ProfileView,
       },
       {
-        path: "/customer/profile/update",
+        path: "/customer/updateprofile",
         component: UpdateProfile
       },
       {
-        path: "/customer/profile/changepassword",
+        path: "/customer/changepassword",
         component: ChangePassword
       },
       {
@@ -153,23 +153,23 @@ const routes = [
         component: CustomerWaitingView
       },
       {
-        path: "/customer/mycar/cardetails",
+        path: "/customer/cardetails",
         component: CustomerMyCarDetailsView
       },
       {
-        path: "/customer/dashboard/location",
+        path: "/customer/location",
         component: CustomerLocationView
       },
       {
-        path: "/customer/dashboard/location/cardetails",
+        path: "/customer/requestdetails",
         component: CustomerCarDetailsView
       },
       {
-        path: "/customer/dashboard/location/cardetails/waiting",
+        path: "/customer/waiting",
         component: CustomerWaitingView
       },
       {
-        path: "/customer/dashboard/location/cardetails/waiting/booked",
+        path: "/customer/booked",
         component: CustomerBookedView
       },
       {
@@ -177,7 +177,7 @@ const routes = [
         component: CustomerCarView
       },
       {
-        path: "/customer/dashboard/location/cardetails/waiting/booked/chat",
+        path: "/customer/chat",
         component: ChatRider
       },
       {

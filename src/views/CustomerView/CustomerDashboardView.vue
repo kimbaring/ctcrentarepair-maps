@@ -118,7 +118,7 @@ export default({
         startService(service){
             localStorage.removeItem('customer_task');
             local.setObject('customer_task',{service_type: service});
-            router.push('/customer/dashboard/location');
+            router.push('/customer/location');
         }
     }
 });

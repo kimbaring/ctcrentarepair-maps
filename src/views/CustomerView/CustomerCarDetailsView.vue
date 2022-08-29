@@ -1,13 +1,13 @@
 <template>
     <ion-page>
-         <ion-header v-if="$route.path == '/customer/dashboard/location/cardetails'">
+         <ion-header v-if="$route.path == '/customer/requestdetails'">
             <ion-toolbar>
                 <ion-buttons slot="start">
-                    <ion-back-button defaultHref="/customer/dashboard/location"></ion-back-button>
+                    <ion-back-button defaultHref="/customer/location"></ion-back-button>
                 </ion-buttons>                
             </ion-toolbar>
         </ion-header>
-        <ion-content v-if="$route.path == '/customer/dashboard/location/cardetails'">
+        <ion-content v-if="$route.path == '/customer/requestdetails'">
             <div class="section">
                 <ion-title>Car Details</ion-title>
                 <small>Please choose the car that needs service<br /> and describe the problem.</small>
@@ -119,7 +119,7 @@ export default({
         // local.set('pageLoading',local.get('pageLoading') + 1);
         // if(local.get('pageLoading') == 1) window.location.reload();
         // else 
-        local.set('task_linear_path', '/customer/dashboard/location/cardetails');
+        local.set('task_linear_path', '/customer/requestdetails');
         this.loadVehicles(this.$route.path);
 
     },
@@ -131,7 +131,7 @@ export default({
                 this.customer.problems.push(tech_types);
         },
         loadVehicles(to){
-            if(to != '/customer/dashboard/location/cardetails') return;
+            if(to != '/customer/requestdetails') return;
             this.vehicles = [];
             axiosReq({
                 method:"post",
@@ -191,7 +191,7 @@ export default({
                 '/notification').catch(()=>{
                     openToast('Something went wrong...', 'danger');
                 }).then(()=>{
-                    router.push('/customer/dashboard/location/cardetails/waiting');
+                    router.push('/customer/waiting');
                 });
             
             });
