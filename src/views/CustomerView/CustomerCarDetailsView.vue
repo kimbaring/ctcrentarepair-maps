@@ -28,7 +28,7 @@
                 <h2>Pick the car that needs service</h2>
                 <ion-input placeholder="Search" v-model="vehicle_search" @keyup="vehiclesearch"></ion-input>
                 <div class="cars_holder">
-                    <div v-for="(v,i) in vehicle_search_results" :key="i" @click="vehicle = v; car_selection = false;customer.car_id = v.id">
+                    <div v-for="(v,i) in vehicle_search_results" :key="i" @click="vehicle = v; car_selection = false;customer.car_id = v.id;">
                         <img :src="v.img">
                         <h3>{{ v.brand }} {{ v.model }}</h3>
                         <p>Plate Number: {{ v.plate_number }}</p>
@@ -165,6 +165,8 @@ export default({
             local.setInObject('customer_task','user_name', `${local.getObject('user_info').firstname} ${local.getObject('user_info').lastname}`);
 
             delete this.customer.more_information;
+
+            console.log(local.getObject('customer_task'));
 
             axiosReq({
                 method: 'post',

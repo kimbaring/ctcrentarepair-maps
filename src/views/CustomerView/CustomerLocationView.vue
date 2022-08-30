@@ -66,6 +66,13 @@ export default {
     watch:{
         $dropoffCoors(){
             console.log('test');    
+        },
+        $route(to){
+            if(to.path =='/customer/location'){
+                local.set('pageLoading',local.get('pageLoading') + 1);  
+                if(local.get('pageLoading') == 1) {window.location.reload(); return;}
+                else local.set('pageLoading', 0);
+            }
         }
     },
     mounted(){

@@ -101,6 +101,7 @@ export default({
                     if(snapshot.exists()){
                         this.task_info = snapshot.val();
                         this.task_info.created_at = dateFormat('%lm %d,%y (%h:%i%a)',this.task_info.created_at);
+                        console.log(this.task_info);
                         axiosReq({
                             method:'post',
                             headers:{
@@ -109,6 +110,7 @@ export default({
                             },
                             url:ciapi+'cars?car_id='+this.task_info.car_id
                         }).then(res=>{
+                            console.log(res.data);
                             this.car_info = removeFix(res.data.result,"car_");
                             this.loading = false;
                         })
