@@ -44,7 +44,7 @@ export default({
         return{
             awesome: null,
             map: null,
-
+            mapLoaded: false,
             pickupCoors: [],
             dropoffCoors: []
 
@@ -384,16 +384,8 @@ export default({
                 
             });
 
-
-            
-
-
-            map.on('style.load', () => {
-                map.resize();
+            map.on('load', () => {
                 document.getElementById('currentlocation').click();
-                
-                
-                
                 // getRoute(start);
                 // locate.trigger();
                 // const suggestWrapper = document.getElementsByClassName('suggestions-wrapper');
@@ -401,8 +393,8 @@ export default({
                 // const div2 = suggestWrapper[1];
                 // document.getElementById('geocoder').appendChild(div1, div2);
             });
-
-       
+            
+            map.resize();
                 
         },
         async getRoute(pickupCoords,dropoffCoords) {
