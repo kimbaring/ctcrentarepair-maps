@@ -1,6 +1,10 @@
 <template>
     <ion-card class="parent">
-        <div id="map"></div>
+        <div id="map">
+            <div class="mapLoader" v-if="mapLoading">
+                <ion-spinner name="crescent"></ion-spinner>
+            </div>
+        </div>
         <ion-card class="map-form" :class="{hide: hideForm}">
             <div class="travel-info" v-show="awesome">
                 <h2><ion-icon :icon="mapOutline" ></ion-icon> <span id="info1"></span></h2>
@@ -9,12 +13,15 @@
             <ion-card-header class="close">
                 <span><ion-icon :icon="close"></ion-icon></span>
             </ion-card-header>
-            <div id="geocoder" class="input-con">
-                <div id="geocoder1" >
-                    <ion-icon id="currentlocation" :icon="compass"></ion-icon>
-                </div>
-                <div id="geocoder2" :class="{hide: hideDestination}">
-                    <ion-icon :icon="navigateCircle"></ion-icon>
+            <div v-if="mapLoading"></div>
+            <div v-if="!mapLoading">
+                <div id="geocoder" class="input-con">
+                    <div id="geocoder1" >
+                        <ion-icon id="currentlocation" :icon="compass"></ion-icon>
+                    </div>
+                    <div id="geocoder2" :class="{hide: hideDestination}">
+                        <ion-icon :icon="navigateCircle"></ion-icon>
+                    </div>
                 </div>
             </div>
         </ion-card>
@@ -22,7 +29,7 @@
 </template>
 
 <script defer>
-import {IonCard,IonCardHeader,IonIcon} from '@ionic/vue';
+import {IonCard,IonCardHeader,IonIcon,IonSpinner} from '@ionic/vue';
 import {compass,navigateCircle,close} from 'ionicons/icons';
 import axios from 'axios';  
 import mapboxgl from 'mapbox-gl';
@@ -35,7 +42,8 @@ export default({
     components: {
         IonCard,
         IonCardHeader,
-        IonIcon
+        IonIcon,
+        IonSpinner
     },
     setup() {
         return { compass,navigateCircle,close };
@@ -44,7 +52,7 @@ export default({
         return{
             awesome: null,
             map: null,
-            mapLoaded: false,
+            mapLoading: true,
             pickupCoors: [],
             dropoffCoors: []
 
@@ -384,6 +392,10 @@ export default({
                 
             });
 
+
+            
+
+
             map.on('load', () => {
                 document.getElementById('currentlocation').click();
                 // getRoute(start);
@@ -393,8 +405,10 @@ export default({
                 // const div2 = suggestWrapper[1];
                 // document.getElementById('geocoder').appendChild(div1, div2);
             });
+
             
             map.resize();
+            this.mapLoading = false;
                 
         },
         async getRoute(pickupCoords,dropoffCoords) {
@@ -460,7 +474,12 @@ export default({
 
 <style scoped>
 ion-card{box-shadow: unset;}
-ion-card.parent{min-height: 600px;}
+
+ion-card.parent{
+    margin: 0;
+    min-height: 600px;
+}
+
 .map-form {
 	position: absolute;
     bottom: 0;
@@ -612,8 +631,21 @@ ion-button {
     width: 100%;
     min-height: 600px;
     height: calc(100vh - 200px);
-    border-radius: 20px 20px 0 0;
+    /* border-radius: 20px 20px 0 0; */
     overflow: hidden;
+}
+
+.mapLoader {
+	display: flex;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	justify-content: center;
+	align-items: center;
+	background: #333;
+    opacity: 0.6;
 }
 
 .mapboxgl-ctrl-geocoder--input {
