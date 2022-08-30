@@ -39,7 +39,12 @@
                 <div class="value"><ion-toggle id="availableToggle" @ionChange="changeAvailabilityStatus"></ion-toggle></div>
             </div>
             <ion-button expand="block" @click="$router.push('/customer/profile/update')">Update Profile</ion-button>
-            <span class="link" @click="logout">Log Out</span>
+            <ion-button expand="block" @click="logout" color="dark">
+                <span v-if="!formLoading">Log Out</span>
+                <span v-if="formLoading">
+                    <ion-spinner name="dots"></ion-spinner>
+                </span>
+            </ion-button>
         </div>
     </ion-content>
 </ion-page>
@@ -50,7 +55,8 @@
 import { 
     IonPage,
     IonContent,
-    IonToggle
+    IonToggle,
+    IonSpinner
 } from '@ionic/vue';
 import { 
     bookOutline,
@@ -72,7 +78,8 @@ export default({
     components:{
         IonPage,
         IonContent,
-        IonToggle
+        IonToggle,
+        IonSpinner
     },
 
     data(){
@@ -86,7 +93,8 @@ export default({
 
             user: {},
             changeProfileMode: false,
-            availabilityStatus: false
+            availabilityStatus: false,
+            formLoading: false,
 
         }
     },
@@ -171,6 +179,8 @@ export default({
         // async
        
         logout(){
+            this.formLoading = true;
+
             axiosReq({
                 method:'post',
                 url: ciapi+'users/logout'.toLowerCase(),
@@ -183,10 +193,12 @@ export default({
             }).
             then(()=>{
                 signOut(auth).then(() => {
+                    openToast('Logout Successful', 'success');
                     local.remove('user_id');
                     local.remove('user_token');
                     local.remove('user_info');
                     router.replace('/login');
+                    this.formLoading = false;
                 }).catch(()=> {
                     openToast('Something went wrong...', 'danger');
                 });

@@ -22,7 +22,67 @@
                         <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
                         <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
                     </div>
-                    <ion-button expand="block"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
+                    <ion-button expand="block" color="customred"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
+                </ion-card-content>
+            </ion-card>
+            <ion-card>
+                <ion-card-header>
+                    <ion-card-title>
+                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
+                    </ion-card-title>
+                    <ion-card-subtitle>
+                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
+                    </ion-card-subtitle>
+                    <div class="date"><ion-skeleton-text :animated="true"></ion-skeleton-text></div>
+                </ion-card-header>
+                <ion-card-content>
+                    <div class="cardsection">
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                    </div>
+                    <ion-button expand="block" color="customred"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
+                </ion-card-content>
+            </ion-card>
+            <ion-card>
+                <ion-card-header>
+                    <ion-card-title>
+                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
+                    </ion-card-title>
+                    <ion-card-subtitle>
+                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
+                    </ion-card-subtitle>
+                    <div class="date"><ion-skeleton-text :animated="true"></ion-skeleton-text></div>
+                </ion-card-header>
+                <ion-card-content>
+                    <div class="cardsection">
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                    </div>
+                    <ion-button expand="block" color="customred"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
+                </ion-card-content>
+            </ion-card>
+            <ion-card>
+                <ion-card-header>
+                    <ion-card-title>
+                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
+                    </ion-card-title>
+                    <ion-card-subtitle>
+                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
+                    </ion-card-subtitle>
+                    <div class="date"><ion-skeleton-text :animated="true"></ion-skeleton-text></div>
+                </ion-card-header>
+                <ion-card-content>
+                    <div class="cardsection">
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                    </div>
+                    <ion-button expand="block" color="customred"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
                 </ion-card-content>
             </ion-card>
         </div>

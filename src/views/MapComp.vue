@@ -477,7 +477,9 @@ ion-card{box-shadow: unset;}
 
 ion-card.parent{
     margin: 0;
-    min-height: 600px;
+    height: 100%;
+    max-height: 600px;
+    border-radius: 0;
 }
 
 .map-form {
@@ -491,6 +493,8 @@ ion-card.parent{
     z-index: 11;
     transition: all 500ms ease-in-out;
     background: #fff;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
 .map-form.active {
@@ -629,8 +633,9 @@ ion-button {
 #map {
     border: none;
     width: 100%;
-    min-height: 600px;
-    height: calc(100vh - 200px);
+    min-height: auto;
+    /* height: calc(100vh - 200px); */
+    height: 100%;
     /* border-radius: 20px 20px 0 0; */
     overflow: hidden;
 }
@@ -645,7 +650,6 @@ ion-button {
 	justify-content: center;
 	align-items: center;
 	background: #333;
-    opacity: 0.6;
 }
 
 .mapboxgl-ctrl-geocoder--input {

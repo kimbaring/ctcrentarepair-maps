@@ -159,11 +159,18 @@ export default {
 
 <style scoped>
 .ion-page{min-height: 600px;}
-ion-content{border-radius:20px 20px 0 0;overflow:hidden;--color:#fff}#map {
+
+ion-content{
+    border-radius: 0;
+    overflow:hidden;
+    --color:#fff
+}
+
+#map {
     border: none;
     width: 100%;
     height: calc(100% - 156px);
-    border-radius: 20px 20px 0 0;
+    border-radius: 0;
     overflow: hidden;
 }
 

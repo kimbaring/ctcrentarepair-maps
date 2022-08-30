@@ -52,7 +52,12 @@
                 <ion-textarea v-model="customer.more_information" placeholder="More information about the issue..."></ion-textarea>
             </div>
                 <div class="submit_btn">
-                    <ion-button expand="block" @click="submit">Submit</ion-button>
+                    <ion-button expand="block" @click="submit">
+                        <span v-if="!formLoading">Submit</span>
+                        <span v-if="formLoading">
+                            <ion-spinner name="dots"></ion-spinner>
+                        </span>
+                    </ion-button>
                 </div>
             </div>
         </ion-content>
@@ -110,7 +115,8 @@ export default({
                 "Dead Battery",
                 "Others",
             ],
-            vehicle_search_results:[]
+            vehicle_search_results:[],
+            formLoading: false,
 
         }
     },
@@ -151,13 +157,18 @@ export default({
             });
         },
         submit(){
+            this.formLoading = true;
+            
             const valid = validateForm(this.customer,{
                 car_id: 'required',
                 callback:()=>{openToast('Required fields are empty!', 'danger')}
             });
 
             console.log('test');
-            if(!valid.allValid) return;
+            if(!valid.allValid) {
+                this.formLoading = false;
+                return;
+            }
 
             local.setInObject('customer_task','description', this.customer.more_information);
             local.setInObject('customer_task','car_id', this.customer.car_id);
@@ -177,6 +188,7 @@ export default({
                 },
                 data: local.getObject('customer_task')
             }).catch(()=>{
+                this.formLoading = false;
                 openToast('Something went wrong', 'danger');
             }).then(res=>{
                 console.log(res.data);
@@ -184,6 +196,7 @@ export default({
                 let task = removeFix(res.data.task_info,'task_'); 
                 
                 push(`pending_tasks/${task.id}`,task);
+                this.formLoading = false;
                 openToast('Request sent!', 'success');
                 local.setInObject('customer_task','task_id',task.id);
 
@@ -191,6 +204,7 @@ export default({
                 'Your request was successfully sent!',
                 `RentARepair is currently looking for ${task.service_type.toLowerCase()}s that can cater your request.`,
                 '/notification').catch(()=>{
+                    this.formLoading = false;
                     openToast('Something went wrong...', 'danger');
                 }).then(()=>{
                     router.push('/customer/waiting');

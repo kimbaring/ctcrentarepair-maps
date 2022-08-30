@@ -1,7 +1,9 @@
 <template>
-    <ion-page class="locationPage" >
+    <ion-page class="locationPage">
         <ion-header>
-            <ion-title>Waiting for someone to accept your request</ion-title>
+            <ion-toolbar>
+                <ion-title color="light">Waiting for someone to accept your request</ion-title>
+            </ion-toolbar>
         </ion-header>
 
         <ion-content>
@@ -18,7 +20,7 @@
 </template>
 
 <script>
-// import { IonCard, IonCardHeader, IonButton } from '@ionic/vue';
+import {IonHeader,IonTitle,IonToolbar} from '@ionic/vue';
 // import { toFormData, send } from '../functions.js';
 import{local} from '@/functions.js';
 import {db} from '@/firebase'
@@ -39,9 +41,12 @@ import MapComp from '@/views/MapComp';
 // username: tester
 // password: yyi4HgHLeTYi7mD
 
-export default {
+export default({
     name: "MapBox",
     components: {
+        IonHeader,
+        IonTitle,
+        IonToolbar,
         MapComp
     },
     data() {
@@ -99,20 +104,25 @@ export default {
 
         
     }
-
-    
-};
+});
 </script>
 
 
 <style scoped>
+ion-content {
+	height: 100%;
+}
+
+ion-card.parent {
+	max-height: 100% !important;
+}
+
 .ion-page{min-height: 600px;}
-ion-content{--ion-background-color:#222;border-radius:20px 20px 0 0;overflow:hidden;--color:#fff}
+ion-content{--ion-background-color:#222;border-radius: 0;overflow:hidden;--color:#fff}
 
 ion-back-button{
     color:#fff
 }
-
 
 ion-header{
     background:#b7160b;
@@ -126,7 +136,6 @@ ion-title{
     text-align: center;
     padding: 20px;
 }
-
 
 ion-card {
     position: relative;

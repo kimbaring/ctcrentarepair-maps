@@ -12,6 +12,41 @@
                     <em><ion-skeleton-text :animated="true"></ion-skeleton-text></em>
                 </ion-card-content>
             </ion-card>
+            <ion-card>
+                <ion-card-content>
+                    <h3><ion-skeleton-text :animated="true"></ion-skeleton-text></h3>
+                    <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                    <em><ion-skeleton-text :animated="true"></ion-skeleton-text></em>
+                </ion-card-content>
+            </ion-card>
+            <ion-card>
+                <ion-card-content>
+                    <h3><ion-skeleton-text :animated="true"></ion-skeleton-text></h3>
+                    <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                    <em><ion-skeleton-text :animated="true"></ion-skeleton-text></em>
+                </ion-card-content>
+            </ion-card>
+            <ion-card>
+                <ion-card-content>
+                    <h3><ion-skeleton-text :animated="true"></ion-skeleton-text></h3>
+                    <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                    <em><ion-skeleton-text :animated="true"></ion-skeleton-text></em>
+                </ion-card-content>
+            </ion-card>
+            <ion-card>
+                <ion-card-content>
+                    <h3><ion-skeleton-text :animated="true"></ion-skeleton-text></h3>
+                    <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                    <em><ion-skeleton-text :animated="true"></ion-skeleton-text></em>
+                </ion-card-content>
+            </ion-card>
+            <ion-card>
+                <ion-card-content>
+                    <h3><ion-skeleton-text :animated="true"></ion-skeleton-text></h3>
+                    <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                    <em><ion-skeleton-text :animated="true"></ion-skeleton-text></em>
+                </ion-card-content>
+            </ion-card>
         </div>
         <div v-if="!isLoading">
             <ion-card v-for="(n,i) in notifications" :key="i">

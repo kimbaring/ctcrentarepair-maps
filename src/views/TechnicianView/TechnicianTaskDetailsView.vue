@@ -1,39 +1,44 @@
 <template>
-<ion-page>
-    <ion-content>
-        <div class="section">
-            <a @click="$router.push('/technician/tasks')"><ion-icon :icon="arrowBack"></ion-icon></a>
-            <h3>Task Information</h3>
-        </div>
-        <div class="ioncardimg">
-            <img src="../../img/carvertical.png" />
-        <ion-card>
-            <ion-card-content>
-                <h2>Car Owner:</h2>
-                <h2 :class="(loading) ? 'loading': null">{{task_info.user_name}}</h2>
-                <br />
-                <h2>Brand & Model:</h2>
-                <h2 :class="(loading) ? 'loading': null">{{car_info.brand + ' ' + car_info.model}}</h2>
-                <br />
-                <h2>Created:</h2>
-                <h2 :class="(loading) ? 'loading': null">{{task_info.created_at}}</h2>
-                <br />
-                <h2>Location:</h2>
-                <h2 :class="(loading) ? 'loading': null">{{task_info.customer_location}}</h2>
-                <!-- <ion-button class="viewbutton" @click="$router.push('/technician/tasks/taskdetails/location')" expand="block">View in Map</ion-button> -->
-                <div class="buttonflex">
-                    <section>
-                    <ion-button expand="block" @click="accept">Accept</ion-button>
-                    </section>
-                    <section>
-                    <ion-button expand="block" @click="$router.push('/technician/tasks')">Decline</ion-button>
-                    </section>
-                </div>
-            </ion-card-content>
-        </ion-card>
-        </div>
-    </ion-content>
-</ion-page>
+    <ion-page>
+        <ion-content>
+            <div class="section">
+                <a @click="$router.push('/technician/tasks')"><ion-icon :icon="arrowBack"></ion-icon></a>
+                <h3>Task Information</h3>
+            </div>
+            <div class="ioncardimg">
+                <img src="../../img/carvertical.png" />
+            <ion-card>
+                <ion-card-content>
+                    <h2>Car Owner:</h2>
+                    <h2 :class="(loading) ? 'loading': null">{{task_info.user_name}}</h2>
+                    <br />
+                    <h2>Brand & Model:</h2>
+                    <h2 :class="(loading) ? 'loading': null">{{car_info.brand + ' ' + car_info.model}}</h2>
+                    <br />
+                    <h2>Created:</h2>
+                    <h2 :class="(loading) ? 'loading': null">{{task_info.created_at}}</h2>
+                    <br />
+                    <h2>Location:</h2>
+                    <h2 :class="(loading) ? 'loading': null">{{task_info.customer_location}}</h2>
+                    <!-- <ion-button class="viewbutton" @click="$router.push('/technician/tasks/taskdetails/location')" expand="block">View in Map</ion-button> -->
+                    <div class="buttonflex">
+                        <section>
+                        <ion-button expand="block" @click="accept">
+                            <span v-if="!formLoading">Accept</span>
+                            <span v-if="formLoading">
+                                <ion-spinner name="dots"></ion-spinner>
+                            </span>
+                        </ion-button>
+                        </section>
+                        <section>
+                        <ion-button expand="block" @click="$router.push('/technician/tasks')" color="dark">Decline</ion-button>
+                        </section>
+                    </div>
+                </ion-card-content>
+            </ion-card>
+            </div>
+        </ion-content>
+    </ion-page>
 </template>
 
 
@@ -44,6 +49,7 @@ import {
     IonCard,
     IonCardContent,
     IonButton,
+    IonSpinner
 } from '@ionic/vue';
 import { 
     bookOutline,
@@ -65,6 +71,7 @@ export default({
         IonCard,
         IonCardContent,
         IonButton,
+        IonSpinner
     },
 
     data(){
@@ -79,7 +86,8 @@ export default({
 
             task_info:{},
             loading:true,
-            car_info:{model:'',brand:''}
+            car_info:{model:'',brand:''},
+            formLoading: false,
         }
     },
     created(){
@@ -120,6 +128,8 @@ export default({
         },
 
         accept(){
+
+            this.formLoading = true;
             
             const getLocation = () => new Promise(
                 (resolve, reject) => {
@@ -146,8 +156,8 @@ export default({
                 set(ref(db,'/pending_tasks/'+this.task_info.id+'/emp_location_coors_lat'),location.lat);
                 set(ref(db,'/pending_tasks/'+this.task_info.id+'/accepted_by_id'),local.get('user_id'));
                 local.setObject('accepted_task',this.task_info);
-
-                this.$router.push('/technician/tasks/taskdetails/location')
+                this.$router.push('/technician/tasks/taskdetails/location');
+                this.formLoading = false;
             });
 
         }

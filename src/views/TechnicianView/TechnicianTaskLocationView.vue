@@ -1,5 +1,5 @@
 <template>
-    <ion-page class="locationPage" >
+    <ion-page>
         <ion-header v-if="$route.path == '/technician/tasks/taskdetails/location'">
             <ion-toolbar>
                 <ion-buttons slot="start">
@@ -80,12 +80,9 @@ export default {
 <style scoped>
 ion-content{--ion-background-color:#222;border-radius:0;overflow:scroll;--color:#fff;height: calc(100vh - 170px);}
 
-#map {
-    border: none;
-    width: 100%;
-    height: 50vh;
-    border-radius: 20px 20px 0 0;
-    overflow: hidden;
+ion-card.parent {
+    min-height: auto;
+    height: calc(100% - 176px);
 }
 
 ion-back-button{
@@ -264,7 +261,11 @@ ion-button {
     /* border-radius: 20px 20px 0 0; */
 }
 
-.task_info{padding: 20px 20px 40px}
+.task_info{
+    padding: 40px 20px;
+    background: #222;
+}
+
 .col2{display: flex;flex-wrap: wrap;gap:10px}
 .col2 >*:nth-of-type(odd){font-weight: 700}
 .col2 > *{width:45%}

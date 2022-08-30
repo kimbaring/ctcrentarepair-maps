@@ -24,6 +24,24 @@
                     <!-- <ion-button class="viewbutton" expand="block">View History</ion-button> For tracing purpose sa technician -->
                 </ion-card-content>
             </ion-card>
+            <ion-card>
+                <ion-card-content>
+                    <ion-skeleton-text :animated="true" style="min-height: 200px;"></ion-skeleton-text>
+                    <ion-card-title>
+                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
+                    </ion-card-title>
+                    <div class="cardsection">
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
+                    </div>
+                    <ion-skeleton-text :animated="true"></ion-skeleton-text>
+                    <div class="col2">
+                        <ion-button expand="block"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
+                        <ion-button expand="block"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
+                    </div>
+                    <!-- <ion-button class="viewbutton" expand="block">View History</ion-button> For tracing purpose sa technician -->
+                </ion-card-content>
+            </ion-card>
         </div>
         <div v-if="!isLoading">
             <ion-card v-for="(c,i) in cars" :key="i">
