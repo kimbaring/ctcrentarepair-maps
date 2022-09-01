@@ -5,13 +5,11 @@
                 <ion-title color="light">Waiting for someone to accept your request</ion-title>
             </ion-toolbar>
         </ion-header>
-
         <ion-content>
             <MapComp
             hideForm="true"
             rerender="true"
             v-if="$route.path == '/customer/waiting'"
-            
             :pinPickupCoorsLong="pickupCoors[0]"
             :pinPickupCoorsLat="pickupCoors[1]"
             ></MapComp>
@@ -20,7 +18,7 @@
 </template>
 
 <script>
-import {IonHeader,IonTitle,IonToolbar} from '@ionic/vue';
+import {IonHeader,IonContent,IonTitle,IonToolbar} from '@ionic/vue';
 // import { toFormData, send } from '../functions.js';
 import{local} from '@/functions.js';
 import {db} from '@/firebase'
@@ -45,6 +43,7 @@ export default({
     name: "MapBox",
     components: {
         IonHeader,
+        IonContent,
         IonTitle,
         IonToolbar,
         MapComp
@@ -109,16 +108,10 @@ export default({
 
 
 <style scoped>
-ion-content {
-	height: 100%;
-}
-
 ion-card.parent {
+    height: 100% !important;
 	max-height: 100% !important;
 }
-
-.ion-page{min-height: 600px;}
-ion-content{--ion-background-color:#222;border-radius: 0;overflow:hidden;--color:#fff}
 
 ion-back-button{
     color:#fff

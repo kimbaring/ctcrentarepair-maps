@@ -10,9 +10,6 @@
                 <h2><ion-icon :icon="mapOutline" ></ion-icon> <span id="info1"></span></h2>
                 <h2><ion-icon :icon="timerOutline"></ion-icon> <span id="info2"></span></h2>
             </div>
-            <ion-card-header class="close">
-                <span><ion-icon :icon="close"></ion-icon></span>
-            </ion-card-header>
             <div v-if="mapLoading"></div>
             <div v-if="!mapLoading">
                 <div id="geocoder" class="input-con">
@@ -29,7 +26,7 @@
 </template>
 
 <script defer>
-import {IonCard,IonCardHeader,IonIcon,IonSpinner} from '@ionic/vue';
+import {IonCard,IonIcon,IonSpinner} from '@ionic/vue';
 import {compass,navigateCircle,close} from 'ionicons/icons';
 import axios from 'axios';  
 import mapboxgl from 'mapbox-gl';
@@ -41,7 +38,6 @@ export default({
     props: ['hideForm',"hideDestination","pinPickupCoorsLong","pinPickupCoorsLat","pinDropOffCoorsLong","pinDropOffCoorsLat"],
     components: {
         IonCard,
-        IonCardHeader,
         IonIcon,
         IonSpinner
     },
@@ -70,7 +66,7 @@ export default({
             if(this.pinDropoffCoorsLong != null && this.pinDropoffCoorsLat != null) {
                 this.pin(this.pinDropoffCoorsLong,this.pinDropoffCoorsLat,'b')
                 this.dropoffCoors = [this.pinDropoffCoorsLong,this.pinDropoffCoorsLat];
-            }   
+            }
         },
         $route(){
             this.$forceUpdate();
@@ -108,9 +104,6 @@ export default({
                 }
             );
         },
-
-        
-        
         defMap(){
             mapboxgl.accessToken = 'pk.eyJ1Ijoic3BlZWR5cmVwYWlyIiwiYSI6ImNsNWg4cGlzaDA3NTYzZHFxdm1iMTJ2cWQifQ.j_XBhRHLg-CcGzah7uepMA';
 
@@ -131,9 +124,9 @@ export default({
             });
             
         },
-
         pin(long,lat,pinFix){
             this.$emit('coors',[long,lat]);
+
             if(pinFix == 'a') {
                 this.$emit('pickupCoors',[long,lat]);
                 mapsData(long,lat,res=>{
@@ -149,7 +142,6 @@ export default({
                     document.querySelector("#geocoder2 .mapboxgl-ctrl-geocoder--input").value = res.features[0].place_name;
                 })
             }   
-
 
             const map = this.map;
             const size = 130;
@@ -220,7 +212,6 @@ export default({
                     return true;
                 }
             };
-
 
             if (map.hasImage('pulsing-dot-'+pinFix)) map.removeImage('pulsing-dot-'+pinFix);
             map.addImage('pulsing-dot-'+pinFix, pulsingDot, { pixelRatio: 2 });
@@ -308,7 +299,7 @@ export default({
                         placeholder: 'Pick Up Address',
                         countries: userCountry,
                         bbox: userOutbound, 
-                        limit: 5,
+                        limit: 2,
                         mapboxgl: mapboxgl
                     });
 
@@ -317,9 +308,10 @@ export default({
                         placeholder: 'Drop Off Address',
                         countries: userCountry,
                         bbox: userOutbound,
-                        limit: 5,
+                        limit: 2,
                         mapboxgl: mapboxgl
                     });
+
                     geocoder1.addTo('#geocoder1');
                     geocoder2.addTo('#geocoder2');
 
@@ -339,20 +331,27 @@ export default({
                         });
                     });
 
+                    window.addEventListener('click', function(e){
+                        if (document.querySelector('.map-form').contains(e.target)){
+                            document.querySelector(".map-form").classList.add('active');
+                        } else {
+                            document.querySelector(".map-form").classList.remove('active');
+                        }
+                    });
 
                     // This implements `StyleImageInterface`
                     // to draw a pulsing dot icon on the map.
-                    
 
                     geocoder1.on('result', e => {
                         this.pin(e.result.center[0],e.result.center[1],'a');
                         document.querySelector("#geocoder1 .mapboxgl-ctrl-geocoder--input").value = e.result.place_name;
-
+                        document.querySelector(".map-form").classList.remove('active');
                     });
 
                     geocoder2.on('result', e => {
                         this.pin(e.result.center[0],e.result.center[1],'b');
                         document.querySelector("#geocoder2 .mapboxgl-ctrl-geocoder--input").value = e.result.place_name;
+                        document.querySelector(".map-form").classList.remove('active');
                     });
                     
                     
@@ -392,10 +391,6 @@ export default({
                 
             });
 
-
-            
-
-
             map.on('load', () => {
                 document.getElementById('currentlocation').click();
                 // getRoute(start);
@@ -406,9 +401,15 @@ export default({
                 // document.getElementById('geocoder').appendChild(div1, div2);
             });
 
-            
-            map.resize();
             this.mapLoading = false;
+
+            setTimeout(() => {
+                if(document.querySelector(".map-form").style.display != "none") {
+                    let offsetHeight1 = document.querySelector(".map-form").offsetHeight;
+                    document.getElementById("map").style.setProperty('height', 'calc(100% - ' + offsetHeight1 + 'px)');
+                }
+                map.resize();
+            }, 1000);
                 
         },
         async getRoute(pickupCoords,dropoffCoords) {
@@ -477,14 +478,12 @@ ion-card{box-shadow: unset;}
 
 ion-card.parent{
     margin: 0;
-    height: 100%;
-    max-height: 600px;
+    height: calc(100% - 71px);
     border-radius: 0;
 }
 
 .map-form {
-	position: absolute;
-    bottom: 0;
+	position: relative;
     width: 100%;
     height: auto;
     padding: 15px !important;
@@ -498,10 +497,13 @@ ion-card.parent{
 }
 
 .map-form.active {
-    padding: 0 15px 30vh !important;
+    position: absolute;
+    bottom: 0;
+    padding: 15px 15px 20vh !important;
     background: #fff;
     overflow: hidden;
     transform: none;
+    z-index: 999;
 }
 
 .close {
@@ -634,10 +636,10 @@ ion-button {
     border: none;
     width: 100%;
     min-height: auto;
-    /* height: calc(100vh - 200px); */
-    height: 100%;
-    /* border-radius: 20px 20px 0 0; */
+    height: calc(100% - 21px);
     overflow: hidden;
+    position: relative;
+    z-index: 122;
 }
 
 .mapLoader {
