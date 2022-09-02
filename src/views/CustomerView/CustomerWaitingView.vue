@@ -13,6 +13,11 @@
             :pinPickupCoorsLong="pickupCoors[0]"
             :pinPickupCoorsLat="pickupCoors[1]"
             ></MapComp>
+            <div class="cancelBooking" v-if="showCancelModal">
+                <p>Our employees seem to be busy this time. Do you want to cancel your booking?</p>
+                <ion-button class="" @click="cancelBook">Yes</ion-button>
+                <ion-button @click="showCancelModal = false">No</ion-button>
+            </div> 
         </ion-content>
     </ion-page>
 </template>
@@ -20,9 +25,10 @@
 <script>
 import {IonHeader,IonContent,IonTitle,IonToolbar} from '@ionic/vue';
 // import { toFormData, send } from '../functions.js';
-import{local} from '@/functions.js';
-import {db} from '@/firebase'
-import {ref, onValue } from 'firebase/database';
+import{local,axiosReq,openToast} from '@/functions.js';
+import {db} from '@/firebase';
+import {ciapi} from '@/js/globals'; 
+import {ref, onValue,remove } from 'firebase/database';
 import {sendNotification} from '@/functions-custom';
 import MapComp from '@/views/MapComp';
 // Website address
@@ -51,11 +57,14 @@ export default({
     data() {
         return {
             pickupCoors: [],
+            showCancelModal:false
         }
     },
     mounted(){
         local.set('task_linear_path', '/customer/waiting');
-        local.set('pageLoading', 0);    
+        local.set('pageLoading',local.get('pageLoading') + 1); 
+        if(local.get('pageLoading') == 1) {window.location.reload(); return;}
+        else local.set('pageLoading', 0);
         this.pickupCoors = [local.getObject('customer_task').customer_location_coors_long,local.getObject('customer_task').customer_location_coors_lat];
         console.log(this.pickupCoors);
         onValue(ref(db,`/pending_tasks/${local.getObject('customer_task').task_id}`),snapshot=>{
@@ -101,13 +110,57 @@ export default({
         // //     set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/accepted_by_id'),local.get('user_id'));
         // // }, 5000);
 
-        
+        setInterval(()=>{
+            this.showCancelModal = true;
+        },5000); 
+    },
+    methods:{
+        cancelBook(){
+            axiosReq({
+                method: 'post',
+                url: ciapi + `task/delete?task_id=${local.getObject('customer_task').task_id}`,
+                headers:{
+                    PWAuth: local.get('user_token'),
+                    PWAuthUser: local.get('user_id'),
+                }
+            }).catch(()=>{
+                openToast('Something went wrong...', 'danger');
+            }).then(res=>{
+                console.log(res.data);
+                remove(ref(db,`/pending_tasks/${local.getObject('customer_task').task_id}`));
+                local.remove('customer_task');
+                local.remove('task_linear_path');
+                this.$router.replace('/customer/dashboard')
+            });
+            this.showCancelModal = false;
+        }
+
     }
 });
 </script>
 
 
 <style scoped>
+.ion-page{min-height: 600px;}
+ion-content{--ion-background-color:#222;border-radius:20px 20px 0 0;overflow:hidden;--color:#fff}
+
+.cancelBooking{
+    position: fixed;
+    top: 50%;
+    background: #fff;
+    color: #222;
+    padding: 20px;
+    max-width: 400px;
+    width: 80%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    box-shadow: 0 0 10px #555;
+    border-radius: 20px;
+}
+.cancelBooking p{
+    margin:0 0 10px
+}
+
 ion-card.parent {
     height: 100% !important;
 	max-height: 100% !important;

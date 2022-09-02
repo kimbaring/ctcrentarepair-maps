@@ -58,6 +58,13 @@
                 </ion-card-content>
             </ion-card>
         </div>
+        <div class="ongoingtask" v-if="task != null" >
+            <div class="head">
+                <h3 @click="gotoTask"><span>Ongoing Task</span>{{ task.service_type }} Services<small>Tap here to continue. <q v-if="preUploadTask.includes(taskPath())">Tap the (X) icon to cancel.</q></small></h3>
+                <ion-button @click="clearTask" v-if="preUploadTask.includes(taskPath())"><ion-icon :icon="closeOutline"></ion-icon></ion-button>
+            </div>
+
+        </div>
         
     </ion-content>
 </ion-page>
@@ -80,10 +87,14 @@ import {
     personCircleOutline,
     logOutOutline,
     carSportOutline,
-    constructOutline
+    constructOutline,
+    closeOutline
 } from 'ionicons/icons';
-import { local } from '@/functions';
+import { local, openToast, axiosReq } from '@/functions';
+import {ref,remove} from 'firebase/database';
 import  router  from '@/router';
+import {db} from '@/firebase';
+import {ciapi} from '@/js/globals';
 
 export default({
     name: "CustomerDashboard",
@@ -105,18 +116,62 @@ export default({
             personCircleOutline,
             logOutOutline,
             carSportOutline,
-            constructOutline
+            constructOutline,
+            closeOutline,
             //end of ionicons
+
+            task: local.getObject('customer_task'),
+            preUploadTask:[
+                '/customer/location',
+                '/customer/requestdetails',
+                '/customer/waiting',
+            ]
+            
         }
     },
     mounted(){
-        local.set('task_linear_path', '/customer/dashboard');
-        local.set('pageLoading', 0);
+        local.set('pageLoading',local.get('pageLoading') + 1); 
+        if(local.get('pageLoading') == 1) {window.location.reload(); return;}
+        else local.set('pageLoading', 0);
         
     },
     methods:{
+        clearTask(){
+            
+            if(local.get('task_linear_path') == '/customer/waiting'){
+                remove(ref(db,`/pending_tasks/${local.getObject('customer_task').task_id}`));
+                axiosReq({
+                    method: 'post',
+                    url: ciapi + `task/delete?task_id=${local.getObject('customer_task').task_id}`,
+                    headers:{
+                        PWAuth: local.get('user_token'),
+                        PWAuthUser: local.get('user_id'),
+                    }
+                }).catch(()=>{
+                    openToast('Something went wrong...', 'danger');
+                });
+            }
+            local.remove('customer_task');
+            local.remove('task_linear_path');
+
+            this.task = null;
+        },
+        taskPath(){
+            return local.get('task_linear_path');
+        },
+        parseJsonString(param){
+            return local.objectify(param);
+        },
+        gotoTask(){
+            this.$router.push(local.get('task_linear_path'));
+        },
         startService(service){
-            localStorage.removeItem('customer_task');
+            if (local.getObject('customer_task') != null){
+
+                openToast('Please wait for your current request to finish before you make another request!','danger');
+                return;
+            }
+            local.remove('customer_task');
             local.setObject('customer_task',{service_type: service});
             router.push('/customer/location');
         }
@@ -125,6 +180,14 @@ export default({
 </script>
 
 <style scoped>
+
+.ongoingtask{position: fixed;bottom:0;width: 100%;padding: 20px 10px;background:#fff;box-shadow: 0 0 10px #aaa;border-radius: 20px 20px 0 0;}
+.ongoingtask .head{display: flex;align-items: center;}
+.ongoingtask .head h3{margin:0;text-align: left;width: 100%;color:#222;font-size: 20px;}
+.ongoingtask .head h3 small{display:block;font-weight: 400;font-size: 14px;margin-top: 5px;}
+.ongoingtask .head ion-button{--background:#fff;--color:#b7170b;--box-shadow: none;font-size: 20px;}
+
+.ongoingtask span{display: block;font-size: 15px;font-weight: 400;font-style: italic;margin-bottom: 10px;}
 .mainlogo{
     background: var(--ion-color-danger-contrast);
     height: 150px;

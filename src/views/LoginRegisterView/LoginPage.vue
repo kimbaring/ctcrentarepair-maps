@@ -10,7 +10,10 @@
           </ion-card-header>
           <ion-card-content>
             <ion-input v-model="loginInput" placeholder="Email"></ion-input>
-            <ion-input v-model="password" type="password" placeholder="Password"></ion-input>
+            <div class="password">
+              <ion-input v-model="password" type="password" placeholder="Password" id="password"></ion-input>
+              <a v-if="password != ''" href="javascript:;" @click="showPass('#password')"><ion-icon :class="{ showIcon : !showIcon }" :icon="eye"></ion-icon><ion-icon :class="{ showIcon2 : !showIcon2 }" :icon="eyeOff"></ion-icon></a>
+            </div>
             <div class="buttonflex">
                 <section>
                   <ion-button v-on:click="login" class="loginbutton" expand="block">
@@ -35,8 +38,9 @@
 </template>
 
 <script>
-import { IonContent, IonPage, IonCard,IonCardHeader, IonCardContent, IonButton, IonInput, IonSpinner } from '@ionic/vue';
+import { IonContent, IonPage, IonCard,IonCardHeader, IonCardContent, IonButton, IonInput, IonSpinner, IonIcon } from '@ionic/vue';
 import { axiosReq, validateForm,openToast, local } from '@/functions';
+import {eye, eyeOff} from 'ionicons/icons';
 import router from '@/router';
 import { ciapi, needEmailVerif } from '@/js/globals';
 import{ signInWithEmailAndPassword } from 'firebase/auth';
@@ -52,13 +56,18 @@ export default ({
     IonCardContent,
     IonButton,
     IonInput,
-    IonSpinner
+    IonSpinner,
+    IonIcon
   },
   data(){
     return{
       loginInput: "",
       password: "",
       formLoading: false,
+      showIcon: true,
+      showIcon2: false,
+      eye,
+      eyeOff
     };
   },
   methods:{
@@ -93,6 +102,7 @@ export default ({
             if(res.data.msg === 'user deactivated') openToast('User deactivated!', 'danger');
             if(res.data.msg === 'wrong password') openToast('Wrong password!', 'danger');
             if(res.data.success){
+              local.set('pageLoading', 0);
               this.formLoading = false;
               switch(res.data.info.role){
                 case 'Customer': router.replace('/customer/dashboard'); break;
@@ -111,7 +121,20 @@ export default ({
         else if(err.code == 'auth/user-not-found') openToast('User not registered!', 'danger');
 
       });
-    }
+    },
+    showPass(e) {
+      let inType = document.querySelector(e);
+
+      if (inType.type === "password") {
+        inType.type = "text";
+        this.showIcon2 = true;
+        this.showIcon = false;
+      }else {
+        inType.type = "password";
+        this.showIcon = true;
+        this.showIcon2 = false;
+      }
+    },
   }
 });
 </script>
@@ -125,6 +148,20 @@ position: absolute;
 top: 0;
 left: 0;
 right: 0;
+}
+
+.password{
+  position: relative;
+}
+
+.password a{
+  position: absolute;
+  top: 57%;
+  z-index: 2;
+  right: 20px;
+  font-size: 20px;
+  color: #777;
+  transform: translateY(-50%);
 }
 .content{
   height: 100%;
@@ -217,5 +254,8 @@ ion-card-content section{
     text-align: center;
     text-decoration: none;
 }
+
+.showIcon, .showIcon2{display: none;}
+
 </style>
 

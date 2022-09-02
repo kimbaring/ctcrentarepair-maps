@@ -9,7 +9,7 @@
             <div class="travel-info" v-show="awesome">
                 <h2><ion-icon :icon="mapOutline" ></ion-icon> <span id="info1"></span></h2>
                 <h2><ion-icon :icon="timerOutline"></ion-icon> <span id="info2"></span></h2>
-            </div>
+            </div> 
             <div v-if="mapLoading"></div>
             <div v-if="!mapLoading">
                 <div id="geocoder" class="input-con">
@@ -315,12 +315,15 @@ export default({
                     geocoder1.addTo('#geocoder1');
                     geocoder2.addTo('#geocoder2');
 
-                    let input1 = document.querySelectorAll('#geocoder input');
+                    // let input1 = document.querySelectorAll('#geocoder input');
 
-                    input1.forEach(i => {
-                        i.addEventListener('click', function() {
+                    document.addEventListener('click', function(e) {
+                        const container = document.getElementById('geocoder');
+                        if (!container.contains(e.target)) {
+                            document.querySelector(".map-form").classList.remove('active');
+                        } else {
                             document.querySelector(".map-form").classList.add('active');
-                        });
+                        }
                     });
 
                     let input2 = document.querySelectorAll('.close');
@@ -353,12 +356,14 @@ export default({
                                     this.pickupCoors,
                                     this.dropoffCoors
                                 ], { 
-                                    padding: 60
+                                    padding: 80
                                 });
                             } catch(err) {
                                 console.log(err);
                             }
                         }
+
+                        document.querySelector(".map-form").classList.remove('active');
                     });
 
                     geocoder2.on('result', e => {
@@ -378,6 +383,8 @@ export default({
                                 console.log(err);
                             }
                         }
+
+                        document.querySelector(".map-form").classList.remove('active'); 
                     });                    
                     
                     // let coordinates;
@@ -435,7 +442,7 @@ export default({
                     document.getElementById("map").style.setProperty('height', 'calc(100% - ' + offsetHeight1 + 'px)');
                 }
                 map.resize();
-            }, 1000);
+            }, 1500);
                 
         },
         async getRoute(pickupCoords,dropoffCoords) {

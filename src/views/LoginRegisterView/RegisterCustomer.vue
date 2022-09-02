@@ -15,8 +15,20 @@
                 <ion-input v-model="user.lastname" placeholder="Last Name"></ion-input>
                 <ion-input v-model="user.username" placeholder="Username"></ion-input>
                 <ion-input v-model="user.email" placeholder="Email"></ion-input>
-                <ion-input v-model="user.password" type="password" placeholder="Password"></ion-input>
-                <ion-input v-model="user.cnfpassword" type="password" placeholder="Confirm Password"></ion-input>
+                <div class="password">
+                    <ion-input v-model="user.password" type="password" placeholder="Password" id="password"></ion-input>
+                    <a v-if="user.password != ''&&user.password !=null" href="javascript:;" @click="showPassA('#password')">
+                        <ion-icon v-if="showIconA" :icon="eye"></ion-icon>
+                        <ion-icon v-if="!showIconA" :icon="eyeOff"></ion-icon>
+                    </a>
+                </div>
+                <div class="password">
+                    <ion-input v-model="user.cnfpassword" type="password" placeholder="Confirm Password" id="cnfpassword"></ion-input>
+                    <a v-if="user.cnfpassword != ''&&user.cnfpassword !=null" href="javascript:;" @click="showPassB('#cnfpassword')">
+                        <ion-icon v-if="showIconB" :icon="eye"></ion-icon>
+                        <ion-icon v-if="!showIconB" :icon="eyeOff"></ion-icon>
+                    </a>
+                </div>
                 <ion-button class="loginbutton" @click="register" expand="block">Register</ion-button>
                 <p>Already have an account? <a @click="$router.push('/login')">Sign In</a></p>
             </div>
@@ -25,8 +37,8 @@
 </template>
 
 <script>
-import { IonContent, IonPage,IonBackButton,IonToolbar,IonButtons,IonInput} from '@ionic/vue';
-import {logoApple} from 'ionicons/icons';
+import { IonContent, IonPage,IonBackButton,IonToolbar,IonButtons,IonInput, IonIcon} from '@ionic/vue';
+import {logoApple,eye, eyeOff} from 'ionicons/icons';
 import {axiosReq, validateForm, openToast, local} from '@/functions';
 import router from '@/router';
 import { ciapi, needEmailVerif } from '@/js/globals';
@@ -41,15 +53,21 @@ export default ({
     IonBackButton,
     IonButtons,
     IonInput,
-    IonToolbar
+    IonToolbar,
+    IonIcon
   },
   setup(){
     return{
-      logoApple,
+        logoApple,
+        
     }
   },data(){
     return{
-        user:{role:"Customer"}
+        user:{role:"Customer"},
+        eye,
+        eyeOff,
+        showIconA: true,
+        showIconB: true
     };
   },
   methods:{
@@ -144,7 +162,33 @@ export default ({
                 this.user = {role:"Customer"};
             });
         });
-    }
+    },
+    showPassA(e) {
+      let inType = document.querySelector(e);
+
+      if (inType.type == "password") {
+        inType.type = "text";
+        this.showIconA2 = true;
+        this.showIconA = false;
+      }else {
+        inType.type = "password";
+        this.showIconA = true;
+        this.showIconA2 = false;
+      }
+    },
+    showPassB(e) {
+      let inType = document.querySelector(e);
+
+      if (inType.type == "password") {
+        inType.type = "text";
+        this.showIconB2 = true;
+        this.showIconB = false;
+      }else {
+        inType.type = "password";
+        this.showIconB = true;
+        this.showIconB2 = false;
+      }
+    },
   }
 });
 </script>
@@ -159,6 +203,22 @@ top: 0;
 left: 0;
 right: 0;
 }
+
+.password{
+  position: relative;
+}
+
+.password a{
+  position: absolute;
+  top: 57%;
+  z-index: 2;
+  right: 20px;
+  font-size: 20px;
+  color: #777;
+  transform: translateY(-50%);
+}
+
+.showIcon, .showIcon2{display: none;}
 .content{
   height: 100%;
   min-height: 550px;

@@ -87,10 +87,16 @@
             </ion-card>
         </div>
         <div v-if="!isLoading">
-            <ion-card v-for="(t,i) in transactions" :key="i">
+            <div class="viewMode" :class="viewMode">
+                <div @click="viewMode = 'all';">All</div>
+                <div @click="viewMode = 'technician';">Technician</div>
+                <div @click="viewMode = 'towing';">Towing</div>
+                <div @click="viewMode = 'ridesharer';">Ride Sharer</div>
+            </div>
+            <ion-card v-for="(t,i) in transactions" :key="i" v-show="t.service_type.replaceAll(' ','').toLowerCase() == viewMode || viewMode == 'all'">
                 <ion-card-header>
                     <ion-card-title>
-                        {{ t.name }}
+                        {{ (t.problems != null && t.problems != '' ) ? parseJsonString(t.problems)[0] : 'Ride Sharer: '+t.drop_location }}
                     </ion-card-title>
                     <ion-card-subtitle>
                         {{ t.service_type }} Service
@@ -100,11 +106,11 @@
                 <ion-card-content>
                     <div class="cardsection">
                         <p>Address</p>
-                        <p>{{ t.location_details }}</p>
+                        <p>{{ t.customer_location }}</p>
                         <p>Created</p>
                         <p>{{date(t.created_at)}}</p>
                     </div>
-                    <ion-button @click="open(t.id)" class="viewbutton" expand="block">Print Invoice</ion-button>
+                    <ion-button @click="open(t.id)" class="viewbutton" expand="block">Details</ion-button>
                 </ion-card-content>
             </ion-card>
         </div>
@@ -132,8 +138,8 @@ import {
     logOutOutline,
 } from 'ionicons/icons';
 
-import { get, getDatabase,ref, query, orderByChild, equalTo, onValue  } from 'firebase/database';
-import {local,dateFormat} from '@/functions';
+import { getDatabase,ref, query, orderByChild, equalTo, onValue  } from 'firebase/database';
+import {local,dateFormat,axiosReq,openToast,removeFix} from '@/functions';
 
 export default({
     name: "CustomerDashboard",
@@ -159,19 +165,37 @@ export default({
             //end of ionicons
 
             transactions:[],
-            isLoading: true
+            isLoading: true,
+            viewMode:'all',
         }
     },
     created(){
         const db = getDatabase();
         const que = query(ref(db,'/pending_tasks'),orderByChild('user_id'), equalTo(local.get('user_id')));
 
-        onValue(ref(db,'/pending_tasks'), ()=>{
-            get(que).then(snapshot=>{
-            this.transactions = [];
-                if(snapshot.exists()) for(let snap in snapshot.val()) this.transactions.push(snapshot.val()[snap]);
+        onValue(que, ()=>{
+            axiosReq({
+                method:"post",
+                url: "https://www.medicalcouriertransportation.com/rentarepair/api/task?_batch=true&task_user_id="+local.get('user_id'),
+                headers:{
+                    PWAuth: local.get('user_token'),
+                    PWAuthUser: local.get('user_id')
+                }
+            }).catch(()=>{
+                openToast('Something went wrong!', 'danger');
+            }).then(res=>{
+
+                if(res.data.msg == 'invalid token') openToast('Invalid token!', 'danger');
+                else if(res.data.success){
+                    this.isLoading = false;
+                    let tasks = res.data.result;
+                    this.transactions = [];
+                    for(let i = 0; i < tasks.length; i++){
+                        this.transactions.push(removeFix(tasks[i],"task_"));
+                    }
+                }
+                
             });
-            this.isLoading = false;
         });
     },
     watch:{
@@ -183,6 +207,9 @@ export default({
     methods:{
         date(dateString){
             return dateFormat('%lm %d, %y',dateString);
+        },
+        parseJsonString(param){
+            return local.objectify(param);
         },
         
         open(taskid){
@@ -245,6 +272,9 @@ ion-card-title{
     font-weight: 400;
     font-size: 20px;
     line-height: 24px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 ion-card-subtitle{
     color: #000;
@@ -280,14 +310,33 @@ ion-card-header{
     --background-activated: var(--ion-color-hover-red);
 }
 
+ion-button{
+    --background: #b7170b;
+}
+
 h2{
     font-size: 20px;
-color: #b7170b;
-text-align: center;
-border-bottom: 1px solid #ccc;
-padding-bottom: 13px;
-width: 90%;
-margin: 20px auto 0;
-
+    color: #b7170b;
+    text-align: center;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 13px;
+    width: 90%;
+    margin: 20px auto 0;
 }
+
+.viewMode{display: flex;width:85%;margin:30px auto;font-size: 14px;flex-wrap: wrap;border: 1px solid #b7170b;border-radius: 20px;overflow: hidden;position: relative;}
+.viewMode div{width: 30%;color:#b7170b;text-align: center;padding:10px 0;z-index: 2;transition: 0.4s;}
+.viewMode div:first-of-type{width:10%}
+.viewMode.all div:first-of-type{color:#fff;border-left: none;}
+.viewMode.technician div:nth-of-type(2){color:#fff;border-left: none;}
+.viewMode.towing div:nth-of-type(3){color:#fff;border-left: none;}
+
+.viewMode.ridesharer div:nth-of-type(4){color:#fff;border-left: none;}
+
+
+
+.viewMode::before{position:absolute;content:"";width:10%;height: 100%;background:#b7170b;top:0;left:0;z-index: 1;transition: 0.4s;border-radius: 20px;}
+.viewMode.technician::before{left:10%;z-index: 1;width:30%;}
+.viewMode.towing::before{left:40%;z-index: 1;width:30%;}
+.viewMode.ridesharer::before{left:70%;z-index: 1;width:30%;}
 </style>
