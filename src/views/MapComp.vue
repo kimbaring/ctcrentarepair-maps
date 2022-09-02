@@ -315,12 +315,15 @@ export default({
                     geocoder1.addTo('#geocoder1');
                     geocoder2.addTo('#geocoder2');
 
-                    let input1 = document.querySelectorAll('#geocoder input');
+                    // const input1 = document.querySelector('input[type="text"]');
 
-                    input1.forEach(i => {
-                        i.addEventListener('click', function() {
+                    document.addEventListener('click', function(e) {
+                        const container = document.getElementById('geocoder');
+                        if (!container.contains(e.target)) {
+                            document.querySelector(".map-form").classList.remove('active');
+                        } else {
                             document.querySelector(".map-form").classList.add('active');
-                        });
+                        }
                     });
 
                     let input2 = document.querySelectorAll('.close');
@@ -329,14 +332,6 @@ export default({
                         i.addEventListener('click', function() {
                             document.querySelector(".map-form").classList.remove('active');
                         });
-                    });
-
-                    window.addEventListener('click', function(e){
-                        if (document.querySelector('.map-form').contains(e.target)){
-                            document.querySelector(".map-form").classList.add('active');
-                        } else {
-                            document.querySelector(".map-form").classList.remove('active');
-                        }
                     });
 
                     // This implements `StyleImageInterface`
@@ -359,6 +354,9 @@ export default({
                                 console.log(err);
                             }
                         }
+                        document.querySelector(".map-form").classList.remove('active');
+                        document.querySelector('#geocoder1 input').autofocus = false;
+                        document.querySelector('#geocoder2 input').autofocus = false;
                     });
 
                     geocoder2.on('result', e => {
@@ -378,6 +376,9 @@ export default({
                                 console.log(err);
                             }
                         }
+                        document.querySelector(".map-form").classList.remove('active');
+                        document.querySelector('#geocoder1 input').autofocus = false;
+                        document.querySelector('#geocoder2 input').autofocus = false;
                     });                    
                     
                     // let coordinates;
@@ -427,15 +428,15 @@ export default({
                 // document.getElementById('geocoder').appendChild(div1, div2);
             });
 
-            this.mapLoading = false;
-
             setTimeout(() => {
                 if(document.querySelector(".map-form").style.display != "none") {
                     let offsetHeight1 = document.querySelector(".map-form").offsetHeight;
                     document.getElementById("map").style.setProperty('height', 'calc(100% - ' + offsetHeight1 + 'px)');
                 }
                 map.resize();
-            }, 1000);
+            }, 1500);
+
+            this.mapLoading = false;
                 
         },
         async getRoute(pickupCoords,dropoffCoords) {
