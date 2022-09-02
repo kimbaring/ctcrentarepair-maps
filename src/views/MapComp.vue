@@ -344,16 +344,41 @@ export default({
 
                     geocoder1.on('result', e => {
                         this.pin(e.result.center[0],e.result.center[1],'a');
+                        this.pickupCoors = e.result.center;
                         document.querySelector("#geocoder1 .mapboxgl-ctrl-geocoder--input").value = e.result.place_name;
-                        document.querySelector(".map-form").classList.remove('active');
+                        if(this.dropoffCoors[0] != null) {
+                            this.getRoute(this.pickupCoors,this.dropoffCoors);
+                            try {
+                                map.fitBounds([
+                                    this.pickupCoors,
+                                    this.dropoffCoors
+                                ], { 
+                                    padding: 60
+                                });
+                            } catch(err) {
+                                console.log(err);
+                            }
+                        }
                     });
 
                     geocoder2.on('result', e => {
                         this.pin(e.result.center[0],e.result.center[1],'b');
+                        this.dropoffCoors = e.result.center;
                         document.querySelector("#geocoder2 .mapboxgl-ctrl-geocoder--input").value = e.result.place_name;
-                        document.querySelector(".map-form").classList.remove('active');
-                    });
-                    
+                        if(this.pickupCoors[0] != null) {
+                            this.getRoute(this.pickupCoors,this.dropoffCoors);
+                            try {
+                                map.fitBounds([
+                                    this.pickupCoors,
+                                    this.dropoffCoors
+                                ], { 
+                                    padding: 60
+                                });
+                            } catch(err) {
+                                console.log(err);
+                            }
+                        }
+                    });                    
                     
                     // let coordinates;
 
@@ -383,9 +408,10 @@ export default({
 
                     document.getElementById('currentlocation').onclick = ()=> {
                         this.pin(location.long,location.lat,'a');
+                        this.pickupCoors = location;
                         document.querySelector("#geocoder1 .mapboxgl-ctrl-geocoder--input").value = data.features[0].place_name;
-                    }
-                        
+                        if(this.dropoffCoors[0] != null) this.getRoute(this.pickupCoors,this.dropoffCoors);
+                    }                        
                         
                     // create a function to make a directions request
                 

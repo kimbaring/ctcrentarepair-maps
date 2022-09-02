@@ -9,7 +9,12 @@
         <div class="changeProfileModal" :class="{open:changeProfileMode}">
             Confirm profile image?
             <div class="col2">
-                <ion-button expand="block" @click="uploadProfile">Confirm</ion-button>
+                <ion-button expand="block" @click="uploadProfile">
+                    <span v-if="!formLoading2">Confirm</span>
+                    <span v-if="formLoading2">
+                        <ion-spinner name="dots"></ion-spinner>
+                    </span>
+                </ion-button>
                 <ion-button expand="block" @click="changeProfileMode = false;">Cancel</ion-button>
             </div>
         </div>
@@ -40,8 +45,8 @@
             </div>
             <ion-button expand="block" @click="$router.push('/customer/profile/update')">Update Profile</ion-button>
             <ion-button expand="block" @click="logout" color="dark">
-                <span v-if="!formLoading">Log Out</span>
-                <span v-if="formLoading">
+                <span v-if="!formLoading1">Log Out</span>
+                <span v-if="formLoading1">
                     <ion-spinner name="dots"></ion-spinner>
                 </span>
             </ion-button>
@@ -94,7 +99,8 @@ export default({
             user: {},
             changeProfileMode: false,
             availabilityStatus: false,
-            formLoading: false,
+            formLoading1: false,
+            formLoading2: false,
 
         }
     },
@@ -127,15 +133,16 @@ export default({
             }
         },
         openChangeTooltip(){
-            openToast('Double tap to change profile image','dark')
+            openToast('Double tap to change profile image','dark');
         },
         uploadProfile(){
+            this.formLoading2 = true;
             const date = new Date();
             const dateString = date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate() + " " + 
             date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
             const generateFileName = local.get('user_id')+dateFormat('%y%m%d%h%i%s',dateString);
 
-            openToast('Uploading image...','warning');
+            openToast('Uploading image...','success');
         
             uploadString(sref(storage,'profile-images/'+generateFileName),document.querySelector('#profile_img_elem').src,'data_url').then(()=>{
 
@@ -154,6 +161,7 @@ export default({
                         openToast('Something went wrong!', 'danger');
                     }).then(res=>{
                         if(res.data.success){
+                            this.formLoading2 = false;
                             openToast('Profile uploaded successfully!','success');  
                             local.setInObject('user_info','profile_img',dlink);
                             this.changeProfileMode = false;
@@ -179,7 +187,7 @@ export default({
         // async
        
         logout(){
-            this.formLoading = true;
+            this.formLoading1 = true;
 
             axiosReq({
                 method:'post',
@@ -198,7 +206,7 @@ export default({
                     local.remove('user_token');
                     local.remove('user_info');
                     router.replace('/login');
-                    this.formLoading = false;
+                    this.formLoading1 = false;
                 }).catch(()=> {
                     openToast('Something went wrong...', 'danger');
                 });
@@ -248,7 +256,7 @@ right: 50px;width: 200px;height: 200px;margin: 0 auto;border-radius: 50%;overflo
     right: 0;
 }
 .profile_view{background:#fff;padding: 70px 20px 20px;border-radius: 20px 20px 0 0;margin-top: -50px;text-align: center;min-height:calc(100vh - 277px);height: auto;}
-.profile_view h2{white-space: nowrap;text-overflow: ellipsis;overflow: hidden;font-size: 5.7vw;}
+.profile_view h2{white-space: nowrap;text-overflow: ellipsis;text-transform: capitalize;overflow: hidden;font-size: 5.7vw;}
 .profile_view small{margin: 0 0 40px;font-size: 18px;display: block;}
 .profile_grid{display: flex;justify-content: space-between;padding: 10px 0;border-bottom: 1px solid #aaa;align-items: center;}
 .profile_grid .field{font-weight: bold;}

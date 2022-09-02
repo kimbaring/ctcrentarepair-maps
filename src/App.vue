@@ -65,6 +65,7 @@ export default ({
     },
     async askToTurnOnGPS() {
         return await new Promise((resolve,reject) => {
+          if (Capacitor.isNativePlatform()) {
             LocationAccuracy.canRequest().then((canRequest) => {
                 if (canRequest) {
                     LocationAccuracy.request(LocationAccuracy.REQUEST_PRIORITY_HIGH_ACCURACY).then(
@@ -76,6 +77,7 @@ export default ({
                 }
                 else { reject('Failed to open location!'); }
             });
+          } else { this.error1 = Capacitor.isNativePlatform(); resolve(true); }
         })
     },
      async checkGPSPermission() {
@@ -95,14 +97,13 @@ export default ({
                       },
                       () => { reject('Failed to check GPS Permission!'); }
                   );
-              }
-              else { this.error1 = Capacitor.isNativePlatform(); resolve(true); }
-              
+              } else { this.error1 = Capacitor.isNativePlatform(); resolve(true); }
           })
       },
 
       async requestGPSPermission(){
           return await new Promise((resolve, reject) => {
+            if (Capacitor.isNativePlatform()) {
               LocationAccuracy.canRequest().then((canRequest) => {
                   if (canRequest) {
                       resolve('CAN_REQUEST');
@@ -129,6 +130,7 @@ export default ({
                           );
                   }
               });
+            }
           })
       },
       async presentAlert() {
