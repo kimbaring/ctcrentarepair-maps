@@ -12,6 +12,7 @@ import CustomerTabs from '../views/CustomerView/CustomerTabs.vue';
 import TechnicianTabs from '../views/TechnicianView/TechnicianTab.vue';
 import RidesharerTabs from '../views/RideSharerView/RideSharerTab.vue';
 import CustomerTransactionHistoryView from '../views/TransactionView/TransactionHistoryView.vue';
+import CustomerTransactionDetailsView from '../views/TransactionView/TransactionDetailsView.vue';
 
 import CustomerLocationView from "@/views/CustomerView/CustomerLocationView.vue";
 import CustomerCarDetailsView from "@/views/CustomerView/CustomerCarDetailsView.vue";
@@ -150,7 +151,7 @@ const routes = [
       },
       {
         path: "/customer/transactionhistory/transactiondetails",
-        component: CustomerWaitingView
+        component: CustomerTransactionDetailsView
       },
       {
         path: "/customer/cardetails",

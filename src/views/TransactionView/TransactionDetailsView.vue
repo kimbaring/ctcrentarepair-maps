@@ -8,17 +8,17 @@
         <ion-card>
             <ion-card-header>
                 <ion-card-title :class="(loading) ? 'loading': null">
-                    {{task.name}}
+                    {{(task.problems != null && task.problems != '' ) ? objectify(task.problems)[0] : 'Ride Sharer: '+task.drop_location }}
                 </ion-card-title>
                 <ion-card-subtitle >
                     <span :class="(loading) ? 'loading': null">{{task.service_type}} {{(!loading) ? 'Services': null}}</span>
                 </ion-card-subtitle>
-                <div class="date" >{{task.created_at}}</div>
             </ion-card-header>
             <ion-card-content>
                 <div class="cardsection">
-                    <div><p>Location</p><p :class="(loading) ? 'loading': null">{{task.location_details}}</p></div>
-                    <div><p>Time Requested</p><p :class="(loading) ? 'loading': null">{{task.created_at_time}}</p></div>
+                    <div><p>Location</p><p :class="(loading) ? 'loading': null">{{task.customer_location}}</p></div>
+                    <div><p>Time Requested</p><p :class="(loading) ? 'loading': null">{{parseDate(task.created_at)}}</p></div>
+                    <div v-if="task.problems != null && task.problems != ''"><p>Problems</p><p :class="(loading) ? 'loading': null">{{problems()}}</p></div>
                     <div v-for="(t,i) in task.details" :key="i">
                         <p>{{formatKey(i)}}</p>
                         <p :class="(loading) ? 'loading': null">{{t}}</p>
@@ -78,13 +78,28 @@ export default({
             //end of ionicons
     
             loading: true,
-            task:{Task_Created_at:'01/01/2001'}
+            task:{created_at:'01-01-2001 00:00:00',problems:'[""]'}
         }
     },
     mounted(){
-        this.load(this.$route.path);
+        this.load(this.$route);
     },
     methods:{
+        objectify(param){
+            return local.objectify(param);
+        },
+        problems(){
+            let probs = '';
+            local.objectify(this.task.problems).forEach((el,i)=>{
+                if(i == local.objectify(this.task.problems).length - 1) probs = probs + el; 
+                else probs = probs + el + ', ';
+            })
+            return probs;
+        },
+        parseDate(date){
+            console.log(date);    
+            return dateFormat('%lm %d, %y (%h:%i%a)',date);
+        },
         formatKey(key){
             let stringArr = key.toLowerCase().split('_');
             for (var i = 0; i < stringArr.length; i++) {
@@ -105,7 +120,8 @@ export default({
             }
         },
         load(to){
-            if(to != '/customer/transactionhistory/transactiondetails') return;
+            if(to.path != '/customer/transactionhistory/transactiondetails') return;
+            this.loading = true;
             axiosReq({
                 method:"post",
                 url: "https://www.medicalcouriertransportation.com/rentarepair/api/task?task_id="+local.get('view_details'),
@@ -116,13 +132,11 @@ export default({
             }).catch(()=>{
                 openToast('Something went wrong!', 'danger');
             }).then(res=>{
+                console.log(res.data);
                 if(res.data.msg == 'invalid token') openToast('Invalid token!', 'danger');
                 else if(res.data.success){
                     this.loading = false;
                     this.task = removeFix(res.data.result,"task_");
-                    this.task.details = local.objectify(this.task.details);
-                    this.task.created_at = dateFormat('%m/%d/%y',this.task.created_at);
-                    this.task.created_at_time = dateFormat('%h:%i %a',res.data.result.Task_Created_at);
                 }
                 
             });
@@ -130,7 +144,7 @@ export default({
     },
     watch:{
         $route (to){
-            this.load(to.path);
+            this.load(to);
         }
     }
 });
@@ -140,6 +154,11 @@ export default({
 ion-header{
     text-align: center;
 }
+p.loading,ion-card-title.loading,ion-card-subtitle.loading{
+    font-size: 0;
+}
+
+
 .section{
     background: var(--ion-color-dark-red);
     height: 150px;
@@ -166,7 +185,6 @@ ion-card-title{
     font-weight: 400;
     font-size: 20px;
     line-height: 24px;
-    height: 24px;
 }
 ion-card-subtitle{
     color: #000;
