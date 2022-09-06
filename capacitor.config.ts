@@ -21,9 +21,6 @@ const config: CapacitorConfig = {
       layoutName: "launch_screen",
       useDialog: true,
     },
-    Keyboard: {
-      resize: "none",
-    }
   },
 };
 

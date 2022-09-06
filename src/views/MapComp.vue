@@ -33,6 +33,8 @@ import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import {mapsData} from '@/functions-custom';
+import {Capacitor} from "@capacitor/core";
+import {Keyboard} from '@capacitor/keyboard';
 
 export default({
     props: ['hideForm',"hideDestination","pinPickupCoorsLong","pinPickupCoorsLat","pinDropOffCoorsLong","pinDropOffCoorsLat"],
@@ -48,10 +50,10 @@ export default({
         return{
             awesome: null,
             map: null,
+            keyboard: null,
             mapLoading: true,
             pickupCoors: [],
             dropoffCoors: []
-
         }
     },
     mounted(){
@@ -81,7 +83,7 @@ export default({
                 this.pin(this.pinDropoffCoorsLong,this.pinDropoffCoorsLat,'b')
                 this.dropoffCoors = [this.pinDropoffCoorsLong,this.pinDropoffCoorsLat];
             }
-        }
+        },
     },
     methods:{
         getLocation(){
@@ -317,14 +319,23 @@ export default({
 
                     // const input1 = document.querySelector('input[type="text"]');
 
-                    document.addEventListener('click', function(e) {
-                        const container = document.getElementById('geocoder');
-                        if (!container.contains(e.target)) {
-                            document.querySelector(".map-form").classList.remove('active');
-                        } else {
+                    if (Capacitor.isNativePlatform()) {
+                        Keyboard.addListener('keyboardDidShow', () => {
                             document.querySelector(".map-form").classList.add('active');
-                        }
-                    });
+                        });
+                        Keyboard.addListener('keyboardDidHide', () => {
+                            document.querySelector(".map-form").classList.remove('active');
+                        });
+                    } else {
+                        document.addEventListener('click', function(e) {
+                            const container = document.getElementById('geocoder');
+                            if (!container.contains(e.target)) {
+                                document.querySelector(".map-form").classList.remove('active');
+                            } else {
+                                document.querySelector(".map-form").classList.add('active');
+                            }
+                        });
+                    }
 
                     let input2 = document.querySelectorAll('.close');
 
@@ -348,15 +359,13 @@ export default({
                                     this.pickupCoors,
                                     this.dropoffCoors
                                 ], { 
-                                    padding: 60
+                                    padding: 80
                                 });
                             } catch(err) {
                                 console.log(err);
                             }
                         }
                         document.querySelector(".map-form").classList.remove('active');
-                        document.querySelector('#geocoder1 input').autofocus = false;
-                        document.querySelector('#geocoder2 input').autofocus = false;
                     });
 
                     geocoder2.on('result', e => {
@@ -370,15 +379,13 @@ export default({
                                     this.pickupCoors,
                                     this.dropoffCoors
                                 ], { 
-                                    padding: 60
+                                    padding: 80
                                 });
                             } catch(err) {
                                 console.log(err);
                             }
                         }
                         document.querySelector(".map-form").classList.remove('active');
-                        document.querySelector('#geocoder1 input').autofocus = false;
-                        document.querySelector('#geocoder2 input').autofocus = false;
                     });                    
                     
                     // let coordinates;
