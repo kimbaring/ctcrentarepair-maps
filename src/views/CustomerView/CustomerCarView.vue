@@ -5,45 +5,7 @@
             <h3>My Car</h3>
             <ion-button class="viewbutton" expand="block" @click="$router.push('/customer/mycar/addcar')">Add Car</ion-button>
         </div>
-        <div v-if="isLoading">
-            <ion-card>
-                <ion-card-content>
-                    <ion-skeleton-text :animated="true" style="min-height: 200px;"></ion-skeleton-text>
-                    <ion-card-title>
-                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
-                    </ion-card-title>
-                    <div class="cardsection">
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                    </div>
-                    <ion-skeleton-text :animated="true"></ion-skeleton-text>
-                    <div class="col2">
-                        <ion-button expand="block"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
-                        <ion-button expand="block"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
-                    </div>
-                    <!-- <ion-button class="viewbutton" expand="block">View History</ion-button> For tracing purpose sa technician -->
-                </ion-card-content>
-            </ion-card>
-            <ion-card>
-                <ion-card-content>
-                    <ion-skeleton-text :animated="true" style="min-height: 200px;"></ion-skeleton-text>
-                    <ion-card-title>
-                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
-                    </ion-card-title>
-                    <div class="cardsection">
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                    </div>
-                    <ion-skeleton-text :animated="true"></ion-skeleton-text>
-                    <div class="col2">
-                        <ion-button expand="block"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
-                        <ion-button expand="block"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
-                    </div>
-                    <!-- <ion-button class="viewbutton" expand="block">View History</ion-button> For tracing purpose sa technician -->
-                </ion-card-content>
-            </ion-card>
-        </div>
-        <div v-if="!isLoading">
+        <div>
             <ion-card v-for="(c,i) in cars" :key="i">
                 <ion-card-content>
                     <img :src="c.img">
@@ -75,8 +37,7 @@ import {
     IonCard,
     IonCardContent,
     IonCardTitle,
-    IonButton,
-    IonSkeletonText
+    IonButton
 } from '@ionic/vue';
 import { 
     bookOutline,
@@ -84,8 +45,7 @@ import {
     personCircleOutline,
     logOutOutline,
 } from 'ionicons/icons';
-import {local,axiosReq,removeFix, openToast} from '@/functions';
-import {ciapi} from '@/js/globals';
+import {local,lStore} from '@/functions';
 
 export default({
     name: "CustomerDashboard",
@@ -95,8 +55,7 @@ export default({
         IonCard,
         IonCardContent,
         IonCardTitle,
-        IonButton,
-        IonSkeletonText
+        IonButton
     },
 
     data(){
@@ -108,8 +67,7 @@ export default({
             logOutOutline,
             //end of ionicons
 
-            cars:[],
-            isLoading: true
+            cars:[]
             
         }
     },
@@ -126,7 +84,7 @@ export default({
     methods:{
         viewDetails(event){
             local.set('car_reference',event.target.dataset.item);
-            this.$router.push('/customer/mycar/cardetails');
+            this.$router.push('/customer/cardetails');
         },
         editDetails(event){
             local.set('car_reference',event.target.dataset.item);
@@ -137,28 +95,7 @@ export default({
             this.$router.push('/customer/transactionhistory/transactiondetails')
         },
         loadVehicles(){
-            this.cars = [];
-            axiosReq({
-                method: 'post',
-                url: ciapi+'cars?_batch=true&car_user_id='+local.get('user_id'),
-                headers
-                :{
-                    PWAuth: local.get('user_token'),
-                    PWAuthUser: local.get('user_id')
-                }
-            }).catch(()=>{
-                openToast('Something went wrong!', 'danger');
-            }).then(res=>{
-                if(res.data.success){
-                    this.isLoading = false;
-                    this.cars = [];
-                    let result = res.data.result;
-                    for(let c in result ) {
-                        this.cars.push(removeFix(result[c],'car_'));
-                    }
-                }
-                else if(res.data.msg == 'invalid token') openToast('Token expired!', 'danger');
-            });
+            this.cars = lStore.get('cars');
         }
 
     }

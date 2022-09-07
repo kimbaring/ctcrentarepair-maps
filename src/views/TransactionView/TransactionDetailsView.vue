@@ -51,7 +51,7 @@ import {
     logOutOutline,
     arrowBack
 } from 'ionicons/icons';
-import {axiosReq,local, openToast,dateFormat,removeFix} from '@/functions';
+import {axiosReq,local, openToast,dateFormat,removeFix, lStore} from '@/functions';
 
 
 
@@ -122,6 +122,27 @@ export default({
         load(to){
             if(to.path != '/customer/transactionhistory/transactiondetails') return;
             this.loading = true;
+
+            let preloaded = null;
+            let preloadedTasks = lStore.get('tasks');
+            
+            
+            for(let p in preloadedTasks){
+                let el = removeFix(preloadedTasks[p],'task_')
+                if(el.id == local.get('view_details')){
+                    preloaded = el;
+                    this.loading = false;
+                    break;
+                }
+            }
+            
+
+            if(preloaded != null) {
+                this.task = preloaded;
+                return;
+            }
+
+            
             axiosReq({
                 method:"post",
                 url: "https://www.medicalcouriertransportation.com/rentarepair/api/task?task_id="+local.get('view_details'),

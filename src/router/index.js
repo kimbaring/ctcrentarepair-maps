@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import HomePage from '../views/HomePage.vue'
+import PreLoad from '../views/PreLoad.vue'
 import LoginPage from '../views/LoginRegisterView/LoginPage.vue'
 import RegisterPage from '../views/LoginRegisterView/RegisterPage.vue';
 import RegisterCustomer from '../views/LoginRegisterView/RegisterCustomer.vue';
@@ -53,6 +54,11 @@ const routes = [
     path: '/map',
     name: 'map',
     component: ()=> UserMap
+  },
+  {
+    path: '/preload',
+    name:'preload',
+    component: ()=> PreLoad
   },
   {
     path: '/chat',

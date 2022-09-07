@@ -8,13 +8,13 @@
         <ion-card>
             <ion-card-header>
                 <img :src="car.img">
-                <ion-card-title :class="(loading) ? 'loading': null">
+                <ion-card-title>
                     {{car.brand}} {{car.model}}
                 </ion-card-title>
             </ion-card-header>
             <ion-card-content>
                 <div class="cardsection">
-                    <div><p>Plate Number</p><p :class="(loading) ? 'loading': null">{{car.plate_number}}</p></div>
+                    <div><p>Plate Number</p><p>{{car.plate_number}}</p></div>
                     <div class="info" v-if="car.more_info != ''">{{car.more_info}}</div>
                 </div>
                 <ion-button class="viewbutton" expand="block" @click="$route.push('customer/mycar/editcar')">Edit Details</ion-button>
@@ -42,8 +42,7 @@ import {
     logOutOutline,
     arrowBack
 } from 'ionicons/icons';
-import {axiosReq,local, openToast,removeFix} from '@/functions';
-import { ciapi } from '@/js/globals';
+import {lStore,local} from '@/functions';
 
 
 export default({
@@ -66,8 +65,6 @@ export default({
             logOutOutline,
             arrowBack,
             //end of ionicons
-    
-            loading: true,
             car:{}
         }
     },
@@ -76,23 +73,9 @@ export default({
     },
     methods:{
         load(to){
-            if(to != '/customer/mycar/cardetails') return;
-            axiosReq({
-                method:"post",
-                url: ciapi+"cars?car_id="+local.get('car_reference'),
-                headers:{
-                    PWAuth: local.get('user_token'),
-                    PWAuthUser: local.get('user_id')
-                }
-            }).catch(()=>{
-                openToast('Something went wrong!', 'danger');
-            }).then(res=>{
-                if(res.data.msg == 'invalid token') openToast('Invalid token!', 'danger');
-                else if(res.data.success){
-                    this.loading = false;
-                    this.car = removeFix(res.data.result,"car_");
-                }
-                
+            if(to != '/customer/cardetails') return;
+            lStore.get('cars').forEach(el=>{
+                if(el.id == local.get('car_reference')) this.car = el
             });
         }
     },

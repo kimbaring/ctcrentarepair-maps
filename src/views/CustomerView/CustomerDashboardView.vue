@@ -133,7 +133,6 @@ export default({
         local.set('pageLoading',local.get('pageLoading') + 1); 
         if(local.get('pageLoading') == 1) {window.location.reload(); return;}
         else local.set('pageLoading', 0);
-        
     },
     methods:{
         clearTask(){

@@ -4,51 +4,7 @@
         <div class="section">
             <h3>Notifications</h3>
         </div>
-        <div v-if="isLoading">
-            <ion-card>
-                <ion-card-content>
-                    <h3><ion-skeleton-text :animated="true"></ion-skeleton-text></h3>
-                    <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                    <em><ion-skeleton-text :animated="true"></ion-skeleton-text></em>
-                </ion-card-content>
-            </ion-card>
-            <ion-card>
-                <ion-card-content>
-                    <h3><ion-skeleton-text :animated="true"></ion-skeleton-text></h3>
-                    <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                    <em><ion-skeleton-text :animated="true"></ion-skeleton-text></em>
-                </ion-card-content>
-            </ion-card>
-            <ion-card>
-                <ion-card-content>
-                    <h3><ion-skeleton-text :animated="true"></ion-skeleton-text></h3>
-                    <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                    <em><ion-skeleton-text :animated="true"></ion-skeleton-text></em>
-                </ion-card-content>
-            </ion-card>
-            <ion-card>
-                <ion-card-content>
-                    <h3><ion-skeleton-text :animated="true"></ion-skeleton-text></h3>
-                    <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                    <em><ion-skeleton-text :animated="true"></ion-skeleton-text></em>
-                </ion-card-content>
-            </ion-card>
-            <ion-card>
-                <ion-card-content>
-                    <h3><ion-skeleton-text :animated="true"></ion-skeleton-text></h3>
-                    <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                    <em><ion-skeleton-text :animated="true"></ion-skeleton-text></em>
-                </ion-card-content>
-            </ion-card>
-            <ion-card>
-                <ion-card-content>
-                    <h3><ion-skeleton-text :animated="true"></ion-skeleton-text></h3>
-                    <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                    <em><ion-skeleton-text :animated="true"></ion-skeleton-text></em>
-                </ion-card-content>
-            </ion-card>
-        </div>
-        <div v-if="!isLoading">
+        <div>
             <ion-card v-for="(n,i) in notifications" :key="i">
                 <ion-card-content :class="(n.is_read == 1) ? 'notifRead': ''" :data-key="n.id" @click="readNotif(i)">
                     <h3>{{n.title}}</h3>
@@ -67,8 +23,7 @@ import {
     IonPage,
     IonContent,
     IonCard,
-    IonCardContent,
-    IonSkeletonText
+    IonCardContent
 } from '@ionic/vue';
 import { 
     bookOutline,
@@ -78,7 +33,7 @@ import {
 } from 'ionicons/icons';
 
 import { getDatabase,ref, query, orderByChild, equalTo, onValue, remove  } from 'firebase/database';
-import {local,dateFormat, openToast,axiosReq,removeFix} from '@/functions';
+import {local,dateFormat, openToast,axiosReq,removeFix,lStore} from '@/functions';
 import {db} from '@/firebase';
 import {ciapi} from '@/js/globals';
 
@@ -88,8 +43,7 @@ export default({
         IonPage,
         IonContent,
         IonCard,
-        IonCardContent,
-        IonSkeletonText
+        IonCardContent
     },
 
     data(){
@@ -102,13 +56,21 @@ export default({
             //end of ionicons
 
             notifications:[],
-            originLoad: false,
-            isLoading: true
+            originLoad: false
         }
     },
     created(){
         const db = getDatabase();
         const que = query(ref(db,'/notifications'),orderByChild('user_id'), equalTo(local.get('user_id')));
+
+        let notifs = [];
+        for(let r in lStore.get('notifications')){
+            notifs.push(removeFix(lStore.get('notifications')[r],'notif_'));
+            notifs[notifs.length - 1].dateString = dateFormat('%lm %d, %y at %h:%i:%s %a',notifs[notifs.length - 1].created_at);
+        }
+
+        this.notifications = notifs;
+        console.log(lStore.get('notifications'));
 
         onValue(que, ()=>{
             if(this.originLoad){
@@ -136,7 +98,6 @@ export default({
                     return  parseInt(b.id) - parseInt(a.id);
                 });
                 this.notifications = [...result];
-                this.isLoading = false;
             });
             
         });

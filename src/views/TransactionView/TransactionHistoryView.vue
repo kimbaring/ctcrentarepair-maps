@@ -4,89 +4,7 @@
         <div class="section">
             <h3>Transaction History</h3>
         </div>
-        <div v-if="isLoading">
-            <ion-card>
-                <ion-card-header>
-                    <ion-card-title>
-                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
-                    </ion-card-title>
-                    <ion-card-subtitle>
-                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
-                    </ion-card-subtitle>
-                    <div class="date"><ion-skeleton-text :animated="true"></ion-skeleton-text></div>
-                </ion-card-header>
-                <ion-card-content>
-                    <div class="cardsection">
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                    </div>
-                    <ion-button expand="block" color="customred"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
-                </ion-card-content>
-            </ion-card>
-            <ion-card>
-                <ion-card-header>
-                    <ion-card-title>
-                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
-                    </ion-card-title>
-                    <ion-card-subtitle>
-                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
-                    </ion-card-subtitle>
-                    <div class="date"><ion-skeleton-text :animated="true"></ion-skeleton-text></div>
-                </ion-card-header>
-                <ion-card-content>
-                    <div class="cardsection">
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                    </div>
-                    <ion-button expand="block" color="customred"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
-                </ion-card-content>
-            </ion-card>
-            <ion-card>
-                <ion-card-header>
-                    <ion-card-title>
-                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
-                    </ion-card-title>
-                    <ion-card-subtitle>
-                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
-                    </ion-card-subtitle>
-                    <div class="date"><ion-skeleton-text :animated="true"></ion-skeleton-text></div>
-                </ion-card-header>
-                <ion-card-content>
-                    <div class="cardsection">
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                    </div>
-                    <ion-button expand="block" color="customred"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
-                </ion-card-content>
-            </ion-card>
-            <ion-card>
-                <ion-card-header>
-                    <ion-card-title>
-                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
-                    </ion-card-title>
-                    <ion-card-subtitle>
-                        <ion-skeleton-text :animated="true"></ion-skeleton-text>
-                    </ion-card-subtitle>
-                    <div class="date"><ion-skeleton-text :animated="true"></ion-skeleton-text></div>
-                </ion-card-header>
-                <ion-card-content>
-                    <div class="cardsection">
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                        <p><ion-skeleton-text :animated="true"></ion-skeleton-text></p>
-                    </div>
-                    <ion-button expand="block" color="customred"><ion-skeleton-text :animated="true"></ion-skeleton-text></ion-button>
-                </ion-card-content>
-            </ion-card>
-        </div>
-        <div v-if="!isLoading">
+        <div>
             <div class="viewMode" :class="viewMode">
                 <div @click="viewMode = 'all';">All</div>
                 <div @click="viewMode = 'technician';">Technician</div>
@@ -128,8 +46,7 @@ import {
     IonCardContent,
     IonCardSubtitle,
     IonCardTitle,
-    IonButton,
-    IonSkeletonText
+    IonButton
 } from '@ionic/vue';
 import { 
     bookOutline,
@@ -139,7 +56,7 @@ import {
 } from 'ionicons/icons';
 
 import { getDatabase,ref, query, orderByChild, equalTo, onValue  } from 'firebase/database';
-import {local,dateFormat,axiosReq,openToast,removeFix} from '@/functions';
+import {local,dateFormat,axiosReq,openToast,removeFix, lStore} from '@/functions';
 
 export default({
     name: "CustomerDashboard",
@@ -151,8 +68,7 @@ export default({
         IonCardContent,
         IonCardSubtitle,
         IonCardTitle,
-        IonButton,
-        IonSkeletonText
+        IonButton
     },
 
     data(){
@@ -165,13 +81,19 @@ export default({
             //end of ionicons
 
             transactions:[],
-            isLoading: true,
             viewMode:'all',
         }
     },
     created(){
         const db = getDatabase();
         const que = query(ref(db,'/pending_tasks'),orderByChild('user_id'), equalTo(local.get('user_id')));
+
+        let tasksLoaded = [];
+        for(let i in lStore.get('tasks')){
+            tasksLoaded.push(removeFix(lStore.get('tasks')[i],"task_"));
+        }
+
+        this.transactions = tasksLoaded;
 
         onValue(que, ()=>{
             axiosReq({
@@ -187,7 +109,6 @@ export default({
 
                 if(res.data.msg == 'invalid token') openToast('Invalid token!', 'danger');
                 else if(res.data.success){
-                    this.isLoading = false;
                     let tasks = res.data.result;
                     this.transactions = [];
                     for(let i = 0; i < tasks.length; i++){

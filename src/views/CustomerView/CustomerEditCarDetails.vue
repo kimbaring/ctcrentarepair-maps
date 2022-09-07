@@ -54,7 +54,7 @@ import {
     IonInput,
     IonTextarea
 } from '@ionic/vue';
-import {local, openToast, axiosReq, removeFix, dateFormat,optimizeImage} from '@/functions';
+import {local, openToast, axiosReq, dateFormat,optimizeImage, lStore} from '@/functions';
 import router from '@/router';
 import { ciapi } from '@/js/globals';
 import { storage } from '@/firebase';
@@ -97,22 +97,8 @@ export default({
         },
         load(to){
             if(to != '/customer/mycar/editcar') return;
-            axiosReq({
-                method:"post",
-                url: ciapi+"cars?car_id="+local.get('car_reference'),
-                headers:{
-                    PWAuth: local.get('user_token'),
-                    PWAuthUser: local.get('user_id')
-                }
-            }).catch(()=>{
-                openToast('Something went wrong!', 'danger');
-            }).then(res=>{
-                if(res.data.msg == 'invalid token') openToast('Invalid token!', 'danger');
-                else if(res.data.success){
-                    this.loading = false;
-                    this.car_details = removeFix(res.data.result,"car_");
-                }
-                
+            lStore.get('cars').forEach(el=>{
+                if(el.id == local.get('car_reference')) this.car_details = el
             });
         },
         deleteCar(){

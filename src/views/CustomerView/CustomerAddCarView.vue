@@ -53,7 +53,7 @@ import {
     IonInput,
     IonTextarea
 } from '@ionic/vue';
-import {local, openToast,validateForm, axiosReq, dateFormat, optimizeImage} from '@/functions';
+import {local, openToast,validateForm, axiosReq, dateFormat, optimizeImage, lStore} from '@/functions';
 import router from '@/router';
 import { ciapi } from '@/js/globals';
 import { storage } from '@/firebase';
@@ -134,6 +134,9 @@ export default({
                         openToast('Car added successfully!','success');
                         local.set('user_new',false)
                         setTimeout(()=>{router.replace('/customer/dashboard')},100);
+                        let updatedList = lStore.get('cars');
+                        updatedList.push(res.data.result);
+                        lStore.set('cars',updatedList);
                     }
                     else if(res.data.msg == 'invalid token') openToast('Token expired!', 'danger');
             

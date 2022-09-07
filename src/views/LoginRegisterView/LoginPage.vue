@@ -105,7 +105,7 @@ export default ({
               local.set('pageLoading', 0);
               this.formLoading = false;
               switch(res.data.info.role){
-                case 'Customer': router.replace('/customer/dashboard'); break;
+                case 'Customer': router.replace('/preload'); break;
                 case 'Technician': router.replace('/technician/dashboard'); break;
                 case 'Tow Truck Operator': router.replace('/comingsoon'); break;
                 case 'Ride Sharer': router.replace('/comingsoon'); break;

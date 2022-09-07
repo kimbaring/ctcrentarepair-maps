@@ -302,7 +302,66 @@ function toDataURL(file){
     });
 }
 
+class AsyncStorage{
+    constructor(){
+        this.storage = {};
+    }
+    
+    set(key,val){
+        if(!key.includes('.')){
+            this.storage[key] = val;
+            if(typeof val == 'object') localStorage.setItem('async_'+key, JSON.stringify(val));
+            else localStorage.setItem('async_'+key,val);  
+        }else{
+            var schema = this.storage;
+            var pList = key.split('.');
+            var len = pList.length;
+            for(var i = 0; i < len-1; i++) {
+                var elem = pList[i];
+                if( !schema[elem] ) schema[elem] = {}
+                schema = schema[elem];
+            }
+        
+            schema[pList[len-1]] = val;
+            localStorage.setItem('async_'+pList[0], JSON.stringify(this.storage[pList[0]]));
+        }
+    }
 
+    get(key){
+        if(isJsonString(localStorage.getItem('async_'+key))) return JSON.parse(localStorage.getItem('async_'+key));
+        else return localStorage.getItem('async_'+key);
+    }
+    
+    remove(key){
+        delete this.storage[key];
+        localStorage.removeItem(key);
+    }
+
+    objectify(stringObj){
+        stringObj = stringObj.replaceAll('&#34;','"');
+        stringObj = JSON.parse(stringObj);
+        return stringObj;
+    }
+}
+
+// COMP FUNCTIONS FOR ASYNCSTORAGE
+window.onload = ()=>{
+    for(let s in localStorage){
+        if(s.includes('async_')) {lStore.storage[s.replaceAll('async_','')] = localStorage.getItem(s);}
+    }
+}
+
+function isJsonString(str) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
+}
+
+const lStore = new AsyncStorage();
+// END OF COMP FUNCTIONS FOR ASYNCSTORAGE
 
 
 
@@ -318,5 +377,6 @@ export {
     toDataURL,
     optimizeImage,
     elementLoad,
-    formatDateString
+    formatDateString,
+    lStore
 }; 

@@ -80,7 +80,7 @@ import {
     IonItem,
     IonCheckbox
 } from '@ionic/vue';
-import {local, openToast,validateForm, axiosReq, removeFix} from '@/functions';
+import {local, lStore, openToast,validateForm, axiosReq, removeFix} from '@/functions';
 import router from '@/router';
 import { ciapi } from '@/js/globals';
 import { push } from '@/firebase';
@@ -138,23 +138,9 @@ export default({
         },
         loadVehicles(to){
             if(to != '/customer/requestdetails') return;
-            this.vehicles = [];
-            axiosReq({
-                method:"post",
-                url: ciapi+"cars?_batch=true&car_user_id="+local.get('user_id'),
-                headers:{
-                    PWAuth: local.get('user_token'),
-                    PWAuthUser: local.get('user_id')
-                }
-            }).catch(()=>{
-                openToast('Something went wrong!', 'danger');
-            }).then(res=>{
-                if(res.data.msg == 'invalid token') openToast('Invalid token!', 'danger');
-                else if(res.data.success){
-                    for(let i=0; i<res.data.result.length;i++) this.vehicles.push(removeFix(res.data.result[i],'car_'));
-                    this.vehiclesearch();
-                }
-            });
+            this.vehicles = lStore.get('cars');
+            console.log(lStore.get('cars'));
+            this.vehiclesearch();
         },
         submit(){
             this.formLoading = true;
