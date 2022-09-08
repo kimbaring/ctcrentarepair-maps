@@ -14,7 +14,7 @@ import { AndroidPermissions } from '@ionic-native/android-permissions';
 import { LocationAccuracy } from '@ionic-native/location-accuracy';
 import { Capacitor } from "@capacitor/core";
 import { NativeSettings, AndroidSettings,IOSSettings } from 'capacitor-native-settings';  
-
+import {Keyboard,KeyboardResize} from '@capacitor/keyboard';
 
 export default ({
   name: 'App',
@@ -163,13 +163,20 @@ export default ({
         this.roleMessage = `Dismissed with role: ${role}`;
       },
     routeChanged(to){
-
-      if(!local.isset('user_token')){
+      if(!local.isset('user_token')) {
         if(this.loginPaths.includes(to)) return;
         router.replace('/login');
         if(to == '/home') return;
         openToast("You must be signed in!", 'danger');
-      }else{
+      } else if(to == '/customer/location') {
+        if (Capacitor.isNativePlatform()) {
+          Keyboard.addListener('keyboardWillShow', () => {
+              Keyboard.setResizeMode({
+                  mode: KeyboardResize.None
+              });
+          });
+        }
+      } else {
          if(this.loginPaths.includes(to)) {
           switch(local.getObject('user_info').role){
             case 'Customer': router.replace('/customer/dashboard'); break;
@@ -178,6 +185,13 @@ export default ({
             case 'Ride Sharer': router.replace('/comingsoon'); break;
           }
           openToast("Please log out properly!", 'danger');
+        }
+        if (Capacitor.isNativePlatform()) {
+          Keyboard.addListener('keyboardWillShow', () => {
+              Keyboard.setResizeMode({
+                  mode: KeyboardResize.Native
+              });
+          });
         }
       }
     }
