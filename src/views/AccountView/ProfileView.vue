@@ -9,7 +9,7 @@
         <div class="changeProfileModal" :class="{open:changeProfileMode}">
             Confirm profile image?
             <div class="col2">
-                <ion-button expand="block" @click="uploadProfile">
+                <ion-button expand="block" v-bind:disabled="formLoading2" @click="uploadProfile">
                     <span v-if="!formLoading2">Confirm</span>
                     <span v-if="formLoading2">
                         <ion-spinner name="dots"></ion-spinner>
@@ -44,7 +44,7 @@
                 <div class="value"><ion-toggle id="availableToggle" @ionChange="changeAvailabilityStatus"></ion-toggle></div>
             </div>
             <ion-button expand="block" @click="$router.push('/customer/profile/update')">Update Profile</ion-button>
-            <ion-button expand="block" @click="logout" color="dark">
+            <ion-button expand="block" v-bind:disabled="formLoading1" @click="logout" color="dark">
                 <span v-if="!formLoading1">Log Out</span>
                 <span v-if="formLoading1">
                     <ion-spinner name="dots"></ion-spinner>

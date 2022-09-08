@@ -16,8 +16,11 @@
                 :pinPickupCoorsLat="setCoors[1]"
                 
             ></MapComp>
-            <ion-button expand="block" @click="submit">
-                Confirm Location
+            <ion-button expand="block" v-bind:disabled="formLoading" @click="submit">
+                <span v-if="!formLoading">Confirm Location</span>
+                <span v-if="formLoading">
+                    <ion-spinner name="dots"></ion-spinner>
+                </span>
             </ion-button>
         </ion-content>
     </ion-page>
@@ -60,7 +63,8 @@ export default {
             pickupCoors: [],
             dropoffCoors: [],
             serviceType: local.getObject('customer_task').service_type,
-            displayRoute: false
+            displayRoute: false,
+            formLoading: false,
         }
     },
     watch:{
@@ -95,6 +99,8 @@ export default {
                 return;
             }
 
+            this.formLoading = true;
+
             mapsData(this.pickupCoors[0],this.pickupCoors[1],res=>{
                 local.setInObject('customer_task','customer_location',res.features[0].place_name);
                 local.setInObject('customer_task','customer_location_coors_lat',this.pickupCoors[1]);
@@ -103,7 +109,8 @@ export default {
 
             if(this.serviceType == 'Ride Sharer'){
                 if(this.dropoffCoors.length != 2) {
-                    openToast('Please pin your destination!','danger')
+                    openToast('Please pin your destination!','danger');
+                    this.formLoading = false;
                     return;
                 }
                 
@@ -122,7 +129,8 @@ export default {
                         },
                         data: local.getObject('customer_task')
                     }).catch(()=>{
-                        openToast('Something went wrong', 'danger');    
+                        openToast('Something went wrong', 'danger');
+                        this.formLoading = false; 
                     }).then(res=>{
                         console.log(res.data);
                         if(!res.data.success) return;
@@ -131,12 +139,13 @@ export default {
                         push(`pending_tasks/${task.id}`,task);
                         openToast('Request sent!', 'success');
                         local.setInObject('customer_task','task_id',task.id);
-
+                        this.formLoading = false;
                         sendNotification(
                         'Your request was successfully sent!',
                         `RentARepair is currently looking for ride sharers that can cater your request.`,
                         '/notification').catch(()=>{
                             openToast('Something went wrong...', 'danger');
+                            this.formLoading = false;
                         }).then(()=>{
                             this.$router.push('/customer/waiting');
                         });

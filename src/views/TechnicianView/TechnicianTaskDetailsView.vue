@@ -23,15 +23,15 @@
                     <!-- <ion-button class="viewbutton" @click="$router.push('/technician/tasks/taskdetails/location')" expand="block">View in Map</ion-button> -->
                     <div class="buttonflex">
                         <section>
-                        <ion-button expand="block" @click="accept">
-                            <span v-if="!formLoading">Accept</span>
-                            <span v-if="formLoading">
-                                <ion-spinner name="dots"></ion-spinner>
-                            </span>
-                        </ion-button>
+                            <ion-button expand="block" v-bind:disabled="formLoading" @click="accept">
+                                <span v-if="!formLoading">Accept</span>
+                                <span v-if="formLoading">
+                                    <ion-spinner name="dots"></ion-spinner>
+                                </span>
+                            </ion-button>
                         </section>
                         <section>
-                        <ion-button expand="block" @click="$router.push('/technician/tasks')" color="dark">Decline</ion-button>
+                            <ion-button expand="block" @click="$router.push('/technician/tasks')" color="dark">Decline</ion-button>
                         </section>
                     </div>
                 </ion-card-content>

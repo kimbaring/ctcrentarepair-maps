@@ -13,7 +13,7 @@
             <ion-input v-model="password" type="password" placeholder="Password"></ion-input>
             <div class="buttonflex">
                 <section>
-                  <ion-button v-on:click="login" class="loginbutton" expand="block">
+                  <ion-button v-bind:disabled="formLoading" v-on:click="login" class="loginbutton" expand="block">
                     <span v-if="!formLoading">Login</span>
                     <span v-if="formLoading">
                         <ion-spinner name="dots"></ion-spinner>

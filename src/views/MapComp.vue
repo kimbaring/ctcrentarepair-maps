@@ -129,7 +129,9 @@ export default({
             
         },
         pin(long,lat,pinFix){
-            this.$emit('coors',[long,lat]);
+            setInterval(() => {
+                this.$emit('coors',[long,lat]);
+            }, 5000);
 
             if(pinFix == 'a') {
                 this.$emit('pickupCoors',[long,lat]);
@@ -442,13 +444,12 @@ export default({
                     let offsetHeight1 = document.querySelector(".map-form").offsetHeight;
                     document.getElementById("map").style.setProperty('height', 'calc(100% - ' + offsetHeight1 + 'px)');
                 }
+                map.resize();
             }, 300);
-
-            map.resize();
 
             setTimeout(() => {
                 loadingController.dismiss();
-            }, 300);
+            }, 600);
                 
         },
         async getRoute(pickupCoords,dropoffCoords) {
@@ -531,8 +532,7 @@ ion-card.parent{
     z-index: 11;
     transition: all 500ms ease-in-out;
     background: #fff;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    border-radius: 0;
 }
 
 .map-form.active {
