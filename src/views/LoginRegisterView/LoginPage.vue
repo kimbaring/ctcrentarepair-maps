@@ -16,7 +16,7 @@
             </div>
             <div class="buttonflex">
                 <section>
-                  <ion-button v-on:click="login" class="loginbutton" expand="block">
+                  <ion-button :disabled="formLoading" v-on:click="login" class="loginbutton" expand="block">
                     <span v-if="!formLoading">Login</span>
                     <span v-if="formLoading">
                         <ion-spinner name="dots"></ion-spinner>

@@ -21,9 +21,9 @@
                     <h2>Location:</h2>
                     <h2 :class="(loading) ? 'loading': null">{{task_info.customer_location}}</h2>
                     <!-- <ion-button class="viewbutton" @click="$router.push('/technician/tasks/taskdetails/location')" expand="block">View in Map</ion-button> -->
-                    <div class="buttonflex" v-if="allowAccept">
+                    <div class="buttonflex">
                         <section>
-                        <ion-button expand="block" @click="accept" :disabled="formLoading">
+                        <ion-button expand="block" @click="accept">
                             <span v-if="!formLoading">Accept</span>
                             <span v-if="formLoading">
                                 <ion-spinner name="dots"></ion-spinner>
@@ -33,9 +33,6 @@
                         <section>
                         <ion-button expand="block" @click="$router.push('/technician/tasks')" color="dark">Decline</ion-button>
                         </section>
-                    </div>
-                    <div class="buttonflex" v-if="!allowAccept && acceptedTask() == task_info.id">
-                        <ion-button expand="block" @click="$router.push('/technician/tasks/taskdetails/location')">Return to this task</ion-button>
                     </div>
                 </ion-card-content>
             </ion-card>
@@ -91,7 +88,6 @@ export default({
             loading:true,
             car_info:{model:'',brand:''},
             formLoading: false,
-            allowAccept: true
         }
     },
     created(){
@@ -104,22 +100,16 @@ export default({
         }
     },
     methods:{
-        acceptedTask(){
-            return local.getObject('accepted_task').id;
-        },
         loadInfo(){
             this.loading = true;
             const que = query(ref(db,'/pending_tasks/'+local.get('view_details')));
-            const que2 = query(ref(db,`/available/${local.getObject('user_info').role.toLowerCase()}/${local.get('user_id')}`));
-            onValue(que2,snapshot=>{           
-                if(snapshot.exists()) this.allowAccept = snapshot.val();
-                else this.allowAccept = false;
-            })
+
             onValue(que,()=>{
                 get(que).then(snapshot=>{
                     if(snapshot.exists()){
                         this.task_info = snapshot.val();
                         this.task_info.created_at = dateFormat('%lm %d,%y (%h:%i%a)',this.task_info.created_at);
+                        console.log(this.task_info);
                         axiosReq({
                             method:'post',
                             headers:{
@@ -161,7 +151,7 @@ export default({
             );
 
             getLocation().then(location => {
-                set(ref(db,`/available/${local.getObject('user_info').role.toLowerCase()}/${local.get('user_id')}`),'active');
+                set(ref(db,`/available/${role}/${local.get('user_id')}`),'active');
                 set(ref(db,'/pending_tasks/'+this.task_info.id+'/status'),2);
                 set(ref(db,'/pending_tasks/'+this.task_info.id+'/emp_location_coors_long'),location.long);
                 set(ref(db,'/pending_tasks/'+this.task_info.id+'/emp_location_coors_lat'),location.lat);

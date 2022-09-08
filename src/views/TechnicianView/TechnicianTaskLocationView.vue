@@ -24,7 +24,7 @@
                     <span>{{task_info.user_name}}</span>
                     <span>Customer ID</span>
                     <span>{{task_info.user_id}}</span>
-                    <ion-button router-link="/technician/tasks/taskdetail">Task Details</ion-button>
+                    <ion-button router-link="/technician/tasks/taskdetails">Task Details</ion-button>
                     <ion-button router-link="/technician/tasks/taskdetails/location/chat">Chat</ion-button>
                 </div>
             </div>

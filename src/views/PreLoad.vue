@@ -4,7 +4,7 @@
       <div class="content">
         <ion-card>
           <img src="../img/logo.png">
-          <p>Loaded: {{loadLabel}}...</p>
+          <p>{{(loadLabel == '') ? 'Fetching data...' : 'Loaded:'}} {{loadLabel}}</p>
           <div class="loader"><div class="loader-inner"></div></div>
         </ion-card>
       </div>
@@ -24,13 +24,14 @@ export default ({
   },
   data(){
     return {
-      loadLabel: 'User Data',
+      loadLabel: '',
       loadPercent:0
     }
   },
   created(){
     preload(res=>{
       switch(res){
+        case 'config': this.loadLabel = 'App Configurations';break; 
         case 'user': this.loadLabel = 'User Data';break;
         case 'cars': this.loadLabel = 'Car Data';break;
         case 'task': this.loadLabel = 'Tasks';break;
@@ -38,7 +39,7 @@ export default ({
       }
 
       
-      this.loadPercent+=25;
+      this.loadPercent+=20;
       document.querySelector('.loader-inner').style.width = this.loadPercent+'%';
 
       if(this.loadPercent == 100) setTimeout(()=>this.$router.replace('/customer/dashboard'), 300);

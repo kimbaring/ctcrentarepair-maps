@@ -108,20 +108,13 @@ export default({
             vehicle:{},
             vehicles:[],
             vehicle_search: '',
-            tech_types:[
-                "Flat Tire",
-                "Engine Problem",
-                "Key Locked Inside Vehicle",
-                "Dead Battery",
-                "Others",
-            ],
+            tech_types:["Flat Tire","Engine Problem","Key Locked Inside Vehicle","Dead Battery","Gas Problem","Others"],
             vehicle_search_results:[],
             formLoading: false,
 
         }
     },
     mounted(){
-
         // local.set('pageLoading',local.get('pageLoading') + 1);
         // if(local.get('pageLoading') == 1) window.location.reload();
         // else 

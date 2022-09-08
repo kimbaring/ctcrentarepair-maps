@@ -35,6 +35,31 @@
                         <p class="scrollBottom"></p>
                     </ion-list>
                 </div>
+                <ion-grid :class="(actionIconToggle) ? 'action_icon' : 'actionIconToggle'">
+                    <ion-row>
+                        <ion-col>
+                            <div class="file_wrap">
+                                <ion-icon :icon="camera"></ion-icon>
+                                <p>Camera</p>
+                                <input type="button" @click="takePicture" accept="image/*">
+                            </div>
+                        </ion-col>
+                        <ion-col>
+                            <div class="file_wrap2">
+                                <ion-icon :icon="image"></ion-icon>
+                                <p>Gallery</p>
+                                <input type="file" @change="showImage" accept="image/*">
+                            </div>
+                        </ion-col>
+                        <ion-col>
+                            <div class="file_wrap3" @click="actionIconToggle = true">
+                                <ion-icon :icon="backspace"></ion-icon>
+                                <p>Cancel</p>
+                            </div>
+                        </ion-col>
+                    </ion-row>
+                </ion-grid>
+
                 <div class="box_submit">
                     <ion-grid class="action_wrap" :class="(showButton) ? 'showActionButton': ''">
                         <ion-row class="ion-text-center">
@@ -51,10 +76,13 @@
                     </ion-grid>
                     <ion-grid class="action_wrap" :class="(showButton2) ? 'showActionButton2': ''">
                         <ion-row class="ion-text-center">
-                            <ion-col size="6">
+                            <ion-col size="4">
+                                    <a @click="downloadImg(showButtonId2)" href="javascript:;"><ion-icon :icon="download" color="customred"></ion-icon>Download</a>
+                            </ion-col>
+                            <ion-col size="4">
                                     <a @click="deleteImg(showButtonId2)" href="javascript:;"><ion-icon :icon="trash" color="customred"></ion-icon>Remove</a>
                             </ion-col>
-                            <ion-col size="6">
+                            <ion-col size="4">
                                     <a @click="showButton2 = true" href="javascript:;"><ion-icon :icon="backspace" color="customred"></ion-icon>Cancel</a>
                             </ion-col>
                         </ion-row>
@@ -75,13 +103,8 @@
                         <ion-spinner duration="1300" class="showTyping" name="dots"></ion-spinner>
                     </div>
                     <ion-item>
-                        <div class="file_wrap">
-                            <ion-icon :icon="camera"></ion-icon>
-                            <input type="button" @click="takePicture" accept="image/*">
-                        </div>
-                        <div class="file_wrap2">
-                            <ion-icon :icon="image"></ion-icon>
-                            <input type="file" @change="showImage" accept="image/*">
+                        <div class="actionIcon_controller">
+                            <a @click="showActionIcon" href="javascript:;"><ion-icon :icon="addCircle"></ion-icon></a>
                         </div>
                         <ion-input id="inputValue" class="ion-padding" v-model="showMessage" @keyup.enter="sendMessage" type="text" placeholder="Type something"></ion-input>
                         <ion-button slot="end" @click="sendMessage" color="customred">
@@ -98,21 +121,21 @@
 
 <script>
 import { IonPage, IonBackButton, IonHeader, IonButtons, IonContent, IonItem, IonLabel, IonList, IonIcon, IonInput, IonButton, IonThumbnail, IonImg, IonGrid, IonRow, IonCol, IonSpinner } from '@ionic/vue';
-import { personCircle, chatboxEllipses, send, image, trash, create, ellipsisVertical, backspace, camera } from 'ionicons/icons';
+import { personCircle, chatboxEllipses, send, image, trash, create, ellipsisVertical, backspace, camera, addCircle, download } from 'ionicons/icons';
 import Autolinker from 'autolinker';
 import VueEasyLightbox from 'vue-easy-lightbox';
 import { Camera, CameraResultType } from '@capacitor/camera';
 import { defineCustomElements } from '@ionic/pwa-elements/loader';
 import '@/firebase';
-import {dateFormat, local, formatDateString} from '@/functions';
-import { getDatabase, ref, remove, onValue, set, onChildAdded } from "firebase/database";
+import {dateFormat, local} from '@/functions';
+import { getDatabase, ref, remove, onValue, set, onChildAdded, query, orderByChild } from "firebase/database";
 import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL, deleteObject, uploadString } from "firebase/storage";
 
 export default ({
     components: { IonPage, IonBackButton, IonHeader, IonButtons,IonContent, IonItem, IonLabel, IonList, IonIcon, IonInput, IonButton, IonThumbnail, IonImg, IonGrid, IonRow, IonCol, VueEasyLightbox, IonSpinner },
     setup() {
         return {
-            personCircle, chatboxEllipses, send, image, trash, create, ellipsisVertical, backspace, camera
+            personCircle, chatboxEllipses, send, image, trash, create, ellipsisVertical, backspace, camera,  addCircle, download
         }
     },
     data() {
@@ -138,6 +161,7 @@ export default ({
             myFunction: false,
             addWrapClass: false,
             isTyping: false,
+            actionIconToggle: true,
             role: local.getObject('user_info').role
         }
     },
@@ -162,25 +186,31 @@ export default ({
                 allowEditing: true,
                 resultType: CameraResultType.DataUrl
             }).then((img) => {
+                this.actionIconToggle = true
 
                 let storage = getStorage();
-
                 const date = new Date();
                 const dateString = date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate() + " " + 
                 date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
                 const generateFileName = dateFormat('%y%m%d%h%i%s',dateString);
 
-           
+                let uploadRef = sRef(storage, 'images/' + generateFileName);
+                let uploadStatusRef = uploadString(uploadRef, img.dataUrl, 'data_url');
+                const uploadTask = uploadBytesResumable(uploadRef, uploadStatusRef);
 
-                // const uploadTask = uploadBytesResumable(sRef(storage, 'images/'+generateFileName), metadata);
-
-                uploadString(sRef(storage, 'images/' + generateFileName), img.dataUrl, 'data_url').then(() => {
-                    
-                    getDownloadURL(sRef(storage, 'images/' + generateFileName)).then((downloadURL) => {
-                        this.currentImg = downloadURL;
-                    })
-
-                });
+                uploadTask.on('state_changed', (snapshot) => {
+                    this.closePendingImg = false;
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    this.uploadProgress = progress.toFixed() + '%';
+                }, (error) => {
+                        console.log(error);
+                    }, () => {
+                        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                            this.uploadProgress = '';
+                            this.currentImg = downloadURL;
+                        });
+                    }
+                );
             });
 
         },
@@ -239,29 +269,17 @@ export default ({
                 this.showButton = true;
                 this.showMessage = '';
 
-                // setTimeout(()=> {
-                //     document.querySelector('.box_inner').scrollTo({
-                //         top: this.showMessage,
-                //         left: 0,
-                //         behavior: 'auto'
-                //     });
-                // }, 100)
-
                 return;
             }
 
-            // this.showMessage = this.showMessage.replaceAll(/(http||https):\/\/[^\s]+/gi,'<a target="_blank" href="$&" v-html>$&</a>');
-
             const db = getDatabase();
-            const userID = Math.floor(Math.random(1) * 999);
-            // const getSendDate = date.format(now, date.compile('ddd, MMM DD h:mm A'));
 
             const date2 = new Date();
             const dateString = date2.getFullYear() + "-" + date2.getMonth() + "-" + date2.getDate() + " " + 
             date2.getHours() + ":" + date2.getMinutes() + ":" + date2.getSeconds();
-            const generateFileName = local.get('user_id')+dateFormat('%y%m%d%h%i%s',dateString);
-            set(ref(db, 'Messages/'+local.get('chat_id')+'/msgs/'+generateFileName), {
-                ID: userID,
+            console.log(Object.keys(this.messageList).length + 1);
+            set(ref(db, 'Messages/'+local.get('chat_id')+'/msgs/'+parseInt(Object.keys(this.messageList).length + 1)), {
+                ID: parseInt(Object.keys(this.messageList).length + 1),
                 Message: this.showMessage,
                 Send_Date: dateString,
                 Image: this.currentImg,
@@ -273,6 +291,7 @@ export default ({
             this.showMessage = "";
             this.currentImg = "";
             this.closePendingImg = true;
+            this.actionIconToggle = true;
         },
         showImage(event) {
             this.imageFile = event.target.files[0];
@@ -283,12 +302,8 @@ export default ({
             const storage = getStorage();
             const sendFile = this.imageFile;
 
-            const metadata = {
-                contentType: 'image/jpg'
-            };
-
             const storageRef = sRef(storage, 'images/' + sendFile.name);
-            const uploadTask = uploadBytesResumable(storageRef, sendFile, metadata);
+            const uploadTask = uploadBytesResumable(storageRef, sendFile);
 
             uploadTask.on('state_changed', (snapshot) => {
                 this.closePendingImg = false;
@@ -300,6 +315,7 @@ export default ({
                     getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
                         this.uploadProgress = '';
                         this.currentImg = downloadURL;
+                        this.actionIconToggle = true;
                     });
                 }
             );
@@ -324,21 +340,53 @@ export default ({
 
         },
         deleteImg(ID) {
-
             if(!confirm('Are you sure you want to delete?')) {
                 this.showButton2 = true;
                 return;
             }
 
+            
+
             const db = getDatabase();
-            for(let msg2 = 0; msg2 < this.messageList.length; msg2++){
-                if(this.messageList[msg2].ID == ID){
-                    remove(ref(db, `/Messages/${local.get('chat_id')}/msgs/${msg2}`));
+            for(let msg in this.messageList){
+                if(this.messageList[msg].ID == ID){
+                    remove(ref(db, `/Messages/${local.get('chat_id')}/msgs/${msg}`));
                     break;
                 }
             }
 
             this.showButton2 = true;
+        },
+        downloadImg(ID) {
+        const storage = getStorage();
+
+        const date = new Date();
+        const dateString = date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate() + " " + 
+        date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+        const generateFileName = dateFormat('%y%m%d%h%i%s',dateString);
+
+        for(let downloadImg in this.messageList){
+            if(this.messageList[downloadImg].ID == ID) {
+                getDownloadURL(sRef(storage, this.messageList[downloadImg].Image)).then((url) => {
+                    const xhr = new XMLHttpRequest({mozSystem: true});
+                    xhr.responseType = 'blob';
+                    xhr.onload = () => {
+                        var imageUrl = window.URL.createObjectURL(xhr.response);
+                        const link = document.createElement("a");
+                        link.href = imageUrl;
+                        link.setAttribute("download", generateFileName, "target", "new");
+                        document.body.appendChild(link).click();
+                    };
+                    xhr.open('GET', url);
+                    xhr.send();
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+            }
+        }
+
+        this.showButton2 = true;
         },
         closeAttachFile() {
             this.closePendingImg = true;
@@ -351,14 +399,16 @@ export default ({
         },
         removeImageOption() {
             this.showButton2 = true;
+        },
+        showActionIcon() {
+            this.actionIconToggle = false;
         }
     },
     mounted() {
         const db = getDatabase();
         const getMessage = ref(db, 'Messages/'+local.get('chat_id')+'/msgs');
         const getTypingStatus = ref(db, 'Messages/'+local.get('chat_id')+'/info/');
-
-
+        const que = query(getMessage,orderByChild('ID'));
 
         set(ref(db, 'Messages/'+local.get('chat_id')+'/info/'+local.get('user_id')),"idle");
 
@@ -385,25 +435,28 @@ export default ({
             this.role = 'Customer';
         }
 
-        
-
-        onValue(getMessage, (snapshot) => {
+        onValue(que, (snapshot) => {
             const data = snapshot.val();
             this.myFunction = true;
-            this.messageList = data;
-            Object.keys(this.messageList).sort((a,b)=> {
-                const c = formatDateString(data[a].Send_Date);
-                const d = formatDateString(data[b].Send_Date);
-                console.log(new Date(d).getTime() < new Date(c).getTime());
-                return new Date(d).getTime() < new Date(c).getTime()
-            }).map(item => item[0]);
-            console.log(data);
-            
+            let objArray = [];
+            let newObject = {};
+            for(let s in data){
+                objArray.push(data[s]);
+            }
+            objArray.sort((a,b)=>{
+                let diff = a.ID - b.ID;
+                return diff;
+            })
+
+            objArray.forEach((a)=>{
+                newObject[a.ID] = a;
+            })
+
+            console.log(objArray)
+
+            this.messageList = newObject;
         });
 
-
-                
-        
         onChildAdded(getMessage, () =>{
             setTimeout(()=> {
                 document.querySelector('.box_inner').scrollTo({
@@ -450,14 +503,21 @@ ion-buttons{background: #b7160b; padding: 12px 0 0 12px;}
 .box_wrap .btn_submit ion-input:hover{opacity: 0.6;}
 .box_wrap .input_field{color: #000;}
 .remove{display: none;}
-.file_wrap{position: relative;}
-.file_wrap:hover{opacity: 0.8;}
-.file_wrap > input{font-size: 0; position: absolute; top: px; left: 10px; width: 30px; height: 25px; --color: none !important; --border: none !important; cursor: pointer;opacity: 0;}
+.file_wrap{position: relative;margin-bottom: 6px;cursor: pointer;}
+.file_wrap > input{font-size: 0; position: absolute; height: 25px; --color: none !important; --border: none !important; cursor: pointer; opacity: 0; width: 100%; left: 0; right: 0; text-align: center; margin: 0 auto;}
 .file_wrap ion-icon{color: #979797;font-size: 22px;}
-.file_wrap2{position: relative;}
-.file_wrap2:hover{opacity: 0.8;}
-.file_wrap2 > input{font-size: 0; position: absolute; top: 4px; left: 4px; width: 30px; height: 25px; --color: none !important; --border: none !important; cursor: pointer;opacity: 0;}
+.file_wrap:hover ion-icon, .file_wrap2:hover ion-icon p{color: #B7160B;}
+.file_wrap p{color: #555; margin: 0; font-size: 11px; position: absolute; left: 0; right: 0; bottom: -7px;}
+.file_wrap2{position: relative;margin-bottom: 6px;cursor: pointer;}
+.file_wrap2 > input{font-size: 0; position: absolute; height: 25px; --color: none !important; --border: none !important; cursor: pointer; opacity: 0; width: 100%; left: 0; right: 0; text-align: center; margin: 0 auto;}
 .file_wrap2 ion-icon{color: #979797;font-size: 22px;}
+.file_wrap2:hover ion-icon, .file_wrap2:hover ion-icon p{color: #B7160B;}
+.file_wrap2 p{color: #555; margin: 0; font-size: 11px; position: absolute; left: 0; right: 0; bottom: -7px;}
+.file_wrap3{position: relative;margin-bottom: 6px;cursor: pointer;}
+.file_wrap3 > input{font-size: 0; position: absolute; height: 25px; --color: none !important; --border: none !important; cursor: pointer; opacity: 0; width: 100%; left: 0; right: 0; text-align: center; margin: 0 auto;}
+.file_wrap3 ion-icon{color: #979797;font-size: 22px;}
+.file_wrap3:hover ion-icon, .file_wrap2:hover ion-icon p{color: #B7160B;}
+.file_wrap3 p{color: #555; margin: 0; font-size: 11px; position: absolute; left: 0; right: 0; bottom: -7px;}
 .zoomImg{position: fixed !important; top: 20px; left: 0; right: 0; text-align: center; margin: 0 auto !important; width: 100% !important; z-index: 9999; background: #e3e3e3; min-height: 500px !important; height: auto;}
 .zoomImg ion-img{object-fit: contain !important;}
 [class^="box_user"] ion-thumbnail{cursor: pointer; position: relative; box-shadow: 0px 0px 6px #8e8e8e; --border-radius: 10px !important; width: 200px; margin: 25px 18px 0 auto; max-width: 100%; min-height: 180px;}
@@ -486,10 +546,7 @@ ion-input{color: #555; font-size: 14px; padding-left: 8px !important;}
 .box_user1 ion-item{margin: 8px 0;}
 .box_user1 ion-label{margin: 0 !important;width: 100%;text-align: left;}
 .box_user1 ion-label p{background: linear-gradient(to bottom, #cacaca, #eee); max-width: 200px; width: 100%; padding: 10px; border-radius: 10px 10px 10px 0; min-height: 45px;color:#222}
-
-</style>
-
-<style>
-.user ion-icon{color: #555 !important;}
-.car ion-icon{color: #fff !important;}
+.actionIcon_controller ion-icon{font-size: 22px; color: #979797; margin-top: 5px;}
+.action_icon{display: none;text-align: center; bottom: 0 !important; background: linear-gradient(#ececec,white) !important;}
+.actionIconToggle{display: block; bottom: 0 !important; text-align: center;}
 </style>

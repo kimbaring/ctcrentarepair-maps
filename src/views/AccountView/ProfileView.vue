@@ -39,12 +39,12 @@
                 <span class="field">Joined On</span>
                 <span class="value">{{ user.created }}</span>
             </div>
-            <div class="profile_grid" v-if="user.role != 'Customer'">
+            <div class="profile_grid" v-if="user.role != 'Customer'" :class="{disallowStatusUpdate: !allowStatusUpdate}">
                 <span class="field">Availability Status</span>
                 <div class="value"><ion-toggle id="availableToggle" @ionChange="changeAvailabilityStatus"></ion-toggle></div>
             </div>
             <ion-button expand="block" @click="$router.push('/customer/profile/update')">Update Profile</ion-button>
-            <ion-button expand="block" @click="logout" color="dark">
+            <ion-button expand="block" :disabled="formLoading1" @click="logout" color="dark">
                 <span v-if="!formLoading1">Log Out</span>
                 <span v-if="formLoading1">
                     <ion-spinner name="dots"></ion-spinner>
@@ -101,6 +101,7 @@ export default({
             availabilityStatus: false,
             formLoading1: false,
             formLoading2: false,
+            allowStatusUpdate:true
 
         }
     },
@@ -121,9 +122,19 @@ export default({
                 document.getElementById('availableToggle').removeAttribute('checked');
             }
         })
-    },
+
+        if(local.getObject('user_info').role != 'Customer' && local.get('accepted_task') != null)
+            this.allowStatusUpdate = false;
+    },  
     methods:{
         changeAvailabilityStatus(){
+            if(!this.allowStatusUpdate) {
+                openToast('You cannot change your availability status until your current task is completed!');
+                remove(ref(db,`/available/${local.getObject('user_info').role.toLowerCase()}/${local.get('user_id')}`));
+                document.querySelector('ion-toggle').setAttribute('checked',false);
+                return;
+            }  
+
             this.availabilityStatus = !this.availabilityStatus;
             let role = this.user.role.replaceAll(' ','_').toLowerCase();
             if(this.availabilityStatus){
@@ -202,9 +213,8 @@ export default({
             then(()=>{
                 signOut(auth).then(() => {
                     openToast('Logout Successful', 'success');
-                    local.remove('user_id');
-                    local.remove('user_token');
-                    local.remove('user_info');
+                    localStorage.clear();
+                    window.localStorage.clear();
                     router.replace('/login');
                     this.formLoading1 = false;
                 }).catch(()=> {
@@ -222,7 +232,6 @@ export default({
 ion-content{
     --ion-background-color: var(--ion-color-dark-contrast);
 }
-
 .profile_img{position: absolute;
 top: 30px;
 left: 50px;

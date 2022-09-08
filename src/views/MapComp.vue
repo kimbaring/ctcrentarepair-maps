@@ -1,24 +1,17 @@
 <template>
     <ion-card class="parent">
-        <div id="map">
-            <div class="mapLoader" v-if="mapLoading">
-                <ion-spinner name="crescent"></ion-spinner>
-            </div>
-        </div>
+        <div id="map"></div>
         <ion-card class="map-form" :class="{hide: hideForm}">
             <div class="travel-info" v-show="awesome">
                 <h2><ion-icon :icon="mapOutline" ></ion-icon> <span id="info1"></span></h2>
                 <h2><ion-icon :icon="timerOutline"></ion-icon> <span id="info2"></span></h2>
-            </div> 
-            <div v-if="mapLoading"></div>
-            <div v-if="!mapLoading">
-                <div id="geocoder" class="input-con">
-                    <div id="geocoder1" >
-                        <ion-icon id="currentlocation" :icon="compass"></ion-icon>
-                    </div>
-                    <div id="geocoder2" :class="{hide: hideDestination}">
-                        <ion-icon :icon="navigateCircle"></ion-icon>
-                    </div>
+            </div>
+            <div id="geocoder" class="input-con">
+                <div id="geocoder1" >
+                    <ion-icon id="currentlocation" :icon="compass"></ion-icon>
+                </div>
+                <div id="geocoder2" :class="{hide: hideDestination}">
+                    <ion-icon :icon="navigateCircle"></ion-icon>
                 </div>
             </div>
         </ion-card>
@@ -26,35 +19,38 @@
 </template>
 
 <script defer>
-import {IonCard,IonIcon,IonSpinner} from '@ionic/vue';
+import {IonCard,IonIcon,loadingController} from '@ionic/vue';
 import {compass,navigateCircle,close} from 'ionicons/icons';
 import axios from 'axios';  
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import {mapsData} from '@/functions-custom';
+import {Capacitor} from "@capacitor/core";
+import {Keyboard} from '@capacitor/keyboard';
 
 export default({
     props: ['hideForm',"hideDestination","pinPickupCoorsLong","pinPickupCoorsLat","pinDropOffCoorsLong","pinDropOffCoorsLat"],
     components: {
         IonCard,
         IonIcon,
-        IonSpinner
     },
     setup() {
         return { compass,navigateCircle,close };
     },
     data(){
         return{
+            showBackdrop: true,
             awesome: null,
             map: null,
+            keyboard: null,
             mapLoading: true,
             pickupCoors: [],
             dropoffCoors: []
-
         }
     },
     mounted(){
+        this.showLoading();
         this.defMap();
     },
     watch:{
@@ -81,9 +77,17 @@ export default({
                 this.pin(this.pinDropoffCoorsLong,this.pinDropoffCoorsLat,'b')
                 this.dropoffCoors = [this.pinDropoffCoorsLong,this.pinDropoffCoorsLat];
             }
-        }
+        },
     },
     methods:{
+        async showLoading() {
+            const loading = await loadingController.create({
+                showBackdrop: true,
+                spinner: 'crescent',
+                cssClass: 'custom-loading'
+            });
+            return loading.present();
+        },
         getLocation(){
             return new Promise(
                 (resolve, reject) => {
@@ -125,7 +129,9 @@ export default({
             
         },
         pin(long,lat,pinFix){
-            this.$emit('coors',[long,lat]);
+            setInterval(() => {
+                this.$emit('coors',[long,lat]);
+            }, 5000);
 
             if(pinFix == 'a') {
                 this.$emit('pickupCoors',[long,lat]);
@@ -315,16 +321,25 @@ export default({
                     geocoder1.addTo('#geocoder1');
                     geocoder2.addTo('#geocoder2');
 
-                    // let input1 = document.querySelectorAll('#geocoder input');
+                    // const input1 = document.querySelector('input[type="text"]');
 
-                    document.addEventListener('click', function(e) {
-                        const container = document.getElementById('geocoder');
-                        if (!container.contains(e.target)) {
-                            document.querySelector(".map-form").classList.remove('active');
-                        } else {
+                    if (Capacitor.isNativePlatform()) {
+                        Keyboard.addListener('keyboardDidShow', () => {
                             document.querySelector(".map-form").classList.add('active');
-                        }
-                    });
+                        });
+                        Keyboard.addListener('keyboardDidHide', () => {
+                            document.querySelector(".map-form").classList.remove('active');
+                        });
+                    } else {
+                        document.addEventListener('click', function(e) {
+                            const container = document.getElementById('geocoder');
+                            if (!container.contains(e.target)) {
+                                document.querySelector(".map-form").classList.remove('active');
+                            } else {
+                                document.querySelector(".map-form").classList.add('active');
+                            }
+                        });
+                    }
 
                     let input2 = document.querySelectorAll('.close');
 
@@ -332,14 +347,6 @@ export default({
                         i.addEventListener('click', function() {
                             document.querySelector(".map-form").classList.remove('active');
                         });
-                    });
-
-                    window.addEventListener('click', function(e){
-                        if (document.querySelector('.map-form').contains(e.target)){
-                            document.querySelector(".map-form").classList.add('active');
-                        } else {
-                            document.querySelector(".map-form").classList.remove('active');
-                        }
                     });
 
                     // This implements `StyleImageInterface`
@@ -362,7 +369,6 @@ export default({
                                 console.log(err);
                             }
                         }
-
                         document.querySelector(".map-form").classList.remove('active');
                     });
 
@@ -377,14 +383,13 @@ export default({
                                     this.pickupCoors,
                                     this.dropoffCoors
                                 ], { 
-                                    padding: 60
+                                    padding: 80
                                 });
                             } catch(err) {
                                 console.log(err);
                             }
                         }
-
-                        document.querySelector(".map-form").classList.remove('active'); 
+                        document.querySelector(".map-form").classList.remove('active');
                     });                    
                     
                     // let coordinates;
@@ -434,15 +439,17 @@ export default({
                 // document.getElementById('geocoder').appendChild(div1, div2);
             });
 
-            this.mapLoading = false;
-
             setTimeout(() => {
                 if(document.querySelector(".map-form").style.display != "none") {
                     let offsetHeight1 = document.querySelector(".map-form").offsetHeight;
                     document.getElementById("map").style.setProperty('height', 'calc(100% - ' + offsetHeight1 + 'px)');
                 }
                 map.resize();
-            }, 1500);
+            }, 300);
+
+            setTimeout(() => {
+                loadingController.dismiss();
+            }, 600);
                 
         },
         async getRoute(pickupCoords,dropoffCoords) {
@@ -525,8 +532,7 @@ ion-card.parent{
     z-index: 11;
     transition: all 500ms ease-in-out;
     background: #fff;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    border-radius: 0;
 }
 
 .map-form.active {
@@ -668,23 +674,25 @@ ion-button {
 #map {
     border: none;
     width: 100%;
-    min-height: auto;
+    min-height: 40vh;
     height: calc(100% - 21px);
     overflow: hidden;
     position: relative;
     z-index: 122;
 }
 
-.mapLoader {
-	display: flex;
-	width: 100%;
-	height: 100%;
-	position: absolute;
-	top: 0;
-	left: 0;
-	justify-content: center;
-	align-items: center;
-	background: #333;
+ion-backdrop {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    justify-content: center;
+    align-items: center;
+    background: #333 !important;
+    opacity: 1;
+    z-index: 9999;
 }
 
 .mapboxgl-ctrl-geocoder--input {

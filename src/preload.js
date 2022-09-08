@@ -11,6 +11,24 @@ function getAPI(endpoint,data=null,headers=null){
 }
 
 export default function preload(callback){
+
+    getAPI('admin/config?_batch=true',null,{
+        PWAuthUser:localStorage.getItem('user_id'),
+        PWAuth:localStorage.getItem('user_token'),
+    }).then(res=>{
+        lStore.set('config',res.data.result);
+        callback('config');
+    });
+
+
+    getAPI('users?user_id='+localStorage.getItem('user_id'),null,{
+        PWAuthUser:localStorage.getItem('user_id'),
+        PWAuth:localStorage.getItem('user_token'),
+    }).then(res=>{
+        lStore.set('user',removeFix(res.data.result,'user_'));
+        callback('user');
+    });
+
     getAPI('cars?_batch=true&car_user_id='+localStorage.getItem('user_id'),null,{
         PWAuthUser:localStorage.getItem('user_id'),
         PWAuth:localStorage.getItem('user_token'),
@@ -21,14 +39,6 @@ export default function preload(callback){
         }) 
         lStore.set('cars',removedFixes)
         callback('cars');
-    });
-
-    getAPI('users?user_id='+localStorage.getItem('user_id'),null,{
-        PWAuthUser:localStorage.getItem('user_id'),
-        PWAuth:localStorage.getItem('user_token'),
-    }).then(res=>{
-        lStore.set('user',removeFix(res.data.result,'user_'));
-        callback('user');
     });
 
     getAPI('users/notifications?_batch=true&_orderby=notif__id_DESC&_limit=20&notif_user_id='
@@ -48,6 +58,8 @@ export default function preload(callback){
         lStore.set('tasks',removeFix(res.data.result,'user_'));
         callback('task');
     });
+
+    
     
 }
 

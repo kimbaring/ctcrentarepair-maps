@@ -53,16 +53,16 @@ const routes = [
   {
     path: '/map',
     name: 'map',
-    component: ()=> UserMap
+    component: UserMap
   },
   {
     path: '/preload',
     name:'preload',
-    component: ()=> PreLoad
+    component: PreLoad
   },
   {
     path: '/chat',
-    component: () => ChatRider
+    component: ChatRider
   },
   {
     path: '/',

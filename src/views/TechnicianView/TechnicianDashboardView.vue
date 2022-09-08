@@ -34,6 +34,12 @@
                 </ion-card-content>
             </ion-card>
         </div>
+
+        <div class="ongoingtask" v-if="task != null" >
+            <div class="head">
+                <h3 @click="gotoTask"><span>Ongoing Task</span>{{ task.service_type }} Services<small>Tap here to return to tasking.</small></h3>
+            </div>
+        </div>
     </ion-content>
 </ion-page>
 </template>
@@ -60,7 +66,7 @@ import {
 import { local } from '@/functions';
 import  router  from '@/router';
 import { db} from '@/firebase.js';
-import {get, child, ref} from 'firebase/database';
+import {get, child, ref,onValue,query,orderByChild,equalTo, limitToLast} from 'firebase/database';
 
 export default({
     name: "CustomerDashboard",
@@ -87,7 +93,22 @@ export default({
             
             wallet: "",
             userid: local.get('user_id'),
+            task: null
         }
+    },
+    created(){
+        const que = query(ref(db,'/pending_tasks'),
+        orderByChild('accepted_by_id'),
+        equalTo(local.get('user_id')),
+        limitToLast(1));
+        
+        onValue(que,snapshot=>{
+            if(snapshot.exists()){
+                this.task = snapshot.val()[Object.keys(snapshot.val())[0]];
+                local.setObject('accepted_task',this.task);
+                local.set('view_details',this.task.id);
+            }
+        });
     },
     updated(){
         get(child(ref(db), `userwallet/${this.userid}`)).then((snapshot) => {
@@ -96,18 +117,30 @@ export default({
                 } else {
                     this.wallet = 0;
                 }
-                }).catch(()=> {
-                });
+            }).catch(()=> {
+        });
     },
     methods:{
         addwallet(){
             router.push('/technician/wallet');
+        },
+        gotoTask(){
+            this.$router.push('/technician/tasks/taskdetails/location');
         }
     }
 });
 </script>
 
 <style scoped>
+
+.ongoingtask{position: fixed;bottom:0;width: 100%;padding: 20px 10px;background:#fff;box-shadow: 0 0 10px #aaa;border-radius: 20px 20px 0 0;}
+.ongoingtask .head{display: flex;align-items: center;}
+.ongoingtask .head h3{margin:0;text-align: left;width: 100%;color:#222;font-size: 20px;}
+.ongoingtask .head h3 small{display:block;font-weight: 400;font-size: 14px;margin-top: 5px;}
+.ongoingtask .head ion-button{--background:#fff;--color:#b7170b;--box-shadow: none;font-size: 20px;}
+
+.ongoingtask span{display: block;font-size: 15px;font-weight: 400;font-style: italic;margin-bottom: 10px;}
+
 .mainlogo{
     background: var(--ion-color-danger-contrast);
     height: 150px;

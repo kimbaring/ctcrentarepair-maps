@@ -63,7 +63,6 @@
                 <h3 @click="gotoTask"><span>Ongoing Task</span>{{ task.service_type }} Services<small>Tap here to continue. <q v-if="preUploadTask.includes(taskPath())">Tap the (X) icon to cancel.</q></small></h3>
                 <ion-button @click="clearTask" v-if="preUploadTask.includes(taskPath())"><ion-icon :icon="closeOutline"></ion-icon></ion-button>
             </div>
-
         </div>
         
     </ion-content>
@@ -91,7 +90,7 @@ import {
     closeOutline
 } from 'ionicons/icons';
 import { local, openToast, axiosReq } from '@/functions';
-import {ref,remove} from 'firebase/database';
+import {ref,remove,onValue,query,orderByChild,equalTo, limitToLast} from 'firebase/database';
 import  router  from '@/router';
 import {db} from '@/firebase';
 import {ciapi} from '@/js/globals';
@@ -120,7 +119,7 @@ export default({
             closeOutline,
             //end of ionicons
 
-            task: local.getObject('customer_task'),
+            task: null,
             preUploadTask:[
                 '/customer/location',
                 '/customer/requestdetails',
@@ -133,6 +132,22 @@ export default({
         local.set('pageLoading',local.get('pageLoading') + 1); 
         if(local.get('pageLoading') == 1) {window.location.reload(); return;}
         else local.set('pageLoading', 0);
+
+        const que = query(ref(db,'/pending_tasks'),
+        orderByChild('user_id'),
+        equalTo(local.get('user_id')),
+        limitToLast(1));
+        
+        onValue(que,snapshot=>{
+            if(snapshot.exists()){
+                this.task = snapshot.val()[Object.keys(snapshot.val())[0]];
+                local.setObject('customer_task',this.task);
+                switch (this.task.status){
+                    case 1: local.set('task_linear_path','/customer/waiting');break;
+                    case 2: local.set('task_linear_path','/customer/booked');break;
+                }
+            }
+        });
     },
     methods:{
         clearTask(){
