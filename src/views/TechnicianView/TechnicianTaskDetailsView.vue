@@ -34,7 +34,7 @@
                         <ion-button expand="block" @click="$router.push('/technician/tasks')" color="dark">Decline</ion-button>
                         </section>
                     </div>
-                    <div class="buttonflex" v-if="!allowAccept && acceptedTask() == task_info.id">
+                    <div class="buttonflex" v-if="!allowAccept && acceptedTask()">
                         <ion-button expand="block" @click="$router.push('/technician/tasks/taskdetails/location')">Return to this task</ion-button>
                     </div>
                 </ion-card-content>
@@ -105,15 +105,19 @@ export default({
     },
     methods:{
         acceptedTask(){
-            return local.getObject('accepted_task').id;
+            if(!local.isset('accepted_task')) return false;
+            console.log(local.getObject('accepted_task').id == this.task_info.id);
+            if(local.getObject('accepted_task').id == this.task_info.id) return true; 
+            return false;
         },
         loadInfo(){
             this.loading = true;
             const que = query(ref(db,'/pending_tasks/'+local.get('view_details')));
             const que2 = query(ref(db,`/available/${local.getObject('user_info').role.toLowerCase()}/${local.get('user_id')}`));
             onValue(que2,snapshot=>{           
-                if(snapshot.exists()) this.allowAccept = snapshot.val();
-                else this.allowAccept = false;
+                console.log(snapshot.exists())
+                if(snapshot.exists()) this.allowAccept = false;
+                else this.allowAccept = true;
             })
             onValue(que,()=>{
                 get(que).then(snapshot=>{

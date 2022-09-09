@@ -83,6 +83,9 @@ export default({
     },
     mounted(){
         this.load(this.$route);
+
+
+        
     },
     methods:{
         objectify(param){
@@ -139,28 +142,27 @@ export default({
 
             if(preloaded != null) {
                 this.task = preloaded;
-                return;
+            }else{
+                axiosReq({
+                    method:"post",
+                    url: "https://www.medicalcouriertransportation.com/rentarepair/api/task?task_id="+local.get('view_details'),
+                    headers:{
+                        PWAuth: local.get('user_token'),
+                        PWAuthUser: local.get('user_id')
+                    }
+                }).catch(()=>{
+                    openToast('Something went wrong!', 'danger');
+                }).then(res=>{
+                    console.log(res.data);
+                    if(res.data.msg == 'invalid token') openToast('Invalid token!', 'danger');
+                    else if(res.data.success){
+                        this.loading = false;
+                        this.task = removeFix(res.data.result,"task_");
+                    }
+                    
+                });
             }
-
             
-            axiosReq({
-                method:"post",
-                url: "https://www.medicalcouriertransportation.com/rentarepair/api/task?task_id="+local.get('view_details'),
-                headers:{
-                    PWAuth: local.get('user_token'),
-                    PWAuthUser: local.get('user_id')
-                }
-            }).catch(()=>{
-                openToast('Something went wrong!', 'danger');
-            }).then(res=>{
-                console.log(res.data);
-                if(res.data.msg == 'invalid token') openToast('Invalid token!', 'danger');
-                else if(res.data.success){
-                    this.loading = false;
-                    this.task = removeFix(res.data.result,"task_");
-                }
-                
-            });
         }
     },
     watch:{

@@ -20,9 +20,6 @@ const config: CapacitorConfig = {
       splashImmersive: true,
       layoutName: "launch_screen",
       useDialog: true,
-    },
-    Keyboard: {
-      resize: "none",
     }
   },
 };

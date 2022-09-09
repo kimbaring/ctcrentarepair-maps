@@ -153,10 +153,10 @@ export default({
         clearTask(){
             
             if(local.get('task_linear_path') == '/customer/waiting'){
-                remove(ref(db,`/pending_tasks/${local.getObject('customer_task').task_id}`));
+                remove(ref(db,`/pending_tasks/${local.getObject('customer_task').id}`));
                 axiosReq({
                     method: 'post',
-                    url: ciapi + `task/delete?task_id=${local.getObject('customer_task').task_id}`,
+                    url: ciapi + `task/delete?task_id=${local.getObject('customer_task').id}`,
                     headers:{
                         PWAuth: local.get('user_token'),
                         PWAuthUser: local.get('user_id'),
@@ -165,8 +165,10 @@ export default({
                     openToast('Something went wrong...', 'danger');
                 });
             }
+            remove(ref(db,`/pending_tasks/${local.getObject('customer_task').id}`));
             local.remove('customer_task');
             local.remove('task_linear_path');
+            
 
             this.task = null;
         },

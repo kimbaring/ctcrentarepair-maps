@@ -50,7 +50,6 @@
   --ion-color-light-danger:#b7160b3f;
   --ion-color-content:#B7160B;
 
-
   /** dark **/
   --ion-color-dark: #222428;
   --ion-color-dark-rgb: 34, 36, 40;
@@ -115,7 +114,7 @@
 .mapboxgl-ctrl-geocoder--input {
   font: 1rem sans-serif;
   padding: 5px 45px 5px 15px;
-height: 50px !important;
+  height: 50px !important;
 }
 
 .mapboxgl-ctrl-geocoder {
@@ -123,7 +122,7 @@ height: 50px !important;
 }
 
 .mapboxgl-ctrl-geocoder svg {
-display: none !important;
+  display: none !important;
 }
 
 .mapboxgl-ctrl-geocoder--input:focus {
@@ -131,29 +130,42 @@ display: none !important;
 }
 
 #geocoder1 .suggestions-wrapper {
-position: absolute;
-top: 100%;
-width: 100vw;
-height: auto;
-z-index: 123;
-left: 50%;
-right: 50%;
-transform: translateX(-50%);
+  position: absolute;
+  top: 100%;
+  width: 100vw;
+  height: auto;
+  z-index: 123;
+  left: 50%;
+  right: 50%;
+  transform: translateX(-50%);
 }
 
 #geocoder2 .suggestions-wrapper {
-position: absolute;
-top: 100%;
-width: 100vw;
-height: auto;
-z-index: 123;
-left: 50%;
-right: 50%;
-transform: translateX(-50%);
+  position: absolute;
+  top: 100%;
+  width: 100vw;
+  height: auto;
+  z-index: 123;
+  left: 50%;
+  right: 50%;
+  transform: translateX(-50%);
 }
 
 #geocoder .mapboxgl-ctrl-geocoder {
 	width: 100%;
 	display: block;
 	max-width: unset;
+}
+
+ion-backdrop {
+  width: 100%;
+	height: 100%;
+}
+
+ion-loading.custom-loading {
+  --backdrop-opacity: 1;
+  --background: none;
+  --spinner-color: #333;
+  color: none;
+  filter: invert(100%);
 }

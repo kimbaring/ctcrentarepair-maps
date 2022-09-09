@@ -29,6 +29,7 @@
     "axios": "^0.27.2",
     "capacitor-native-settings": "^4.0.0",
     "core-js": "^3.6.5",
+    "dotenv": "^16.0.2",
     "firebase": "^9.9.2",
     "ionicons": "^6.0.2",
     "mapbox-gl": "^2.9.2",

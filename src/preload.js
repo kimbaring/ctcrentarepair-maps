@@ -50,7 +50,7 @@ export default function preload(callback){
         callback('notifications');
     });
 
-    getAPI('task?_batch=true&_orderby=task__id_DESC&_limit=20&task_user_id='
+    getAPI('task?_batch=true&_orderby=task__id_DESC&_limit=10&task_user_id='
         +localStorage.getItem('user_id'),null,{
         PWAuthUser:localStorage.getItem('user_id'),
         PWAuth:localStorage.getItem('user_token'),

@@ -28,7 +28,7 @@ import {axiosReq,validateForm,openToast,local} from '@/functions';
 import {ciapi} from '@/js/globals';
 
 export default({
-    components:{
+    components:{    
         IonPage,
         IonContent,
         IonImg,

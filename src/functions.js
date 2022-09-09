@@ -364,6 +364,21 @@ const lStore = new AsyncStorage();
 // END OF COMP FUNCTIONS FOR ASYNCSTORAGE
 
 
+function bubbleSort(array,isDescending = false){
+    let sortedArray = array;
+    for(let i = 0; i < sortedArray.length; i++){ 
+        for(let j = 0; j < ( sortedArray.length - i -1 ); j++){
+            let cond = isDescending ? sortedArray[j].id < sortedArray[j+1].id : sortedArray[j].id > sortedArray[j+1].id;
+            if(cond){
+                let temp = sortedArray[j]
+                sortedArray[j] = sortedArray[j + 1]
+                sortedArray[j+1] = temp
+            }
+        }
+    }
+
+    return sortedArray;
+}
 
 
 export { 
@@ -378,5 +393,6 @@ export {
     optimizeImage,
     elementLoad,
     formatDateString,
-    lStore
+    lStore,
+    bubbleSort
 }; 
