@@ -84,7 +84,8 @@ export default({
             const loading = await loadingController.create({
                 showBackdrop: true,
                 spinner: 'crescent',
-                cssClass: 'custom-loading'
+                cssClass: 'custom-loading',
+                animated: true
             });
             return loading.present();
         },
@@ -444,12 +445,15 @@ export default({
                     let offsetHeight1 = document.querySelector(".map-form").offsetHeight;
                     document.getElementById("map").style.setProperty('height', 'calc(100% - ' + offsetHeight1 + 'px)');
                 }
+            }, 300);
+
+            setInterval(() => {
                 map.resize();
             }, 300);
 
             setTimeout(() => {
                 loadingController.dismiss();
-            }, 600);
+            }, 900);
                 
         },
         async getRoute(pickupCoords,dropoffCoords) {
