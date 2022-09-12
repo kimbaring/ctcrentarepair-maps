@@ -31,10 +31,10 @@
                     <ion-button @click="open(t.id)" class="viewbutton" expand="block">Details</ion-button>                    
                 </ion-card-content>
             </ion-card>
-            <div class="loadMore">
+            <!-- <div class="loadMore">
                 <p>Load More</p> <ion-icon :icon="refreshCircleOutline"></ion-icon>
             </div>
-            
+             -->
         </div>
     </ion-content>
 </ion-page>
@@ -51,7 +51,7 @@ import {
     IonCardSubtitle,
     IonCardTitle,
     IonButton,
-    IonIcon
+    // IonIcon
 } from '@ionic/vue';
 import { 
     bookOutline,
@@ -62,7 +62,7 @@ import {
 } from 'ionicons/icons';
 
 import { getDatabase,ref, query, orderByChild, equalTo, onValue  } from 'firebase/database';
-import {local,dateFormat,axiosReq,openToast,removeFix, lStore,elementLoad, bubbleSort} from '@/functions';
+import {local,dateFormat,axiosReq,openToast,removeFix, lStore, bubbleSort} from '@/functions';
 
 export default({
     name: "CustomerDashboard",
@@ -75,7 +75,7 @@ export default({
         IonCardSubtitle,
         IonCardTitle,
         IonButton,
-        IonIcon
+        // IonIcon
     },
 
     data(){
@@ -131,20 +131,20 @@ export default({
             });
         });
 
-        elementLoad('.loadMore').then(()=>{
-            const scrollCallback = ()=>{
-                let a = document.querySelector('.loadMore').getBoundingClientRect().y;
-                let b = document.querySelector('.childRouter').offsetHeight;
+        // elementLoad('.loadMore').then(()=>{
+        //     const scrollCallback = ()=>{
+        //         let a = document.querySelector('.loadMore').getBoundingClientRect().y;
+        //         let b = document.querySelector('.childRouter').offsetHeight;
 
-                // console.log(`${a} ${b}`);
+        //         // console.log(`${a} ${b}`);
                 
-                if(a < b) this.loadMore();
+        //         if(a < b) this.loadMore();
 
-            }
+        //     }
 
-            document.querySelector('ion-router-outlet').addEventListener("wheel",scrollCallback);
-            document.querySelector('ion-router-outlet').addEventListener("touchmove ",scrollCallback);
-        })
+        //     document.querySelector('ion-router-outlet').addEventListener("wheel",scrollCallback);
+        //     document.querySelector('ion-router-outlet').addEventListener("touchmove ",scrollCallback);
+        // })
     },
     watch:{
         $route (to){
@@ -164,41 +164,41 @@ export default({
             this.$router.push('/customer/transactionhistory/transactiondetails')
         },
 
-        loadMore(){
-            console.log(this.isRequesting);
-            if(this.isRequesting) return;
-            this.isRequesting = true;
+        // loadMore(){
+        //     console.log(this.isRequesting);
+        //     if(this.isRequesting) return;
+        //     this.isRequesting = true;
 
-            if(this.transactions.length < 10) return;
-            if(this.prevLength >= this.transactions.length) return;
-            this.prevLength = this.transactions.length;
-            this.requestOffset += 10;
+        //     if(this.transactions.length < 10) return;
+        //     if(this.prevLength >= this.transactions.length) return;
+        //     this.prevLength = this.transactions.length;
+        //     this.requestOffset += 10;
             
-            axiosReq({
-                method:"post",
-                url: "https://www.medicalcouriertransportation.com/rentarepair/api/task?_orderby=task__id_DESC&_limit=10&_offset="+this.requestOffset+"&_batch=true&task_user_id="+local.get('user_id'),
-                headers:{
-                    PWAuth: local.get('user_token'),
-                    PWAuthUser: local.get('user_id')
-                }
-            }).catch(()=>{
-                openToast('Something went wrong!', 'danger');
-            }).then(res=>{
-                this.isRequesting = false;
-                if(res.data.msg == 'invalid token') openToast('Invalid token!', 'danger');
-                else if(res.data.successs){
-                    let tasks = res.data.result;
-                    for(let i = 0; i < tasks.length; i++){
-                        this.transactions.push(removeFix(tasks[i],"task_"));
-                    }
-                    this.transactions = bubbleSort(this.transactions,true);
-                }
+        //     axiosReq({
+        //         method:"post",
+        //         url: "https://www.medicalcouriertransportation.com/rentarepair/api/task?_orderby=task__id_DESC&_limit=10&_offset="+this.requestOffset+"&_batch=true&task_user_id="+local.get('user_id'),
+        //         headers:{
+        //             PWAuth: local.get('user_token'),
+        //             PWAuthUser: local.get('user_id')
+        //         }
+        //     }).catch(()=>{
+        //         openToast('Something went wrong!', 'danger');
+        //     }).then(res=>{
+        //         this.isRequesting = false;
+        //         if(res.data.msg == 'invalid token') openToast('Invalid token!', 'danger');
+        //         else if(res.data.successs){
+        //             let tasks = res.data.result;
+        //             for(let i = 0; i < tasks.length; i++){
+        //                 this.transactions.push(removeFix(tasks[i],"task_"));
+        //             }
+        //             this.transactions = bubbleSort(this.transactions,true);
+        //         }
 
-                console.log(this.transactions.length);
-            });
+        //         console.log(this.transactions.length);
+        //     });
 
             
-        }
+        // }
 
         
 

@@ -148,6 +148,8 @@ export default({
                 }
             }
         });
+
+        if(this.task == null) this.task = local.getObject('customer_task');
     },
     methods:{
         clearTask(){
