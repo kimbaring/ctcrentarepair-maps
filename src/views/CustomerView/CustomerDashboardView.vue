@@ -63,6 +63,7 @@
                 <h3 @click="gotoTask"><span>Ongoing Task</span>{{ task.service_type }} Services<small>Tap here to continue. <q v-if="preUploadTask.includes(taskPath())">Tap the (X) icon to cancel.</q></small></h3>
                 <ion-button @click="clearTask" v-if="preUploadTask.includes(taskPath())"><ion-icon :icon="closeOutline"></ion-icon></ion-button>
             </div>
+            <ion-progress-bar style="position: relative; top: 10px;" type="indeterminate"></ion-progress-bar>
         </div>
         
     </ion-content>
@@ -78,6 +79,7 @@ import {
     IonCardHeader,
     IonCardContent,
     IonCardTitle,
+    IonProgressBar,
     IonIcon
 } from '@ionic/vue';
 import { 
@@ -101,6 +103,7 @@ export default({
         IonPage,
         IonContent,
         IonCard,
+        IonProgressBar,
         IonCardHeader,
         IonCardContent,
         IonCardTitle,
@@ -205,6 +208,8 @@ export default({
 .ongoingtask .head h3 small{display:block;font-weight: 400;font-size: 14px;margin-top: 5px;}
 .ongoingtask .head ion-button{--background:#fff;--color:#b7170b;--box-shadow: none;font-size: 20px;}
 
+
+
 .ongoingtask span{display: block;font-size: 15px;font-weight: 400;font-style: italic;margin-bottom: 10px;}
 .mainlogo{
     background: var(--ion-color-danger-contrast);
@@ -242,6 +247,16 @@ export default({
 ion-content{
     --ion-background-color: var(--ion-color-content);
 }
+
+ion-progress-bar{
+    position: relative;
+    top: 10px;
+    --progress-background: #b7170b;
+    --background: #fff;
+    border-radius: 20px;
+    margin: 10px 0 0;
+}
+
 ion-content h3{
     color: #fff;
     margin: 10px auto 30px;

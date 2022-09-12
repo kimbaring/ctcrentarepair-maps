@@ -39,6 +39,7 @@
             <div class="head">
                 <h3 @click="gotoTask"><span>Ongoing Task</span>{{ task.service_type }} Services<small>Tap here to return to tasking.</small></h3>
             </div>
+            <ion-progress-bar style="position: relative; top: 10px;" type="indeterminate"></ion-progress-bar>
         </div>
     </ion-content>
 </ion-page>
@@ -52,6 +53,7 @@ import {
     IonCard,
     IonCardHeader,
     IonCardContent,
+    IonProgressBar,
     IonCardTitle,
     IonButton,
 } from '@ionic/vue';
@@ -76,6 +78,7 @@ export default({
         IonCard,
         IonCardHeader,
         IonCardContent,
+        IonProgressBar,
         IonCardTitle,
         IonButton,
     },
@@ -177,6 +180,16 @@ export default({
 ion-content{
     --ion-background-color: var(--ion-color-content);
 }
+
+ion-progress-bar{
+    position: relative;
+    top: 10px;
+    --progress-background: #b7170b;
+    --background: #fff;
+    border-radius: 20px;
+    margin: 10px 0 0;
+}
+
 
 .top > h2{
     color:#fff;

@@ -116,8 +116,8 @@ export default({
             const que2 = query(ref(db,`/available/${local.getObject('user_info').role.toLowerCase()}/${local.get('user_id')}`));
             onValue(que2,snapshot=>{           
                 console.log(snapshot.exists())
-                if(snapshot.exists()) this.allowAccept = false;
-                else this.allowAccept = true;
+                if(snapshot.exists()) this.allowAccept = true;
+                else this.allowAccept = false;
             })
             onValue(que,()=>{
                 get(que).then(snapshot=>{

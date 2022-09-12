@@ -32,6 +32,7 @@ import CustomerWaitingView from '@/views/CustomerView/CustomerWaitingView.vue';
 import CustomerMyCarDetailsView from '@/views/CustomerView/CustomerMyCarDetailsView.vue';
 
 import CustomerBookedView from '@/views/CustomerView/CustomerBookedView.vue';
+import CustomerTaskFinished from '@/views/CustomerView/CustomerTaskFinished.vue';
 import CustomerCarView from '@/views/CustomerView/CustomerCarView.vue';
 import CustomerEditCarDetails from '@/views/CustomerView/CustomerEditCarDetails.vue';
 import NotificationView from '@/views/NotificationView/NotificationView.vue';
@@ -42,6 +43,7 @@ import TechnicianTaskView from '@/views/TechnicianView/TechnicianTaskView.vue';
 import TechnicianTaskDetailsView from '@/views/TechnicianView/TechnicianTaskDetailsView.vue';
 import TechnicianTaskLocationView from '@/views/TechnicianView/TechnicianTaskLocationView.vue';
 import TechnicianAddWalletView from '@/views/TechnicianView/TechnicianAddWalletView.vue';
+import TechnicianTaskFinished from '@/views/TechnicianView/TechnicianTaskFinished.vue';
 import RideSharerDashboardView from '@/views/RideSharerView/RideSharerDashboardView.vue';
 
 
@@ -180,6 +182,10 @@ const routes = [
         component: CustomerBookedView
       },
       {
+        path: "/customer/finished",
+        component: CustomerTaskFinished
+      },
+      {
         path:"/customer/mycar",
         component: CustomerCarView
       },
@@ -234,11 +240,19 @@ const routes = [
         component: CustomerTransactionHistoryView
       },
       {
+        path: '/technician/finished',
+        component: TechnicianTaskFinished
+      },
+      {
         path: '/technician/notification',
         component: NotificationView
       },
       {
         path: '/technician/profile',
+        component: ProfileView
+      },
+      {
+        path: '/technician/finished',
         component: ProfileView
       },
       {

@@ -3,7 +3,9 @@
         <ion-header>
             <ion-toolbar>
                 <ion-buttons slot="start">
-                    <ion-back-button defaultHref="/customer/dashboard/location/cardetails/waiting/booked"></ion-back-button>
+                    <ion-button @click="backBtn()">
+                        <ion-icon style="font-size:24px;" :icon="arrowBackOutline"></ion-icon>
+                    </ion-button>
                 </ion-buttons>                
             </ion-toolbar>
         </ion-header>
@@ -120,8 +122,8 @@
 </template>
 
 <script>
-import { IonPage, IonBackButton, IonHeader, IonButtons, IonContent, IonItem, IonLabel, IonList, IonIcon, IonInput, IonButton, IonThumbnail, IonImg, IonGrid, IonRow, IonCol, IonSpinner } from '@ionic/vue';
-import { personCircle, chatboxEllipses, send, image, trash, create, ellipsisVertical, backspace, camera, addCircle, download } from 'ionicons/icons';
+import { IonPage, IonHeader, IonButtons, IonContent, IonItem, IonLabel, IonList, IonIcon, IonInput, IonButton, IonThumbnail, IonImg, IonGrid, IonRow, IonCol, IonSpinner } from '@ionic/vue';
+import { personCircle, arrowBackOutline, chatboxEllipses, send, image, trash, create, ellipsisVertical, backspace, camera, addCircle, download } from 'ionicons/icons';
 import Autolinker from 'autolinker';
 import VueEasyLightbox from 'vue-easy-lightbox';
 import { Camera, CameraResultType } from '@capacitor/camera';
@@ -132,10 +134,21 @@ import { getDatabase, ref, remove, onValue, set, onChildAdded, query, orderByChi
 import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL, deleteObject, uploadString } from "firebase/storage";
 
 export default ({
-    components: { IonPage, IonBackButton, IonHeader, IonButtons,IonContent, IonItem, IonLabel, IonList, IonIcon, IonInput, IonButton, IonThumbnail, IonImg, IonGrid, IonRow, IonCol, VueEasyLightbox, IonSpinner },
+    components: { IonPage, IonHeader, IonButtons,IonContent, IonItem, IonLabel, IonList, IonIcon, IonInput, IonButton, IonThumbnail, IonImg, IonGrid, IonRow, IonCol, VueEasyLightbox, IonSpinner },
     setup() {
         return {
-            personCircle, chatboxEllipses, send, image, trash, create, ellipsisVertical, backspace, camera,  addCircle, download
+            personCircle, 
+            chatboxEllipses, 
+            send, 
+            image, 
+            trash, 
+            create, 
+            ellipsisVertical, 
+            backspace, 
+            camera, 
+            addCircle, 
+            download,
+            arrowBackOutline
         }
     },
     data() {
@@ -173,6 +186,12 @@ export default ({
         }
     },
     methods: {
+        backBtn(){
+            switch(local.getObject('user_info').role){
+                case 'Customer': this.$router.push('/customer/booked');break;
+                case 'Technician': this.$router.push('/technician/tasks/taskdetails/location');break;
+            }
+        },
         dateString(date){
             return dateFormat('%lm %d, %y at %h:%i%a',date);
         },

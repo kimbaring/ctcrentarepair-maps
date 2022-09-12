@@ -18,6 +18,15 @@
                 :pinPickupCoorsLong="task_info.customer_location_coors_long"
                 :pinPickupCoorsLat="task_info.customer_location_coors_lat"
             ></MapComp>
+
+            <div class="modalCont" v-if="task_finish">
+                <div class="modalBox">
+                    <span>We have sent a verification code to your current customer. Please kindly ask for the code and enter the code below</span>
+                    <ion-input v-model="vercode" placeholder="6-digit code"></ion-input>
+                    <ion-button expand="block" @click="submitCode">Submit</ion-button>
+                </div>
+            </div>
+
             <div class="task_info">
                 <div class="col2">
                     <span>Customer Name</span>
@@ -27,16 +36,20 @@
                     <ion-button router-link="/technician/tasks/taskdetails">Task Details</ion-button>
                     <ion-button router-link="/technician/tasks/taskdetails/location/chat">Chat</ion-button>
                 </div>
+                <ion-button @click="arrived" expand="block" class="finishBook">Finish Booking</ion-button>
             </div>
         </ion-content>
     </ion-page>
 </template>
 
 <script>
-import {IonButton, IonPage, IonContent } from '@ionic/vue';
-// import { toFormData, send } from '../functions.js';
-import{local} from '@/functions.js';
-import MapComp from '@/views/MapComp.vue'
+import {IonButton, IonPage, IonContent,IonInput } from '@ionic/vue';
+import{local,openToast} from '@/functions.js';
+import MapComp from '@/views/MapComp.vue';
+import {db} from '@/firebase';
+import {set,ref,get} from 'firebase/database';
+
+
 // Website address
 // https://account.mapbox.com
 // username: speedyrepair
@@ -57,15 +70,38 @@ export default {
         IonButton,
         IonPage,
         IonContent,
+        IonInput,
         MapComp
     },
     data() {
         return {
-            task_info: local.getObject('accepted_task')
+            task_info: local.getObject('accepted_task'),
+            task_finish: false,
+            vercode: ''
         }
     },
     methods: {
+        arrived(){
+            this.task_finish = true;
+            let verif = Math.floor(Math.random() * 899999) + 100000;
+            set(ref(db,'/finish-notifs/'+local.getObject('accepted_task').id),verif);
+        },
+        submitCode(){
+            get(ref(db,'/finish-notifs/'+local.getObject('accepted_task').id)).then(snapshot=>{
+                if(!snapshot.exists()) return;
+                console.log(snapshot.val() + ', ' + this.vercode);
+                if(this.vercode != snapshot.val()) openToast('Verification code is incorrect!','danger');
+                else{
+                    set(ref(db,'/finish-notifs/'+local.getObject('accepted_task').id),'finished'); 
+                    set(ref(db,'/available/'+local.getObject('user_info').role+'/'+local.get('user_id')),'active');
 
+                    this.task_finish = false;
+                    local.remove('accepted_task');
+                    this.$router.replace('/technician/finished');
+
+                }
+            });
+        }
     },
     mounted(){
         this.task_info = local.getObject('accepted_task');
@@ -169,6 +205,11 @@ ion-text h2 {
     transform: none;
 }
 
+.modalCont{position: fixed;z-index: 2000;width: 100vw;height: 100vh;background: rgb(0,0,0,0.5);top:0;left:0;display: flex;justify-content: center;align-items: center;}
+.modalBox{background:#fff;width: 90%;padding: 20px;max-width: 450px;border-radius: 20px;color:#222;}
+.modalBox ion-input{background: #eee;text-align: center;border:1px solid #ccc;margin: 20px auto 0;border-radius: 20px;font-weight: 700;transition: 0.4s;}
+.modalBox ion-input:focus-within{background: #fff;}
+
 .map-form.active #geocoder {
     width: 100%;
     margin: 0 auto;
@@ -189,6 +230,10 @@ ion-text h2 {
 ion-content p{
     padding: 20px;
     margin: 15px 0 0;
+}
+
+.finishBook{
+    margin:20px 0;
 }
 
 ion-icon {
@@ -266,9 +311,13 @@ ion-button {
     background: #222;
 }
 
-.col2{display: flex;flex-wrap: wrap;gap:10px}
+ion-button{
+    --border-radius: 20px;
+}
+
+.col2{display: flex;flex-wrap: wrap;gap:10px;justify-content: space-between;}
 .col2 >*:nth-of-type(odd){font-weight: 700}
-.col2 > *{width:45%}
+.col2 > *{width:47%}
 
 .travel-info h2 {
     font-size: 1em;

@@ -7,6 +7,17 @@
                 <p>Please wait for few minutes for the {{role().toLowerCase()}} to arrive...</p>
                 <img src="@/img/waiting.svg" />
             </div>
+            <div class="modalCont" v-if="vercode!=0">
+                <div class="modalBox">
+                    <span v-if="emp_info.role != 'Ride Sharer'">Your {{emp_info.role.toLowerCase()}} has set this task as completed. Please show this code to your {{emp_info.role.toLowerCase()}} to confirm the task completion.</span>
+
+                    <span v-if="emp_info.role == 'Ride Sharer'">Your ride sharer has arrived in your destination this task as completed. Please show this code to your ride sharer to start your trip.</span>
+
+                    <h3>{{vercode}}</h3>
+                </div>
+            </div>
+
+
             <div class="form">
                 <div class="worker">
                     <img :src="emp_info.profile_img">
@@ -49,7 +60,9 @@
 import { IonButton} from '@ionic/vue';
 import { locate, compass, navigateCircle, warning, close, mapOutline, timerOutline } from 'ionicons/icons';
 // import { toFormData, send } from '../functions.js';
-import {local,axiosReq,removeFix} from '@/functions';
+import {local,axiosReq,removeFix,openToast} from '@/functions';
+import {db} from '@/firebase';
+import {ref, onValue,remove} from 'firebase/database'; 
 import {ciapi} from '@/js/globals';
 
 // Website address
@@ -81,6 +94,7 @@ export default {
             bookRequest: false,
             bookResponse: null,
 
+            vercode: 0,
             km: 0,
             mins: 0,
             emp_info:{
@@ -94,6 +108,7 @@ export default {
     },
     methods: {
         role(){
+            if(local.getObject('customer_task') == null) return;
             const service = local.getObject('customer_task').service_type;
             switch(service.toLowerCase()){
                 case 'towing': return 'Tow Truck Operator';
@@ -132,6 +147,31 @@ export default {
         local.set('pageLoading',local.get('pageLoading') + 1);  
         if(local.get('pageLoading') == 1) {window.location.reload(); return;}
         else local.set('pageLoading', 0);
+        
+        onValue(ref(db,'/finish-notifs/'+local.getObject('customer_task').task_id),snapshot=>{
+            if(!snapshot.exists) return;
+            console.log(snapshot.val());
+            if(snapshot.val() != 'finished' && typeof snapshot.val() == 'number') this.vercode = snapshot.val();
+            else if(snapshot.val() == 'finished'){
+                this.vercode = 0;
+                axiosReq({
+                    method:'post',
+                    url: ciapi+'task/update?task_id='+local.getObject('customer_task').id,
+                    headers:{
+                        PWAuth: local.get('user_token'),
+                        PWAuthUser: local.get('user_id')
+                    },
+                    data:{status:3}
+                }).catch(()=>{
+                    openToast('Something went wrong!','danger');
+                }).then(()=>{
+                    remove(ref(db,'/finish-notifs/'+local.getObject('customer_task').task_id));
+                    remove(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id));
+                    local.remove('customer_task');
+                    window.location.assign('/customer/finished');
+                });
+            }
+        });
 
 
         local.set('chat_id',local.getObject('customer_task').task_id);
@@ -229,6 +269,11 @@ export default {
 .header-ios ion-toolbar:last-of-type{
     --border-width: 0px;
 }
+
+.modalCont{position: fixed;z-index: 2000;width: 100vw;height: 100vh;background: rgb(0,0,0,0.5);top:0;left:0;display: flex;justify-content: center;align-items: center;}
+.modalBox{background:#fff;width: 90%;padding: 20px;max-width: 450px;border-radius: 20px}
+.modalBox h3{width: max-content;margin: 20px auto 0;padding:10px;background: #ddd;border-radius: 10px}
+
 .section{
     height: 433px;
     position: relative;
