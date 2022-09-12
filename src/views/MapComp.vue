@@ -28,7 +28,6 @@ import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import {mapsData} from '@/functions-custom';
 import {Capacitor} from "@capacitor/core";
 import {Keyboard} from '@capacitor/keyboard';
-import {mapboxApiKey} from '@/js/globals';
 
 export default({
     props: ['hideForm',"hideDestination","pinPickupCoorsLong","pinPickupCoorsLat","pinDropOffCoorsLong","pinDropOffCoorsLat"],
@@ -111,7 +110,7 @@ export default({
             );
         },
         defMap(){
-            mapboxgl.accessToken = mapboxApiKey;
+            mapboxgl.accessToken = 'pk.eyJ1Ijoic3BlZWR5cmVwYWlyIiwiYSI6ImNsNWg4cGlzaDA3NTYzZHFxdm1iMTJ2cWQifQ.j_XBhRHLg-CcGzah7uepMA';
 
             this.getLocation().then(location => { // Initiate getLocation functioN               
                 this.$emit('currentCoors',location);
@@ -454,7 +453,7 @@ export default({
 
             setTimeout(() => {
                 loadingController.dismiss();
-            }, 600);
+            }, 900);
                 
         },
         async getRoute(pickupCoords,dropoffCoords) {
