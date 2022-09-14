@@ -123,6 +123,12 @@ export default({
                         if(res.data.success){
                             openToast('Car deleted successfully!','success');
                             router.go(-1);
+
+                            let updatedList = lStore.get('cars');
+                            let targetObj = {};
+                            updatedList.forEach(el=>{if(el.id == local.get('car_reference')) targetObj = el;});
+                            updatedList.splice(updatedList.indexOf(targetObj),1);
+                            lStore.set('cars',updatedList);
                         }
                         else if(res.data.msg == 'invalid token') openToast('Token expired!', 'danger');
                     });
@@ -180,6 +186,15 @@ export default({
                         }).then(res=>{
                             if(res.data.success){
                                 openToast('Car updated successfully!','success');
+
+
+                                let updatedList = lStore.get('cars');
+                                let targetObj = {};
+                                updatedList.forEach(el=>{if(el.id == local.get('car_reference')) targetObj = el;});
+                                updatedList[updatedList.indexOf(targetObj)] = this.car_details;
+                                console.log(updatedList);
+                                lStore.set('cars',updatedList);
+
                                 router.go(-1);
                             }
                             else if(res.data.msg == 'invalid token') openToast('Token expired!', 'danger');
@@ -211,6 +226,15 @@ export default({
                     }).then(res=>{
                         if(res.data.success){
                             openToast('Car updated successfully!','success');
+
+
+                            let updatedList = lStore.get('cars');
+                            let targetObj = {};
+                            updatedList.forEach(el=>{if(el.id == local.get('car_reference')) targetObj = el;});
+                            updatedList[updatedList.indexOf(targetObj)] = this.car_details;
+                            console.log(updatedList);
+                            lStore.set('cars',updatedList);
+
                             router.go(-1);
                         }
                         else if(res.data.msg == 'invalid token') openToast('Token expired!', 'danger');
@@ -231,6 +255,13 @@ export default({
                 }).then(res=>{
                     if(res.data.success){
                         openToast('Car updated successfully!','success');
+
+                        let updatedList = lStore.get('cars');
+                            let targetObj = {};
+                            updatedList.forEach(el=>{if(el.id == local.get('car_reference')) targetObj = el;});
+                            updatedList[updatedList.indexOf(targetObj)] = this.car_details;
+                            lStore.set('cars',updatedList);
+                            
                         router.go(-1);
                     }
                     else if(res.data.msg == 'invalid token') openToast('Token expired!', 'danger');

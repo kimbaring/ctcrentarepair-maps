@@ -1,7 +1,10 @@
 <template>
     <ion-page>
         <ion-content v-if="$route.path == '/customer/location'">
-            <h3>Pin your location</h3>
+            <h3>
+                <span v-if="serviceType != 'Delivery'">Pin your location</span>
+                <span v-else>Pin the delivery location</span>  
+            </h3>
             <MapComp
                 rerender="true"
                 v-if="$route.path == '/customer/location'"
@@ -11,7 +14,7 @@
                 @current-coors="setCurrentCoors"
 
                 :displayRoute="displayRoute"
-                :hideDestination="(serviceType != 'Ride Sharer')"
+                :hideDestination="(serviceType != 'Ride Sharer' && serviceType != 'Delivery')"
                 :pinPickupCoorsLong="setCoors[0]"
                 :pinPickupCoorsLat="setCoors[1]"
                 
@@ -156,6 +159,25 @@ export default {
                 
 
                 return;
+            }else if( this.serviceType == 'Delivery'){
+                if(this.dropoffCoors.length != 2) {
+                    openToast('Please pin the delivery destination!','danger');
+                    this.formLoading = false;
+                    return;
+                }
+                
+                mapsData(this.dropoffCoors[0],this.dropoffCoors[1],res=>{
+                    local.setInObject('customer_task','drop_location',res.features[0].place_name);
+                    local.setInObject('customer_task','drop_location_coors_lat',this.dropoffCoors[1]);
+                    local.setInObject('customer_task','drop_location_coors_long',this.dropoffCoors[0]);
+                    local.setInObject('customer_task','user_name', `${local.getObject('user_info').firstname} ${local.getObject('user_info').lastname}`);
+
+
+                    window.location.assign('/customer/notes');
+                })
+
+                
+                return
             }
             
             this.$router.push('/customer/requestdetails');

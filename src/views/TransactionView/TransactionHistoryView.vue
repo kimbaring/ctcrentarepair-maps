@@ -14,7 +14,9 @@
             <ion-card class="task_item" v-for="(t,i) in transactions" :key="i" v-show="t.service_type.replaceAll(' ','').toLowerCase() == viewMode || viewMode == 'all'">
                 <ion-card-header>
                     <ion-card-title>
-                        {{ (t.problems != null && t.problems != '' ) ? parseJsonString(t.problems)[0] : 'Ride Sharer: '+t.drop_location }}
+                        {{ (t.problems != null && t.problems != '' && t.service_type != 'Delivery' && t.service_type != 'Ride Sharer') ? parseJsonString(t.problems)[0] : ''}}
+                        {{ (t.service_type == 'Ride Sharer') ? 'Ride Sharer: '+t.drop_location : ''}}
+                        {{ (t.service_type == 'Delivery') ? 'Delivery: '+t.drop_location : ''}}
                     </ion-card-title>
                     <ion-card-subtitle>
                         {{ t.service_type }} Service

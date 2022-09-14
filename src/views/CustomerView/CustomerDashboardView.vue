@@ -28,6 +28,12 @@
                                 Ride Sharer
                             </ion-card-content>
                         </ion-card>
+                        <ion-card @click="startService('Delivery')">
+                            <ion-card-content>
+                                <ion-icon :icon="cubeOutline"></ion-icon>
+                                Delivery
+                            </ion-card-content>
+                        </ion-card>
                         </div>
                     </ion-card-content>
             </ion-card>
@@ -89,7 +95,8 @@ import {
     logOutOutline,
     carSportOutline,
     constructOutline,
-    closeOutline
+    closeOutline,
+    cubeOutline
 } from 'ionicons/icons';
 import { local, openToast, axiosReq } from '@/functions';
 import {ref,remove,onValue,query,orderByChild,equalTo, limitToLast} from 'firebase/database';
@@ -120,6 +127,7 @@ export default({
             carSportOutline,
             constructOutline,
             closeOutline,
+            cubeOutline,
             //end of ionicons
 
             task: null,
@@ -292,7 +300,7 @@ ion-content p{
 }
 
 .services ion-card{
-    width:30%;
+    width:47%;
     padding:20px 5px;
     color:#fff;
     border:none;

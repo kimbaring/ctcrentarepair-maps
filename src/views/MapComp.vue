@@ -445,15 +445,12 @@ export default({
                     let offsetHeight1 = document.querySelector(".map-form").offsetHeight;
                     document.getElementById("map").style.setProperty('height', 'calc(100% - ' + offsetHeight1 + 'px)');
                 }
-            }, 300);
-
-            setInterval(() => {
                 map.resize();
-            }, 300);
+            }, 1000);
 
             setTimeout(() => {
                 loadingController.dismiss();
-            }, 900);
+            }, 1500);
                 
         },
         async getRoute(pickupCoords,dropoffCoords) {

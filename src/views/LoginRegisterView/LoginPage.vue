@@ -80,6 +80,8 @@ export default ({
       
       const valid = validateForm(input,rules);
       if(!valid.allValid) return;
+
+      console.log(this.loginInput);
       
       this.formLoading = true;
 
@@ -93,17 +95,20 @@ export default ({
           console.log(err.response);
           openToast('Something went wrong...', 'danger');
         }).then(res=>{
-            openToast('Login Successful', 'success');
-            local.set('user_id',res.data.user_id);
-            local.set('user_token',res.data.token);
-            local.setObject('user_info', res.data.info);
             if(res.data.msg === 'user not found') openToast('User not registered!', 'danger');
-            if(needEmailVerif && res.data.msg === 'user not verified') openToast('User not verified!', 'danger');
+            if(needEmailVerif && res.data.msg === 'user not verified'){
+              openToast('User not verified!', 'danger');
+              local.set('user_email',this.loginInput);
+              this.$router.push('/verify-email');
+            }
             if(res.data.msg === 'user deactivated') openToast('User deactivated!', 'danger');
             if(res.data.msg === 'wrong password') openToast('Wrong password!', 'danger');
+            this.formLoading = false;
+            console.log(res.data);
             if(res.data.success){
-              local.set('pageLoading', 0);
-              this.formLoading = false;
+              local.set('user_id',res.data.user_id);
+              local.set('user_token',res.data.token);
+              local.setObject('user_info', res.data.info);
               switch(res.data.info.role){
                 case 'Customer': router.replace('/preload'); break;
                 case 'Technician': router.replace('/technician/dashboard'); break;

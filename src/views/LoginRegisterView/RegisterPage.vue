@@ -15,6 +15,7 @@
                     <ion-button @click="$router.push('/registertechnician')" expand="block"><div><ion-icon :icon="constructOutline"></ion-icon> Technician</div></ion-button>
                     <ion-button @click="$router.push('/registertowCompany')" expand="block"><div class="towicon"><img src="../../img/tow.png"> Tow Truck Operator</div></ion-button>
                     <ion-button @click="$router.push('/registerridesharer')" expand="block"><div><ion-icon :icon="carOutline"></ion-icon> Ride Sharer</div></ion-button>
+                    <ion-button @click="$router.push('/registerdelivery')" expand="block"><div><ion-icon :icon="cubeOutline"></ion-icon> Delivery Rider</div></ion-button>
                 </section>
                 <p>Already have an account? <a @click="$router.push('/login')">Sign In</a></p>
           </ion-card-content>
@@ -26,7 +27,7 @@
 
 <script>
 import { IonContent, IonPage, IonCard,IonCardHeader,IonCardContent,IonButton,IonIcon} from '@ionic/vue';
-import {personCircleOutline, constructOutline, carOutline} from 'ionicons/icons';
+import {personCircleOutline, constructOutline, carOutline,cubeOutline} from 'ionicons/icons';
 
 export default ({
   name: 'RegisterPage',
@@ -41,7 +42,7 @@ export default ({
   },
   data(){
     return{
-        personCircleOutline, constructOutline, carOutline
+        personCircleOutline, constructOutline, carOutline,cubeOutline
     }
   }
 });
@@ -59,7 +60,7 @@ export default ({
 }
 .content{
   height: 100%;
-  min-height: 678px;
+  min-height: 720px;
   position: relative;
 }
 ion-content{

@@ -188,7 +188,7 @@ export default ({
     methods: {
         backBtn(){
             switch(local.getObject('user_info').role){
-                case 'Customer': this.$router.push('/customer/booked');break;
+                case 'Customer': window.location.assign('/customer/booked');break;
                 case 'Technician': this.$router.push('/technician/tasks/taskdetails/location');break;
             }
         },

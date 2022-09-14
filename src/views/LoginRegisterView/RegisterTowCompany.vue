@@ -147,6 +147,7 @@ export default ({
             openToast(err, 'warning');
         })
         .then(userCred=>{
+            this.user.uid_hashed = userCred.user.uid;
             axiosReq({
                 method: 'post',
                 url: ciapi+'users/register',

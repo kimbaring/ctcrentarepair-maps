@@ -35,7 +35,8 @@ export default ({
         "/verify-email",
         "/forgotpassword",
         "/register",
-        "/location-settings"
+        "/location-settings",
+        "/registerdelivery"
       ],
       interval: null,
     };
@@ -183,6 +184,7 @@ export default ({
             case 'Technician': router.replace('/technician/dashboard'); break;
             case 'Tow Truck Operator': router.replace('/comingsoon'); break;
             case 'Ride Sharer': router.replace('/comingsoon'); break;
+            case 'Delivery': router.replace('/comingsoon'); break;
           }
           openToast("Please log out properly!", 'danger');
         }

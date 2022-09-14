@@ -7,6 +7,7 @@ import RegisterCustomer from '../views/LoginRegisterView/RegisterCustomer.vue';
 import RegisterTechnician from '../views/LoginRegisterView/RegisterTechnician.vue';
 import RegisterRidesharer from '../views/LoginRegisterView/RegisterRideSharer.vue';
 import RegisterTowCompany from '../views/LoginRegisterView/RegisterTowCompany.vue';
+import RegisterDelivery from '../views/LoginRegisterView/RegisterDelivery.vue';
 import ForgotPassword from '../views/LoginRegisterView/ForgotPassword.vue';
 import VerifyEmail from '../views/LoginRegisterView/VerifyEmail.vue';
 import CustomerTabs from '../views/CustomerView/CustomerTabs.vue';
@@ -30,6 +31,7 @@ import ChangePassword from '@/views/AccountView/ChangePassword.vue';
 
 import CustomerWaitingView from '@/views/CustomerView/CustomerWaitingView.vue';
 import CustomerMyCarDetailsView from '@/views/CustomerView/CustomerMyCarDetailsView.vue';
+import CustomerNotesToRider from '@/views/CustomerView/CustomerNotesToRider';
 
 import CustomerBookedView from '@/views/CustomerView/CustomerBookedView.vue';
 import CustomerTaskFinished from '@/views/CustomerView/CustomerTaskFinished.vue';
@@ -99,6 +101,12 @@ const routes = [
     name: 'RegisterTechnician',
     component: RegisterTechnician
   },
+  {
+    path: '/registerdelivery',
+    name: 'RegisterDelivery',
+    component: RegisterDelivery
+  },
+  
   // {
   //   path: '/map',
   //   name: 'map',
@@ -184,6 +192,10 @@ const routes = [
       {
         path: "/customer/finished",
         component: CustomerTaskFinished
+      },
+      {
+        path: "/customer/notes",
+        component: CustomerNotesToRider
       },
       {
         path:"/customer/mycar",

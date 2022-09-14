@@ -8,7 +8,9 @@
         <ion-card>
             <ion-card-header>
                 <ion-card-title :class="(loading) ? 'loading': null">
-                    {{(task.problems != null && task.problems != '' ) ? objectify(task.problems)[0] : 'Ride Sharer: '+task.drop_location }}
+                    {{ (task.problems != null && task.problems != '' && task.service_type != 'Delivery' && task.service_type != 'Ride Sharer') ? title(): ''}}
+                    {{ (task.service_type == 'Ride Sharer') ? 'Ride Sharer: '+task.drop_location : ''}}
+                    {{ (task.service_type == 'Delivery') ? 'Delivery: '+task.drop_location : ''}}
                 </ion-card-title>
                 <ion-card-subtitle >
                     <span :class="(loading) ? 'loading': null">{{task.service_type}} {{(!loading) ? 'Services': null}}</span>
@@ -18,7 +20,9 @@
                 <div class="cardsection">
                     <div><p>Location</p><p :class="(loading) ? 'loading': null">{{task.customer_location}}</p></div>
                     <div><p>Time Requested</p><p :class="(loading) ? 'loading': null">{{parseDate(task.created_at)}}</p></div>
-                    <div v-if="task.problems != null && task.problems != ''"><p>Problems</p><p :class="(loading) ? 'loading': null">{{problems()}}</p></div>
+                    <div v-if="task.problems != null && task.problems != ''">
+                        <p>{{(task.service_type =='Delivery') ? 'Fragile':'Problems'}}</p>
+                        <p :class="(loading) ? 'loading': null">{{(task.service_type =='Delivery') ? ((task.problems == 'Fragile') ? 'Yes': ''):problems()}}</p></div>
                     <div v-for="(t,i) in task.details" :key="i">
                         <p>{{formatKey(i)}}</p>
                         <p :class="(loading) ? 'loading': null">{{t}}</p>
@@ -90,6 +94,9 @@ export default({
     methods:{
         objectify(param){
             return local.objectify(param);
+        },
+        title(){
+            return local.objectify(this.task.problems)[0];
         },
         problems(){
             let probs = '';

@@ -4,16 +4,14 @@
     <ion-content>
         
         <div class="section">
-            <div class="profile_img">
-                <ion-img></ion-img>
-            </div>
+
             <div class="profile_form">
                 <ion-input v-model="user.firstname" placeholder="First Name"></ion-input>
                 <ion-input v-model="user.middlename" placeholder="Middle Name"></ion-input>
                 <ion-input v-model="user.lastname" placeholder="Last Name"></ion-input>
                 <ion-input v-model="user.username" placeholder="Username"></ion-input>
                 <ion-input v-model="user.email" placeholder="Email"></ion-input>
-                <ion-button expand="block" @click="$router.push('/customer/profile/changepassword')">Change Password</ion-button>
+                <ion-button expand="block" @click="$router.push('/customer/changepassword')">Change Password</ion-button>
                 <ion-button expand="block" @click="reset">Reset</ion-button>
                 <ion-button expand="block" class="save" @click="save">Save</ion-button>
             </div>
@@ -27,7 +25,6 @@
 import { 
     IonPage,
     IonContent,
-    IonImg,
     IonInput,
     IonButton
 } from '@ionic/vue';
@@ -39,7 +36,6 @@ export default({
     components:{
         IonPage,
         IonContent,
-        IonImg,
         IonInput,
         IonButton
     },
@@ -154,11 +150,11 @@ right: 50px;width: 200px;height: 200px;margin: 0 auto;border-radius: 50%;overflo
     z-index: 2;
     position: absolute;
     width: 90%;
-    top: 175px;
+    top: 50%;
     left: 50%;
-    transform: translateX(-51%);
+    transform: translateX(-51%) translateY(-50%);
     border-radius: 20px;
-    padding:100px 20px 20px;
+    padding:20px;
 }
 
 

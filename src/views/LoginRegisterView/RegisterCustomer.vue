@@ -113,7 +113,7 @@ export default ({
             openToast(err, 'warning');
         })
         .then(userCred=>{
-            console.log(userCred);   
+            this.user.uid_hashed = auth.currentUser.uid;
             axiosReq({
                 method: 'post',
                 url: ciapi +'users/register',
@@ -125,7 +125,6 @@ export default ({
                 
                 if(res.data.msg === 'duplicate user'){ openToast('Account already exists!', 'danger');deleteUser(userCred);}
                 else{
-                    this.user.uid_hashed = auth.currentUser.uid;
                     console.log(res.data);   
                     openToast('Registration Successful!', 'success');
 

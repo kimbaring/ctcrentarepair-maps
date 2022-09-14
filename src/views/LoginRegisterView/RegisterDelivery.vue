@@ -7,7 +7,7 @@
         </ion-toolbar>
         <ion-content>
             <div class="titlereg">
-                <h3>Create new account as Technician</h3>
+                <h3>Create new account as <br />Delivery Rider</h3>
                 <p>Please fill up the form</p>
             </div>
             <div class="regforms">
@@ -84,7 +84,7 @@ export default ({
     return{
         eII: false,
         sss: false,
-        user: {role:"Technician"},
+        user: {role:"Delivery"},
         eye,
         eyeOff,
         showIconA: true,
@@ -174,7 +174,7 @@ export default ({
                     localStorage.setItem('user_email',this.user.email);
                     router.replace('/verify-email');
                 }
-                this.user = {role:"Technician"};
+                this.user = {role:"Delivery"};
             });
         });
     },

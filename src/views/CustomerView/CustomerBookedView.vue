@@ -173,8 +173,11 @@ export default {
             }
         });
 
+        local.getObject('customer_task').id;
 
-        local.set('chat_id',local.getObject('customer_task').task_id);
+
+        if(local.getObject('customer_task').id != null) local.set('chat_id',local.getObject('customer_task').id);
+        if(local.getObject('customer_task').task_id != null) local.set('chat_id',local.getObject('customer_task').task_id);
 
 
         axiosReq({

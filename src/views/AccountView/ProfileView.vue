@@ -43,7 +43,7 @@
                 <span class="field">Availability Status</span>
                 <div class="value"><ion-toggle id="availableToggle" @ionChange="changeAvailabilityStatus"></ion-toggle></div>
             </div>
-            <ion-button expand="block" @click="$router.push('/customer/profile/update')">Update Profile</ion-button>
+            <ion-button expand="block" @click="$router.push('/customer/updateprofile')">Update Profile</ion-button>
             <ion-button expand="block" :disabled="formLoading1" @click="logout" color="dark">
                 <span v-if="!formLoading1">Log Out</span>
                 <span v-if="formLoading1">
@@ -75,7 +75,7 @@ import { ciapi } from '@/js/globals';
 import { auth, storage, push,db } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { Camera, CameraResultType } from '@capacitor/camera';
-import{ref,remove,get} from 'firebase/database'
+import{ref,remove,get,query,orderByChild,equalTo,limitToLast,onValue} from 'firebase/database'
 import { ref as sref, uploadString, getDownloadURL } from 'firebase/storage';
 
 export default({
@@ -111,10 +111,10 @@ export default({
         this.user.created = this.user.created.toLocaleDateString("en-US", {month:'long',day:'numeric',year:'numeric'});
         document.querySelector('#profile_img_elem').src = local.getObject('user_info').profile_img;
 
-        let role = this.user.role.replaceAll(' ','_').toLowerCase();
+        let role = this.user.role.replaceAll(' ','_');
 
 
-        if(role == 'customer') return;
+        if(role == 'Customer') return;
         get(ref(db,`/available/${role}/${local.get('user_id')}`)).then(snapshot=>{
             if(snapshot.exists()){
                 document.getElementById('availableToggle').setAttribute('checked',true);
@@ -123,6 +123,17 @@ export default({
             }
         })
 
+        const que = query(ref(db,'/pending_tasks'),
+        orderByChild('accepted_by_id'),
+        equalTo(local.get('user_id')),
+        limitToLast(1));
+        
+
+        onValue(que,snapshot=>{
+            if(snapshot.exists) this.allowStatusUpdate = false;
+            else this.allowStatusUpdate = true;
+        });
+
         if(local.getObject('user_info').role != 'Customer' && local.get('accepted_task') != null)
             this.allowStatusUpdate = false;
     },  
@@ -130,13 +141,13 @@ export default({
         changeAvailabilityStatus(){
             if(!this.allowStatusUpdate) {
                 openToast('You cannot change your availability status until your current task is completed!');
-                remove(ref(db,`/available/${local.getObject('user_info').role.toLowerCase()}/${local.get('user_id')}`));
+                remove(ref(db,`/available/${local.getObject('user_info').role}/${local.get('user_id')}`));
                 document.querySelector('ion-toggle').setAttribute('checked',false);
                 return;
             }  
 
             this.availabilityStatus = !this.availabilityStatus;
-            let role = this.user.role.replaceAll(' ','_').toLowerCase();
+            let role = this.user.role.replaceAll(' ','_');
             if(this.availabilityStatus){
                 push(`/available/${role}/${local.get('user_id')}`,'active');
             }else{

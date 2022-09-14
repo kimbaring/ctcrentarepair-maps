@@ -5,7 +5,8 @@
             <h3>My Car</h3>
             <ion-button class="viewbutton" expand="block" @click="$router.push('/customer/mycar/addcar')">Add Car</ion-button>
         </div>
-        <div>
+        <div v-if="update > 0">
+            {{cars.length}}
             <ion-card v-for="(c,i) in cars" :key="i">
                 <ion-card-content>
                     <img :src="c.img">
@@ -67,17 +68,20 @@ export default({
             logOutOutline,
             //end of ionicons
 
-            cars:[]
+            cars:[],
+            update:0
             
         }
     },
-    created(){
+    mounted(){
+        this.cars.push({img:'asd',brand:'',model:'',plate_number:'',more_info:'',id:''});
         this.loadVehicles();
+        console.log(this.cars);
         this.isNewUser = local.get('user_new');
     },
     watch:{
         $route (to){
-            if(to != '/customer/mycar') return;
+            if(to.path != '/customer/mycar') return;
             this.loadVehicles();
         }
     },
@@ -95,7 +99,10 @@ export default({
             this.$router.push('/customer/transactionhistory/transactiondetails')
         },
         loadVehicles(){
+            this.cars = [];
             this.cars = lStore.get('cars');
+            this.update = 1;
+            console.log(this.cars);
         }
 
     }
