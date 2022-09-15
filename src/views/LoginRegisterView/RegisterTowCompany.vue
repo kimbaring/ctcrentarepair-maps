@@ -156,6 +156,7 @@ export default ({
                     openToast('Something went wrong...', 'danger');
                     deleteUser(userCred);
             }).then(res=>{
+                localStorage.setItem('user_email',this.user.email);
                 if(res.data.msg === 'duplicate user'){ openToast('Account already exists!', 'danger');deleteUser(userCred);}
                 else{   
                     openToast('Registration Successful!', 'success');
@@ -163,7 +164,6 @@ export default ({
 
                     if(!needEmailVerif) return;
 
-                    localStorage.setItem('user_email',this.user.email);
                     router.replace('/verify-email');
                 }
                 this.user = {role:"Tow Truck Operator"};

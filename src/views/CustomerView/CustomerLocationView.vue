@@ -103,14 +103,14 @@ export default {
             }
         
             this.formLoading = true;
+            local.setInObject('customer_task','user_name', `${local.getObject('user_info').firstname} ${local.getObject('user_info').lastname}`);
 
             mapsData(this.pickupCoors[0],this.pickupCoors[1],res=>{
                 local.setInObject('customer_task','customer_location',res.features[0].place_name);
                 local.setInObject('customer_task','customer_location_coors_lat',this.pickupCoors[1]);
                 local.setInObject('customer_task','customer_location_coors_long',this.pickupCoors[0]);
-            })
 
-            if(this.serviceType == 'Ride Sharer'){
+                if(this.serviceType == 'Ride Sharer'){
                 if(this.dropoffCoors.length != 2) {
                     openToast('Please pin your destination!','danger');
                     this.formLoading = false;
@@ -121,7 +121,6 @@ export default {
                     local.setInObject('customer_task','drop_location',res.features[0].place_name);
                     local.setInObject('customer_task','drop_location_coors_lat',this.dropoffCoors[1]);
                     local.setInObject('customer_task','drop_location_coors_long',this.dropoffCoors[0]);
-                    local.setInObject('customer_task','user_name', `${local.getObject('user_info').firstname} ${local.getObject('user_info').lastname}`);
 
                     axiosReq({
                         method: 'post',
@@ -159,6 +158,44 @@ export default {
                 
 
                 return;
+            }
+            else if(this.serviceType == 'Towing'){
+                console.log(local.getObject('customer_task'));
+                axiosReq({
+                    method: 'post',
+                    url: ciapi+'task/create',
+                    headers:{
+                        PWAuth: local.get('user_token'),
+                        PWAuthUser: local.get('user_id')
+                    },
+                    data: local.getObject('customer_task')
+                }).catch(()=>{
+                    openToast('Something went wrong', 'danger');
+                    this.formLoading = false; 
+                }).then(res=>{
+                    console.log(res.data);
+                    if(!res.data.success) return;
+                    let task = removeFix(res.data.task_info,'task_');                           
+                    
+                    push(`pending_tasks/${task.id}`,task);
+                    openToast('Request sent!', 'success');
+                    local.setInObject('customer_task','task_id',task.id);
+                    this.formLoading = false;
+                    sendNotification(
+                    'Your request was successfully sent!',
+                    `RentARepair is currently looking for tow truck operators that can cater your request.`,
+                    '/notification').catch(()=>{
+                        openToast('Something went wrong...', 'danger');
+                        this.formLoading = false; 
+                    }).then(()=>{
+                        this.$router.push('/customer/waiting');
+                    });
+                
+                });
+
+                
+
+                return;
             }else if( this.serviceType == 'Delivery'){
                 if(this.dropoffCoors.length != 2) {
                     openToast('Please pin the delivery destination!','danger');
@@ -170,7 +207,7 @@ export default {
                     local.setInObject('customer_task','drop_location',res.features[0].place_name);
                     local.setInObject('customer_task','drop_location_coors_lat',this.dropoffCoors[1]);
                     local.setInObject('customer_task','drop_location_coors_long',this.dropoffCoors[0]);
-                    local.setInObject('customer_task','user_name', `${local.getObject('user_info').firstname} ${local.getObject('user_info').lastname}`);
+                    
 
 
                     window.location.assign('/customer/notes');
@@ -181,6 +218,9 @@ export default {
             }
             
             this.$router.push('/customer/requestdetails');
+            })
+
+            
         }
     }
     

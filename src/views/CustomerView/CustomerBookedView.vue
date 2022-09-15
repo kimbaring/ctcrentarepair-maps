@@ -147,9 +147,12 @@ export default {
         local.set('pageLoading',local.get('pageLoading') + 1);  
         if(local.get('pageLoading') == 1) {window.location.reload(); return;}
         else local.set('pageLoading', 0);
+
+        if(local.getObject('customer_task').id != null) local.set('chat_id',local.getObject('customer_task').id);
+        if(local.getObject('customer_task').task_id != null) local.set('chat_id',local.getObject('customer_task').task_id);
         
-        onValue(ref(db,'/finish-notifs/'+local.getObject('customer_task').task_id),snapshot=>{
-            if(!snapshot.exists) return;
+        onValue(ref(db,'/finish-notifs/'+local.get('chat_id')),snapshot=>{
+            if(!snapshot.exists()) return;
             console.log(snapshot.val());
             if(snapshot.val() != 'finished' && typeof snapshot.val() == 'number') this.vercode = snapshot.val();
             else if(snapshot.val() == 'finished'){
@@ -176,8 +179,7 @@ export default {
         local.getObject('customer_task').id;
 
 
-        if(local.getObject('customer_task').id != null) local.set('chat_id',local.getObject('customer_task').id);
-        if(local.getObject('customer_task').task_id != null) local.set('chat_id',local.getObject('customer_task').task_id);
+        
 
 
         axiosReq({

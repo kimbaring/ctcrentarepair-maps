@@ -130,7 +130,7 @@ export default({
         
 
         onValue(que,snapshot=>{
-            if(snapshot.exists) this.allowStatusUpdate = false;
+            if(snapshot.exists()) this.allowStatusUpdate = false;
             else this.allowStatusUpdate = true;
         });
 

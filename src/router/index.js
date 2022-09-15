@@ -12,6 +12,7 @@ import ForgotPassword from '../views/LoginRegisterView/ForgotPassword.vue';
 import VerifyEmail from '../views/LoginRegisterView/VerifyEmail.vue';
 import CustomerTabs from '../views/CustomerView/CustomerTabs.vue';
 import TechnicianTabs from '../views/TechnicianView/TechnicianTab.vue';
+import TowingTabs from '../views/TowingView/TowingTab.vue';
 import RidesharerTabs from '../views/RideSharerView/RideSharerTab.vue';
 import CustomerTransactionHistoryView from '../views/TransactionView/TransactionHistoryView.vue';
 import CustomerTransactionDetailsView from '../views/TransactionView/TransactionDetailsView.vue';
@@ -46,6 +47,14 @@ import TechnicianTaskDetailsView from '@/views/TechnicianView/TechnicianTaskDeta
 import TechnicianTaskLocationView from '@/views/TechnicianView/TechnicianTaskLocationView.vue';
 import TechnicianAddWalletView from '@/views/TechnicianView/TechnicianAddWalletView.vue';
 import TechnicianTaskFinished from '@/views/TechnicianView/TechnicianTaskFinished.vue';
+
+import TowingDashboardView from '@/views/TowingView/TowingDashboardView.vue';
+import TowingTaskView from '@/views/TowingView/TowingTaskView.vue';
+import TowingTaskDetailsView from '@/views/TowingView/TowingTaskDetailsView.vue';
+import TowingTaskLocationView from '@/views/TowingView/TowingTaskLocationView.vue';
+import TowingAddWalletView from '@/views/TowingView/TowingAddWalletView.vue';
+import TowingTaskFinished from '@/views/TowingView/TowingTaskFinished.vue';
+
 import RideSharerDashboardView from '@/views/RideSharerView/RideSharerDashboardView.vue';
 
 
@@ -270,6 +279,56 @@ const routes = [
       {
         path: '/technician/wallet',
         component: TechnicianAddWalletView,
+      }
+    ]
+  },
+  {
+    path: '/towing',
+    component: TowingTabs,
+    children: [
+      {
+        path: '',
+        redirect: '/towing/dashboard',
+      },
+      {
+        path: '/towing/dashboard',
+        component: TowingDashboardView,
+      },
+      {
+        path: '/towing/tasks',
+        component: TowingTaskView,
+      },
+      {
+        path: '/towing/tasks/taskdetails',
+        component: TowingTaskDetailsView,
+      },
+      {
+        path: '/towing/tasks/taskdetails/location',
+        component: TowingTaskLocationView,
+      },
+      {
+        path: '/towing/tasks/taskdetails/location/chat',
+        component: () => import('@/views/ChatRider.vue')
+      },
+      {
+        path: '/towing/transactionhistory',
+        component: CustomerTransactionHistoryView
+      },
+      {
+        path: '/towing/finished',
+        component: TowingTaskFinished
+      },
+      {
+        path: '/towing/notification',
+        component: NotificationView
+      },
+      {
+        path: '/towing/profile',
+        component: ProfileView
+      },
+      {
+        path: '/towing/wallet',
+        component: TowingAddWalletView,
       }
     ]
   },

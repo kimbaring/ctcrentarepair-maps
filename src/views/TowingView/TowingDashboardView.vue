@@ -128,10 +128,10 @@ export default({
     },
     methods:{
         addwallet(){
-            router.push('/technician/wallet');
+            router.push('/towing/wallet');
         },
         gotoTask(){
-            this.$router.push('/technician/tasks/taskdetails/location');
+            this.$router.push('/towing/tasks/taskdetails/location');
         }
     }
 });

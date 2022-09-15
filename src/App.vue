@@ -182,7 +182,7 @@ export default ({
           switch(local.getObject('user_info').role){
             case 'Customer': router.replace('/customer/dashboard'); break;
             case 'Technician': router.replace('/technician/dashboard'); break;
-            case 'Tow Truck Operator': router.replace('/comingsoon'); break;
+            case 'Tow Truck Operator': router.replace('/towing/dashboard'); break;
             case 'Ride Sharer': router.replace('/comingsoon'); break;
             case 'Delivery': router.replace('/comingsoon'); break;
           }

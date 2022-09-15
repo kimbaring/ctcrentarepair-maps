@@ -112,7 +112,7 @@ export default ({
               switch(res.data.info.role){
                 case 'Customer': router.replace('/preload'); break;
                 case 'Technician': router.replace('/technician/dashboard'); break;
-                case 'Tow Truck Operator': router.replace('/comingsoon'); break;
+                case 'Tow Truck Operator': router.replace('/towing/dashboard'); break;
                 case 'Ride Sharer': router.replace('/comingsoon'); break;
               }
             }
