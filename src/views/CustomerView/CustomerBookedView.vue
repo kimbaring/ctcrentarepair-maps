@@ -124,6 +124,26 @@ export default {
             const bookFee = (totalFee * appChargeRate);
             const vatFee = (totalFee * vat);
             totalFee = totalFee + bookFee + vatFee;
+
+            axiosReq({   
+                method:'post',
+                url:ciapi+`transactions/create`,
+                header:{
+                    PWAuth: local.get('user_token'),
+                    PWAuthUser: local.get('user_id')
+                },
+                data:{
+                    id: local.get('chat_id'),
+                    basefee: baseFee,
+                    appcharge: appChargeRate,
+                    distcharge: distanceFee,
+                    distkm: this.km,
+                    total: totalFee
+                }
+            }).then(res=>{
+
+            });
+
             return [totalFee.toFixed(2),distanceFee.toFixed(2),bookFee.toFixed(2),vatFee.toFixed(2)];
         },
         async getRoute(pickup,dropoff){

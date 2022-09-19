@@ -113,7 +113,7 @@ export default({
         loadInfo(){
             this.loading = true;
             const que = query(ref(db,'/pending_tasks/'+local.get('view_details')));
-            const que2 = query(ref(db,`/available/${local.getObject('user_info').role.toLowerCase()}/${local.get('user_id')}`));
+            const que2 = query(ref(db,`/available/${local.getObject('user_info').role.replaceAll(' ','_')}/${local.get('user_id')}`));
             onValue(que2,snapshot=>{           
                 console.log(snapshot.exists())
                 if(snapshot.exists()) this.allowAccept = true;

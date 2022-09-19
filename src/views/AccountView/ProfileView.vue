@@ -141,7 +141,7 @@ export default({
         changeAvailabilityStatus(){
             if(!this.allowStatusUpdate) {
                 openToast('You cannot change your availability status until your current task is completed!');
-                remove(ref(db,`/available/${local.getObject('user_info').role}/${local.get('user_id')}`));
+                remove(ref(db,`/available/${local.getObject('user_info').role.replaceAll(' ','_')}/${local.get('user_id')}`));
                 document.querySelector('ion-toggle').setAttribute('checked',false);
                 return;
             }  

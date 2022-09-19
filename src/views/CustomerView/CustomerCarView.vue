@@ -5,7 +5,7 @@
             <h3>My Car</h3>
             <ion-button class="viewbutton" expand="block" @click="$router.push('/customer/mycar/addcar')">Add Car</ion-button>
         </div>
-        <div v-if="update > 0">
+        <div v-if="cars.length > 0">
             {{cars.length}}
             <ion-card v-for="(c,i) in cars" :key="i">
                 <ion-card-content>
@@ -68,13 +68,12 @@ export default({
             logOutOutline,
             //end of ionicons
 
-            cars:[],
+            cars:[{img:'asd',brand:'',model:'',plate_number:'',more_info:'',id:''}],
             update:0
             
         }
     },
     mounted(){
-        this.cars.push({img:'asd',brand:'',model:'',plate_number:'',more_info:'',id:''});
         this.loadVehicles();
         console.log(this.cars);
         this.isNewUser = local.get('user_new');
