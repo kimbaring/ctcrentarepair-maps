@@ -19,6 +19,7 @@
     "@capacitor/ios": "4.0.1",
     "@capacitor/keyboard": "^4.0.1",
     "@capacitor/status-bar": "4.0.1",
+    "@faker-js/faker": "^7.5.0",
     "@ionic-native/android-permissions": "^5.36.0",
     "@ionic-native/location-accuracy": "^5.36.0",
     "@ionic/pwa-elements": "^3.1.1",

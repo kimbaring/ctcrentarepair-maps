@@ -16,6 +16,7 @@ import { Capacitor } from "@capacitor/core";
 import { NativeSettings, AndroidSettings,IOSSettings } from 'capacitor-native-settings';  
 import {Keyboard,KeyboardResize} from '@capacitor/keyboard';
 
+
 export default ({
   name: 'App',
   components: {
@@ -183,7 +184,7 @@ export default ({
             case 'Customer': router.replace('/customer/dashboard'); break;
             case 'Technician': router.replace('/technician/dashboard'); break;
             case 'Tow Truck Operator': router.replace('/towing/dashboard'); break;
-            case 'Ride Sharer': router.replace('/comingsoon'); break;
+            case 'Ride Sharer': router.replace('/ridesharer/dashboard'); break;
             case 'Delivery': router.replace('/comingsoon'); break;
           }
           openToast("Please log out properly!", 'danger');

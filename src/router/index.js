@@ -13,7 +13,7 @@ import VerifyEmail from '../views/LoginRegisterView/VerifyEmail.vue';
 import CustomerTabs from '../views/CustomerView/CustomerTabs.vue';
 import TechnicianTabs from '../views/TechnicianView/TechnicianTab.vue';
 import TowingTabs from '../views/TowingView/TowingTab.vue';
-import RidesharerTabs from '../views/RideSharerView/RideSharerTab.vue';
+import RidesharerTabs from '../views/RidesharerView/RidesharerTab.vue';
 import CustomerTransactionHistoryView from '../views/TransactionView/TransactionHistoryView.vue';
 import CustomerTransactionDetailsView from '../views/TransactionView/TransactionDetailsView.vue';
 
@@ -40,6 +40,7 @@ import CustomerCarView from '@/views/CustomerView/CustomerCarView.vue';
 import CustomerEditCarDetails from '@/views/CustomerView/CustomerEditCarDetails.vue';
 import NotificationView from '@/views/NotificationView/NotificationView.vue';
 import CustomerAddCarView from '@/views/CustomerView/CustomerAddCarView.vue';
+import CustomerTripStarted from '@/views/CustomerView/CustomerTripStarted.vue';
 
 import TechnicianDashboardView from '@/views/TechnicianView/TechnicianDashboardView.vue';
 import TechnicianTaskView from '@/views/TechnicianView/TechnicianTaskView.vue';
@@ -55,7 +56,13 @@ import TowingTaskLocationView from '@/views/TowingView/TowingTaskLocationView.vu
 import TowingAddWalletView from '@/views/TowingView/TowingAddWalletView.vue';
 import TowingTaskFinished from '@/views/TowingView/TowingTaskFinished.vue';
 
-import RideSharerDashboardView from '@/views/RideSharerView/RideSharerDashboardView.vue';
+import RidesharerDashboardView from '@/views/RidesharerView/RidesharerDashboardView.vue';
+import RidesharerTaskView from '@/views/RidesharerView/RidesharerTaskView.vue';
+import RidesharerTaskDetailsView from '@/views/RidesharerView/RidesharerTaskDetailsView.vue';
+import RidesharerTaskLocationView from '@/views/RidesharerView/RidesharerTaskLocationView.vue';
+import RidesharerAddWalletView from '@/views/RidesharerView/RidesharerAddWalletView.vue';
+import RidesharerTaskFinished from '@/views/RidesharerView/RidesharerTaskFinished.vue';
+import RidesharerTripStarted from '@/views/RidesharerView/RidesharerTripStarted.vue';
 
 
 
@@ -215,6 +222,10 @@ const routes = [
         component: ChatRider
       },
       {
+        path: "/customer/trip",
+        component: CustomerTripStarted
+      },
+      {
         path: "/customer/mycar/editcar",
         component: CustomerEditCarDetails
       },
@@ -342,7 +353,47 @@ const routes = [
       },
       {
         path: '/ridesharer/dashboard',
-        component: RideSharerDashboardView
+        component: RidesharerDashboardView
+      },
+      {
+        path: '/ridesharer/tasks',
+        component: RidesharerTaskView,
+      },
+      {
+        path: '/ridesharer/tasks/taskdetails',
+        component: RidesharerTaskDetailsView,
+      },
+      {
+        path: '/ridesharer/tasks/taskdetails/location',
+        component: RidesharerTaskLocationView,
+      },
+      {
+        path: '/ridesharer/tasks/taskdetails/location/chat',
+        component: () => import('@/views/ChatRider.vue')
+      },
+      {
+        path: '/ridesharer/transactionhistory',
+        component: CustomerTransactionHistoryView
+      },
+      {
+        path: '/ridesharer/finished',
+        component: RidesharerTaskFinished
+      },
+      {
+        path: '/ridesharer/notification',
+        component: NotificationView
+      },
+      {
+        path: '/ridesharer/profile',
+        component: ProfileView
+      },
+      {
+        path: '/ridesharer/wallet',
+        component: RidesharerAddWalletView,
+      },
+      {
+        path: '/ridesharer/trip',
+        component: RidesharerTripStarted,
       }
     ]
   }

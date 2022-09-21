@@ -112,7 +112,8 @@ export default({
         defMap(){
             mapboxgl.accessToken = 'pk.eyJ1Ijoic3BlZWR5cmVwYWlyIiwiYSI6ImNsNWg4cGlzaDA3NTYzZHFxdm1iMTJ2cWQifQ.j_XBhRHLg-CcGzah7uepMA';
 
-            this.getLocation().then(location => { // Initiate getLocation functioN               
+            this.getLocation().then(location => { // Initiate getLocation functioN
+                      
                 this.$emit('currentCoors',location);
                 const map = new mapboxgl.Map({
                     container: 'map',

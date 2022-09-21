@@ -1,6 +1,6 @@
 <template>
     <ion-page>
-        <ion-header v-if="$route.path == '/technician/tasks/taskdetails/location'">
+        <ion-header v-if="$route.path == '/ridesharer/tasks/taskdetails/location'">
             <ion-toolbar>
                 <ion-buttons slot="start">
                     <ion-back-button defaultHref="/customer/dashboard/location"></ion-back-button>
@@ -9,12 +9,12 @@
             <ion-title>Customer Location</ion-title>
         </ion-header>
 
-        <ion-content v-if="$route.path == '/technician/tasks/taskdetails/location'">
+        <ion-content v-if="$route.path == '/ridesharer/tasks/taskdetails/location'">
             <MapComp
                 hideForm="true"
                 rerender="true"
                 @currentCoors="e=>{currentCoors = e;fetchDistance();}"
-                v-if="$route.path == '/technician/tasks/taskdetails/location'"
+                v-if="$route.path == '/ridesharer/tasks/taskdetails/location'"
 
                 :pinPickupCoorsLong="task_info.customer_location_coors_long"
                 :pinPickupCoorsLat="task_info.customer_location_coors_lat"
@@ -24,7 +24,7 @@
                 <div class="modalBox">
                     <span>We have sent a verification code to your current customer. Please kindly ask for the code and enter the code below</span>
                     <ion-input v-model="vercode" placeholder="6-digit code"></ion-input>
-                    <ion-button expand="block" @click="submitCode">Submit</ion-button>
+                    <ion-button expand="block" @click="submitCode">Start Trip</ion-button>
                 </div>
             </div>
 
@@ -48,10 +48,10 @@
                     <span>${{feeComputation[0]}}</span>
                 </div>
                 <div class="col2">
-                    <ion-button router-link="/technician/tasks/taskdetails">Task Details</ion-button>
-                    <ion-button router-link="/technician/tasks/taskdetails/location/chat">Chat</ion-button>
+                    <ion-button router-link="/ridesharer/tasks/taskdetails">Task Details</ion-button>
+                    <ion-button router-link="/ridesharer/tasks/taskdetails/location/chat">Chat</ion-button>
                 </div>
-                <ion-button @click="arrived" expand="block" class="finishBook">Finish Booking</ion-button>
+                <ion-button @click="arrived" expand="block" class="finishBook">Start Trip</ion-button>
             </div>
         </ion-content>
     </ion-page>
@@ -111,13 +111,8 @@ export default {
                 console.log(snapshot.val() + ', ' + this.vercode);
                 if(this.vercode != snapshot.val()) openToast('Verification code is incorrect!','danger');
                 else{
-                    set(ref(db,'/finish-notifs/'+local.getObject('accepted_task').id),'finished'); 
-                    set(ref(db,'/available/'+local.getObject('user_info').role+'/'+local.get('user_id')),'active');
-
-                    this.task_finish = false;
-                    local.remove('accepted_task');
-                    setTimeout(()=>this.$router.replace('/technician/finished'),200);
-
+                    set(ref(db,'/finish-notifs/'+local.getObject('accepted_task').id),'finished');
+                    this.$router.replace('/ridesharer/trip');
                 }
             });
         },
@@ -127,8 +122,8 @@ export default {
             this.location.start_lat = local.getObject('accepted_task').customer_location_coors_lat;
 
             if(this.task_info.service_type == 'Ride Sharer' || this.task_info.service_type == 'Delivery'){
-                this.location.end_long = this.task_info.drop_location_long;
-                this.location.end_lat = this.task_info.drop_location_lat;
+                this.location.end_long = this.task_info.drop_location_coors_long;
+                this.location.end_lat = this.task_info.drop_location_coors_lat;
             }else{
                 this.location.end_long = this.currentCoors.long;
                 this.location.end_lat = this.currentCoors.lat;

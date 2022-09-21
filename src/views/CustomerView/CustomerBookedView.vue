@@ -30,15 +30,15 @@
                 
                 <div class="services" :class="{open: viewBreakdown}">
                     <h3>Distance Fee</h3>
-                    <h3>${{feeComputation()[1]}}</h3>
+                    <h3>${{feeComputation[1]}}</h3>
                     <h3>Booking Fee</h3>
-                    <h3>${{feeComputation()[2]}}</h3>
+                    <h3>${{feeComputation[2]}}</h3>
                     <h3>VAT</h3>
-                    <h3>${{feeComputation()[3]}}</h3>
+                    <h3>${{feeComputation[3]}}</h3>
                 </div>
                 <div class="services">
                     <h3>Initial Fee</h3>
-                    <h3>${{feeComputation()[0]}}</h3>
+                    <h3>${{feeComputation[0]}}</h3>
                     <h3>Estimated Time</h3>
                     <h3>{{mins}} min/s</h3>
                     <h3>Distance</h3>
@@ -100,6 +100,7 @@ export default {
             emp_info:{
                 firstname:''
             },
+            feeComputation:{},
             viewBreakdown: false
         }
     },
@@ -115,37 +116,6 @@ export default {
                 default: return service;
             }
         },
-        feeComputation(){
-            const baseFee = 75;
-            const appChargeRate = 0.3;
-            const vat = 0.12;
-            let totalFee = (this.km < 6) ? baseFee: baseFee + ((this.km-5) * 5);
-            const distanceFee = totalFee;
-            const bookFee = (totalFee * appChargeRate);
-            const vatFee = (totalFee * vat);
-            totalFee = totalFee + bookFee + vatFee;
-
-            axiosReq({   
-                method:'post',
-                url:ciapi+`transactions/create`,
-                header:{
-                    PWAuth: local.get('user_token'),
-                    PWAuthUser: local.get('user_id')
-                },
-                data:{
-                    id: local.get('chat_id'),
-                    basefee: baseFee,
-                    appcharge: appChargeRate,
-                    distcharge: distanceFee,
-                    distkm: this.km,
-                    total: totalFee
-                }
-            }).then(res=>{
-
-            });
-
-            return [totalFee.toFixed(2),distanceFee.toFixed(2),bookFee.toFixed(2),vatFee.toFixed(2)];
-        },
         async getRoute(pickup,dropoff){
             const pickupCoords = pickup;
             const dropoffCoords = dropoff;
@@ -156,8 +126,48 @@ export default {
             }).then(res=>{
                 this.km = (res.data.routes[0].distance / 1000).toFixed(1); // convert meters to kilometers
                 this.mins = Math.floor(res.data.routes[0].duration / 60);
+                
+                const baseFee = 75;
+                const appChargeRate = 0.3;
+                const vat = 0.12;
+                let totalFee = (this.km < 6) ? baseFee: baseFee + ((this.km-5) * 5);
+                const distanceFee = totalFee;
+                const bookFee = (totalFee * appChargeRate);
+                const vatFee = (totalFee * vat);
+                totalFee = totalFee + bookFee + vatFee;
+                this.feeComputation = [
+                    totalFee.toFixed(2),
+                    distanceFee.toFixed(2),
+                    bookFee.toFixed(2),
+                    vatFee.toFixed(2)
+                ];
+
+                axiosReq({   
+                    method:'post',
+                    url:ciapi+`transactions/create`,
+                    headers:{
+                        PWAuth: local.get('user_token'),
+                        PWAuthUser: local.get('user_id')
+                    },
+                    data:{
+                        id: local.get('chat_id'),
+                        basefee: baseFee,
+                        appcharge: appChargeRate,
+                        distcharge: distanceFee,
+                        distkm: this.km,
+                        vat: vat,
+                        total: totalFee
+                    }
+                }).catch(err=>{
+                    console.log(err);
+                    openToast('Something went wrong!','danger');
+                }).then(res=>{
+                    console.log(res.data);
+                });
             });
             
+
+        
 
         }
     },
@@ -188,15 +198,23 @@ export default {
                 }).catch(()=>{
                     openToast('Something went wrong!','danger');
                 }).then(()=>{
-                    remove(ref(db,'/finish-notifs/'+local.getObject('customer_task').task_id));
-                    remove(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id));
-                    local.remove('customer_task');
-                    window.location.assign('/customer/finished');
+
+                    console.log(local.getObject('customer_task').service_type != 'Ride Sharer' &&
+                    local.getObject('customer_task').service_type != 'Delivery');
+
+                    if(local.getObject('customer_task').service_type != 'Ride Sharer' && 
+                    local.getObject('customer_task').service_type != 'Delivery'){
+                        remove(ref(db,'/finish-notifs/'+local.getObject('customer_task').task_id));
+                        remove(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id));
+                        local.remove('customer_task');
+                        setTimeout(()=>window.location.assign('/customer/finished'),200);
+                        return;
+                    }else if(local.getObject('customer_task').service_type == 'Ride Sharer'){
+                        setTimeout(()=>window.location.assign('/customer/trip'),200);
+                    }
                 });
             }
         });
-
-        local.getObject('customer_task').id;
 
 
         
@@ -210,15 +228,24 @@ export default {
                 PWAuthUser: local.get('user_id')
             }
         }).then(res=>{
+            console.log(res.data);
             
             if(res.data.success){
                 this.emp_info = removeFix(res.data.result,'user_');
             }
         });
-        this.getRoute(
-            [local.getObject('customer_task').customer_location_coors_long,local.getObject('customer_task').customer_location_coors_lat],
-            [local.getObject('customer_task').emp_location_coors_long,local.getObject('customer_task').emp_location_coors_lat]
-        );
+
+        if(local.getObject('customer_task').service_type == "Ride Sharer" || local.getObject('customer_task').service_type == "Delivery"){
+            this.getRoute(
+                [local.getObject('customer_task').customer_location_coors_long,local.getObject('customer_task').customer_location_coors_lat],
+                [local.getObject('customer_task').drop_location_coors_long,local.getObject('customer_task').drop_location_coors_lat]
+            );
+        }else{
+            this.getRoute(
+                [local.getObject('customer_task').customer_location_coors_long,local.getObject('customer_task').customer_location_coors_lat],
+                [local.getObject('customer_task').emp_location_coors_long,local.getObject('customer_task').emp_location_coors_lat]
+            );
+        }
     }
 
 };

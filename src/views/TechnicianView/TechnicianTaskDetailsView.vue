@@ -165,7 +165,7 @@ export default({
             );
 
             getLocation().then(location => {
-                set(ref(db,`/available/${local.getObject('user_info').role.toLowerCase()}/${local.get('user_id')}`),'active');
+                set(ref(db,`/available/${local.getObject('user_info').role.replaceAll(' ','_')}/${local.get('user_id')}`),'active');
                 set(ref(db,'/pending_tasks/'+this.task_info.id+'/status'),2);
                 set(ref(db,'/pending_tasks/'+this.task_info.id+'/emp_location_coors_long'),location.long);
                 set(ref(db,'/pending_tasks/'+this.task_info.id+'/emp_location_coors_lat'),location.lat);

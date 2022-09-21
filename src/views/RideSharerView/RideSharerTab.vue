@@ -3,20 +3,20 @@
     <ion-tabs>
       <ion-router-outlet></ion-router-outlet>
       <ion-tab-bar slot="bottom">
-        <ion-tab-button tab="rdashboard" href="/ridesharer/dashboard">
+        <ion-tab-button tab="tdashboard" href="/ridesharer/dashboard">
           <ion-icon :icon="homeOutline" />
         </ion-tab-button>
-        <ion-tab-button tab="tasks" href="">
+        <ion-tab-button tab="tasks" href="/ridesharer/tasks">
           <ion-icon :icon="buildOutline" />
         </ion-tab-button>
-        <ion-tab-button tab="ttransactionhistory" href="">
+        <ion-tab-button tab="ttransactionhistory" href="/ridesharer/transactionhistory">
           <span class="notif" v-if="counter > 0">1</span>
           <ion-icon :icon="timeOutline" />
         </ion-tab-button>
-        <ion-tab-button tab="notif" href="">
+        <ion-tab-button tab="notif" href="/ridesharer/notification">
           <ion-icon :icon="notificationsOutline"></ion-icon>
         </ion-tab-button>
-        <ion-tab-button tab="tprofile" href="">
+        <ion-tab-button tab="tprofile" href="/ridesharer/profile">
           <ion-icon :icon="personCircleOutline" />
         </ion-tab-button>
       </ion-tab-bar>
@@ -44,7 +44,7 @@ export default({
     IonTabs,
     IonIcon,
     IonPage,
-    IonRouterOutlet
+    IonRouterOutlet,
 },
   data() {
     return {
@@ -53,7 +53,7 @@ export default({
       homeOutline,
       buildOutline,
       notificationsOutline,
-      counter: 0,
+      counter: 0
     }
   },
   created(){

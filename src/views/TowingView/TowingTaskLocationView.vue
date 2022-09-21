@@ -13,6 +13,7 @@
             <MapComp
                 hideForm="true"
                 rerender="true"
+                @currentCoors="e=>{currentCoors = e;fetchDistance();}"
                 v-if="$route.path == '/towing/tasks/taskdetails/location'"
 
                 :pinPickupCoorsLong="task_info.customer_location_coors_long"
@@ -33,6 +34,20 @@
                     <span>{{task_info.user_name}}</span>
                     <span>Customer ID</span>
                     <span>{{task_info.user_id}}</span>
+                    <span>Request ID</span>
+                    <span>{{task_info.id}}</span>
+                </div>
+                <div class="col2 breakdown">
+                    <span>Distance Fee</span>
+                    <span>${{feeComputation[1]}}</span>
+                    <span>Booking Fee</span>
+                    <span>${{feeComputation[2]}}</span>
+                    <span>VAT</span>
+                    <span>${{feeComputation[3]}}</span>
+                    <span>Total</span>
+                    <span>${{feeComputation[0]}}</span>
+                </div>
+                <div class="col2">
                     <ion-button router-link="/towing/tasks/taskdetails">Task Details</ion-button>
                     <ion-button router-link="/towing/tasks/taskdetails/location/chat">Chat</ion-button>
                 </div>
@@ -44,7 +59,7 @@
 
 <script>
 import {IonButton, IonPage, IonContent,IonInput } from '@ionic/vue';
-import{local,openToast} from '@/functions.js';
+import{local,openToast,axiosReq} from '@/functions.js';
 import MapComp from '@/views/MapComp.vue';
 import {db} from '@/firebase';
 import {set,ref,get} from 'firebase/database';
@@ -77,7 +92,11 @@ export default {
         return {
             task_info: local.getObject('accepted_task'),
             task_finish: false,
-            vercode: ''
+            vercode: '',
+            feeComputation:[0,0,0,0],
+            km:0,
+            location:{},
+            currentCoors:[]
         }
     },
     methods: {
@@ -93,13 +112,50 @@ export default {
                 if(this.vercode != snapshot.val()) openToast('Verification code is incorrect!','danger');
                 else{
                     set(ref(db,'/finish-notifs/'+local.getObject('accepted_task').id),'finished'); 
-                    set(ref(db,'/available/'+local.getObject('user_info').role+'/'+local.get('user_id')),'active');
+                    set(ref(db,'/available/'+local.getObject('user_info').role.replaceAll(' ','_')+'/'+local.get('user_id')),'active');
 
                     this.task_finish = false;
                     local.remove('accepted_task');
-                    this.$router.replace('/towing/finished');
+                    setTimeout(()=>this.$router.replace('/towing/finished'),200);
 
                 }
+            });
+        },
+        fetchDistance(){
+            const token = 'pk.eyJ1Ijoic3BlZWR5cmVwYWlyIiwiYSI6ImNsNWg4cGlzaDA3NTYzZHFxdm1iMTJ2cWQifQ.j_XBhRHLg-CcGzah7uepMA';
+            this.location.start_long = local.getObject('accepted_task').customer_location_coors_long;
+            this.location.start_lat = local.getObject('accepted_task').customer_location_coors_lat;
+
+            if(this.task_info.service_type == 'Ride Sharer' || this.task_info.service_type == 'Delivery'){
+                this.location.end_long = this.task_info.drop_location_long;
+                this.location.end_lat = this.task_info.drop_location_lat;
+            }else{
+                this.location.end_long = this.currentCoors.long;
+                this.location.end_lat = this.currentCoors.lat;
+            }
+            
+            axiosReq({   
+                method:'get',
+                url:`https://api.mapbox.com/directions/v5/mapbox/driving/${this.location.start_long},${this.location.start_lat};${this.location.end_long},${this.location.end_lat}?steps=true&geometries=geojson&access_token=${token}`,
+            }).then(res=>{
+                this.km = (res.data.routes[0].distance / 1000).toFixed(1); // convert meters to kilometers
+                this.mins = Math.floor(res.data.routes[0].duration / 60);
+                
+                const baseFee = 75;
+                const appChargeRate = 0.3;
+                const vat = 0.12;
+                this.km = (res.data.routes[0].distance / 1000).toFixed(1);
+                let totalFee = (this.km < 6) ? baseFee: baseFee + ((this.km-5) * 5);
+                const distanceFee = totalFee;
+                const bookFee = (totalFee * appChargeRate);
+                const vatFee = (totalFee * vat);
+                totalFee = totalFee + bookFee + vatFee;
+                this.feeComputation = [
+                    totalFee.toFixed(2),
+                    distanceFee.toFixed(2),
+                    bookFee.toFixed(2),
+                    vatFee.toFixed(2)
+                ];
             });
         }
     },
@@ -209,7 +265,7 @@ ion-text h2 {
 .modalBox{background:#fff;width: 90%;padding: 20px;max-width: 450px;border-radius: 20px;color:#222;}
 .modalBox ion-input{background: #eee;text-align: center;border:1px solid #ccc;margin: 20px auto 0;border-radius: 20px;font-weight: 700;transition: 0.4s;}
 .modalBox ion-input:focus-within{background: #fff;}
-
+.breakdown{margin: 20px 0;padding: 20px 0;border-top: 1px solid #fff;border-bottom: 1px solid #fff;}
 .map-form.active #geocoder {
     width: 100%;
     margin: 0 auto;

@@ -2,7 +2,7 @@
     <ion-page>
         <ion-content>
             <div class="section">
-                <a @click="$router.push('/towing/tasks')"><ion-icon :icon="arrowBack"></ion-icon></a>
+                <a @click="$router.push('/ridesharer/tasks')"><ion-icon :icon="arrowBack"></ion-icon></a>
                 <h3>Task Information</h3>
             </div>
             <div class="ioncardimg">
@@ -20,7 +20,7 @@
                     <br />
                     <h2>Location:</h2>
                     <h2 :class="(loading) ? 'loading': null">{{task_info.customer_location}}</h2>
-                    <!-- <ion-button class="viewbutton" @click="$router.push('/towing/tasks/taskdetails/location')" expand="block">View in Map</ion-button> -->
+                    <!-- <ion-button class="viewbutton" @click="$router.push('/ridesharer/tasks/taskdetails/location')" expand="block">View in Map</ion-button> -->
                     <div class="buttonflex" v-if="allowAccept">
                         <section>
                         <ion-button expand="block" @click="accept" :disabled="formLoading">
@@ -31,11 +31,11 @@
                         </ion-button>
                         </section>
                         <section>
-                        <ion-button expand="block" @click="$router.push('/towing/tasks')" color="dark">Decline</ion-button>
+                        <ion-button expand="block" @click="$router.push('/ridesharer/tasks')" color="dark">Decline</ion-button>
                         </section>
                     </div>
                     <div class="buttonflex" v-if="!allowAccept && acceptedTask()">
-                        <ion-button expand="block" @click="$router.push('/towing/tasks/taskdetails/location')">Return to this task</ion-button>
+                        <ion-button expand="block" @click="$router.push('/ridesharer/tasks/taskdetails/location')">Return to this task</ion-button>
                     </div>
                 </ion-card-content>
             </ion-card>
@@ -99,7 +99,7 @@ export default({
     },
     watch:{
         $route(to){
-            if(to.path != '/towing/tasks/taskdetails') return;
+            if(to.path != '/ridesharer/tasks/taskdetails') return;
             this.loadInfo();
         }
     },
@@ -171,7 +171,7 @@ export default({
                 set(ref(db,'/pending_tasks/'+this.task_info.id+'/emp_location_coors_lat'),location.lat);
                 set(ref(db,'/pending_tasks/'+this.task_info.id+'/accepted_by_id'),local.get('user_id'));
                 local.setObject('accepted_task',this.task_info);
-                this.$router.push('/towing/tasks/taskdetails/location');
+                this.$router.push('/ridesharer/tasks/taskdetails/location');
                 this.formLoading = false;
             });
 
