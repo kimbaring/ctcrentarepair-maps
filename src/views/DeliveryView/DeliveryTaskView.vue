@@ -2,7 +2,7 @@
 <ion-page>
     <ion-content>
         <div class="section">
-            <h3>Available Towing Tasks</h3>
+            <h3>Available Delivery Tasks</h3>
             <img src="../../img/car.png">
         </div>
         <ion-card v-for="t in availableTasks" :key="t.id">
@@ -18,7 +18,7 @@
                     <p>{{t.customer_location}}</p>
                     <em>Created at {{date(t.created_at)}}</em>
                 </div>
-                <ion-button @click="viewDetails(t.id);$router.push('/towing/tasks/taskdetails');" class="viewbutton" expand="block">See Details</ion-button>
+                <ion-button @click="viewDetails(t.id);$router.push('/delivery/tasks/taskdetails');" class="viewbutton" expand="block">See Details</ion-button>
             </ion-card-content>
         </ion-card>
     </ion-content>  
@@ -75,7 +75,7 @@ export default({
         onValue(que,()=>{
             get(que).then(snapshot=>{
                 this.availableTasks=[];
-                if(snapshot.exists()) for(let t in snapshot.val()) if(snapshot.val()[t].service_type == 'Towing') this.availableTasks.push(snapshot.val()[t]);
+                if(snapshot.exists()) for(let t in snapshot.val()) if(snapshot.val()[t].service_type == 'Delivery') this.availableTasks.push(snapshot.val()[t]);
                 this.availableTasks.sort(function(a,b){
                     return  parseInt(b.id) - parseInt(a.id);
                 });

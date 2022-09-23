@@ -185,7 +185,7 @@ export default ({
             case 'Technician': router.replace('/technician/dashboard'); break;
             case 'Tow Truck Operator': router.replace('/towing/dashboard'); break;
             case 'Ride Sharer': router.replace('/ridesharer/dashboard'); break;
-            case 'Delivery': router.replace('/comingsoon'); break;
+            case 'Delivery': router.replace('/delivery/dashboard'); break;
           }
           openToast("Please log out properly!", 'danger');
         }

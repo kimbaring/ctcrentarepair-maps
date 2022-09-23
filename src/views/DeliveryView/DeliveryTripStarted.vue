@@ -2,12 +2,12 @@
     <ion-page>
         <ion-content>
             <div class="content">
-                <h3>Enjoy the Trip!</h3>
-                <img src="@/img/traveling.svg">
-                <p>You will automatically be redirected to your dashboard after the ride sharer confirms your arrival in your destination.</p>
+                <h3>You have picked up the package!</h3>
+                <img src="@/img/deliver.svg">
+                <p>Please press 'Finish Delivery' and ask for the code after handing the package so you can finish this task.</p>
                 <div class="col2">
-                    <span>Ride Sharer</span>
-                    <span>{{emp.firstname}} {{emp.lastname}}</span>
+                    <span>Customer</span>
+                    <span>{{customer}}</span>
                     <span>Request ID</span>
                     <span>{{taskId}}</span>
                 </div>
@@ -21,53 +21,46 @@
                     <span>Total</span>
                     <span>${{fee.total}}</span>
                 </div>
+                <ion-button expand="block" @click="finishTrip">Finish Delivery</ion-button>
             </div>
         </ion-content>
     </ion-page>
 </template>
 
 <script>
-import {IonPage,IonContent} from '@ionic/vue';
-import {axiosReq, local, removeFix,openToast} from '@/functions';
+import {IonPage,IonContent,IonButton} from '@ionic/vue';
+import {axiosReq, local, removeFix} from '@/functions';
 import {db} from '@/firebase';
 import {ciapi} from '@/js/globals';
-import {onValue,ref,remove} from 'firebase/database';
+import {set,ref,remove} from 'firebase/database';
 
 export default ({
     components:{
         IonPage,
-        IonContent
+        IonContent,
+        IonButton
     },
     data(){
         return {
+            customer:'',
             fee:{
                 distcharge:0,
                 appcharge:0,
                 vat: 0,
+                vatcharge:0,
                 total:0
             },
-            emp:{firstname:'',lastname:''},
-            taskId:0
         }
     },
     mounted(){
-        local.set('task_linear_path','/customer/trip');
-        this.taskId = local.getObject('customer_task').task_id || local.getObject('customer_task').id;
+        local.set('task_linear_path','/delivery/trip');
+        this.taskId = local.getObject('accepted_task').task_id || local.getObject('accepted_task').id;
+
+        this.customer = local.getObject('accepted_task').user_name;
 
         axiosReq({
             method:'post',
-            url:ciapi+'users?user_id='+local.getObject('customer_task').accepted_by_id,
-            headers:{
-                PWAuth: local.get('user_token'),
-                PWAuthUser:local.get('user_id')
-            }
-        }).then(res=>{
-            this.emp = removeFix(res.data.result,'user_');
-        });
-
-        axiosReq({
-            method:'post',
-            url:ciapi+'transactions?trans_id='+this.taskId,
+            url:ciapi+'transactions?trans_id='+this.taskId, 
             headers:{
                 PWAuth: local.get('user_token'),
                 PWAuthUser:local.get('user_id')
@@ -81,33 +74,19 @@ export default ({
             this.fee.vatcharge = this.fee.distcharge * this.fee.vat;
             this.fee.vatcharge = parseFloat(this.fee.vatcharge).toFixed(2);
         });
-
-
-        onValue(ref(db,'/finish-notifs/'+this.taskId),snapshot=>{
-            if(!snapshot.exists()) return;
-            if(snapshot.val() != 'arrived') return;
-            axiosReq({
-                method: 'post',
-                url: ciapi + `task/update?task_id=${local.getObject('customer_task').task_id}`,
-                headers:{
-                    PWAuth: local.get('user_token'),
-                    PWAuthUser: local.get('user_id'),
-                },
-                data:{status:4}
-            }).catch(()=>openToast('Something went wrong!','danger'))
-            .then(res=>{
-                if(!res.data.success){
-                    openToast('Something went wrong...', 'danger');
-                    return;
-                }
-                remove(ref(db,'/finish-notifs/'+this.taskId));
-                local.remove('customer_task');
-                setTimeout(()=>window.location.assign('/customer/finished'),200);
-            });
-        });
+    },
+    methods:{
+        finishTrip(){
+            set(ref(db,'/finish-notifs/'+local.getObject('accepted_task').id),'arrived'); 
+            set(ref(db,'/available/'+local.getObject('user_info').role.replaceAll(' ','_')+'/'+local.get('user_id')),'active');
+            
+            remove(ref(db,'/pending_tasks/'+local.getObject('accepted_task').id));
+            local.remove('accepted_task');
+            setTimeout(()=>this.$router.replace('/delivery/finished'),200);
+        }
     }
 })
-</script>
+</script>   
 
 <style scoped>
 .content{text-align:center;max-width:600px;margin:0 auto;position:relative;top:50%;transform: translateY(-50%);padding: 20px}

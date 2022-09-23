@@ -178,8 +178,9 @@ export default {
         if(local.get('pageLoading') == 1) {window.location.reload(); return;}
         else local.set('pageLoading', 0);
 
-        if(local.getObject('customer_task').id != null) local.set('chat_id',local.getObject('customer_task').id);
-        if(local.getObject('customer_task').task_id != null) local.set('chat_id',local.getObject('customer_task').task_id);
+        let taskId;
+        if(local.getObject('customer_task').id != null) {local.set('chat_id',local.getObject('customer_task').id);taskId = local.getObject('customer_task').id}
+        if(local.getObject('customer_task').task_id != null) {local.set('chat_id',local.getObject('customer_task').task_id);taskId = local.getObject('customer_task').task_id;}
         
         onValue(ref(db,'/finish-notifs/'+local.get('chat_id')),snapshot=>{
             if(!snapshot.exists()) return;
@@ -189,7 +190,7 @@ export default {
                 this.vercode = 0;
                 axiosReq({
                     method:'post',
-                    url: ciapi+'task/update?task_id='+local.getObject('customer_task').id,
+                    url: ciapi+'task/update?task_id='+taskId,
                     headers:{
                         PWAuth: local.get('user_token'),
                         PWAuthUser: local.get('user_id')
@@ -211,41 +212,59 @@ export default {
                         return;
                     }else if(local.getObject('customer_task').service_type == 'Ride Sharer'){
                         setTimeout(()=>window.location.assign('/customer/trip'),200);
+                    }else if(local.getObject('customer_task').service_type == 'Delivery'){
+                        setTimeout(()=>window.location.assign('/customer/delivery'),200);
                     }
                 });
             }
         });
 
-
-        
-
+        console.log(taskId);
 
         axiosReq({
-            method:'post',
-            url: ciapi+'users?user_id='+local.getObject('customer_task').accepted_by_id,
+            method:"post",
+            url: "https://www.medicalcouriertransportation.com/rentarepair/api/task?task_id="+taskId,
             headers:{
-                PWAuth: local.get('user_token'),
+                PWAuth: local.get('user_token'),    
                 PWAuthUser: local.get('user_id')
             }
+        }).catch(()=>{
+            openToast('Something went wrong!', 'danger');
         }).then(res=>{
-            console.log(res.data);
-            
-            if(res.data.success){
-                this.emp_info = removeFix(res.data.result,'user_');
+            let snap = removeFix(res.data.result,'task_');
+            local.setInObject('customer_task','accepted_by_id', snap.accepted_by_id);
+            local.setInObject('customer_task','emp_location_coors_lat', snap.emp_location_coors_lat);
+            local.setInObject('customer_task','emp_location_coors_long', snap.emp_location_coors_long);
+
+            axiosReq({
+                method:'post',
+                url: ciapi+'users?user_id='+local.getObject('customer_task').accepted_by_id,
+                headers:{
+                    PWAuth: local.get('user_token'),
+                    PWAuthUser: local.get('user_id')
+                }
+            }).then(res=>{
+                
+                if(res.data.success){
+                    this.emp_info = removeFix(res.data.result,'user_');
+                }
+            });
+
+            if(local.getObject('customer_task').service_type == "Ride Sharer" || local.getObject('customer_task').service_type == "Delivery"){
+                this.getRoute(
+                    [local.getObject('customer_task').customer_location_coors_long,local.getObject('customer_task').customer_location_coors_lat],
+                    [local.getObject('customer_task').drop_location_coors_long,local.getObject('customer_task').drop_location_coors_lat]
+                );
+            }else{
+                this.getRoute(
+                    [local.getObject('customer_task').customer_location_coors_long,local.getObject('customer_task').customer_location_coors_lat],
+                    [local.getObject('customer_task').emp_location_coors_long,local.getObject('customer_task').emp_location_coors_lat]
+                );
             }
         });
 
-        if(local.getObject('customer_task').service_type == "Ride Sharer" || local.getObject('customer_task').service_type == "Delivery"){
-            this.getRoute(
-                [local.getObject('customer_task').customer_location_coors_long,local.getObject('customer_task').customer_location_coors_lat],
-                [local.getObject('customer_task').drop_location_coors_long,local.getObject('customer_task').drop_location_coors_lat]
-            );
-        }else{
-            this.getRoute(
-                [local.getObject('customer_task').customer_location_coors_long,local.getObject('customer_task').customer_location_coors_lat],
-                [local.getObject('customer_task').emp_location_coors_long,local.getObject('customer_task').emp_location_coors_lat]
-            );
-        }
+        
+                    
     }
 
 };

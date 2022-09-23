@@ -14,6 +14,7 @@ import CustomerTabs from '../views/CustomerView/CustomerTabs.vue';
 import TechnicianTabs from '../views/TechnicianView/TechnicianTab.vue';
 import TowingTabs from '../views/TowingView/TowingTab.vue';
 import RidesharerTabs from '../views/RidesharerView/RidesharerTab.vue';
+import DeliveryTabs from '../views/DeliveryView/DeliveryTab.vue';
 import CustomerTransactionHistoryView from '../views/TransactionView/TransactionHistoryView.vue';
 import CustomerTransactionDetailsView from '../views/TransactionView/TransactionDetailsView.vue';
 
@@ -41,6 +42,7 @@ import CustomerEditCarDetails from '@/views/CustomerView/CustomerEditCarDetails.
 import NotificationView from '@/views/NotificationView/NotificationView.vue';
 import CustomerAddCarView from '@/views/CustomerView/CustomerAddCarView.vue';
 import CustomerTripStarted from '@/views/CustomerView/CustomerTripStarted.vue';
+import CustomerDeliveryStarted from '@/views/CustomerView/CustomerDeliveryStarted.vue';
 
 import TechnicianDashboardView from '@/views/TechnicianView/TechnicianDashboardView.vue';
 import TechnicianTaskView from '@/views/TechnicianView/TechnicianTaskView.vue';
@@ -63,6 +65,14 @@ import RidesharerTaskLocationView from '@/views/RidesharerView/RidesharerTaskLoc
 import RidesharerAddWalletView from '@/views/RidesharerView/RidesharerAddWalletView.vue';
 import RidesharerTaskFinished from '@/views/RidesharerView/RidesharerTaskFinished.vue';
 import RidesharerTripStarted from '@/views/RidesharerView/RidesharerTripStarted.vue';
+
+import DeliveryDashboardView from '@/views/DeliveryView/DeliveryDashboardView.vue';
+import DeliveryTaskView from '@/views/DeliveryView/DeliveryTaskView.vue';
+import DeliveryTaskDetailsView from '@/views/DeliveryView/DeliveryTaskDetailsView.vue';
+import DeliveryTaskLocationView from '@/views/DeliveryView/DeliveryTaskLocationView.vue';
+import DeliveryAddWalletView from '@/views/DeliveryView/DeliveryAddWalletView.vue';
+import DeliveryTaskFinished from '@/views/DeliveryView/DeliveryTaskFinished.vue';
+import DeliveryTripStarted from '@/views/DeliveryView/DeliveryTripStarted.vue';
 
 
 
@@ -224,6 +234,10 @@ const routes = [
       {
         path: "/customer/trip",
         component: CustomerTripStarted
+      },
+      {
+        path: "/customer/delivery",
+        component: CustomerDeliveryStarted
       },
       {
         path: "/customer/mycar/editcar",
@@ -394,6 +408,60 @@ const routes = [
       {
         path: '/ridesharer/trip',
         component: RidesharerTripStarted,
+      }
+    ]
+  },
+  {
+    path: '/delivery',
+    component: DeliveryTabs,
+    children:[
+      {
+        path: '',
+        redirect: '/delivery/dashboard',
+      },
+      {
+        path: '/delivery/dashboard',
+        component: DeliveryDashboardView
+      },
+      {
+        path: '/delivery/tasks',
+        component: DeliveryTaskView,
+      },
+      {
+        path: '/delivery/tasks/taskdetails',
+        component: DeliveryTaskDetailsView,
+      },
+      {
+        path: '/delivery/tasks/taskdetails/location',
+        component: DeliveryTaskLocationView,
+      },
+      {
+        path: '/delivery/tasks/taskdetails/location/chat',
+        component: () => import('@/views/ChatRider.vue')
+      },
+      {
+        path: '/delivery/transactionhistory',
+        component: CustomerTransactionHistoryView
+      },
+      {
+        path: '/delivery/finished',
+        component: DeliveryTaskFinished
+      },
+      {
+        path: '/delivery/notification',
+        component: NotificationView
+      },
+      {
+        path: '/delivery/profile',
+        component: ProfileView
+      },
+      {
+        path: '/delivery/wallet',
+        component: DeliveryAddWalletView,
+      },
+      {
+        path: '/delivery/trip',
+        component: DeliveryTripStarted,
       }
     ]
   }

@@ -2,11 +2,11 @@
     <ion-page>
         <ion-content>
             <div class="content">
-                <h3>Enjoy the Trip!</h3>
-                <img src="@/img/traveling.svg">
-                <p>You will automatically be redirected to your dashboard after the ride sharer confirms your arrival in your destination.</p>
+                <h3>Your driver has picked up your package!</h3>
+                <img src="@/img/deliver.svg">
+                <p>You will receive a code when the delivery rider arrives at your location. Please provide them the code to finish the transaction.</p>
                 <div class="col2">
-                    <span>Ride Sharer</span>
+                    <span>Delivery Rider</span>
                     <span>{{emp.firstname}} {{emp.lastname}}</span>
                     <span>Request ID</span>
                     <span>{{taskId}}</span>
@@ -28,7 +28,7 @@
 
 <script>
 import {IonPage,IonContent} from '@ionic/vue';
-import {axiosReq, local, removeFix,openToast} from '@/functions';
+import {axiosReq, local, removeFix, openToast} from '@/functions';
 import {db} from '@/firebase';
 import {ciapi} from '@/js/globals';
 import {onValue,ref,remove} from 'firebase/database';
@@ -103,7 +103,7 @@ export default ({
                 remove(ref(db,'/finish-notifs/'+this.taskId));
                 local.remove('customer_task');
                 setTimeout(()=>window.location.assign('/customer/finished'),200);
-            });
+            })
         });
     }
 })

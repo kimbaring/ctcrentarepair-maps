@@ -291,11 +291,16 @@ export default({
 
                 // Add the geolocate control to the map.
                 map.addControl(locate);
-
+                console.log(`https://api.mapbox.com/geocoding/v5/mapbox.places/${location.long},${location.lat}.json?access_token=${mapboxgl.accessToken}`);
                 axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${location.long},${location.lat}.json?access_token=${mapboxgl.accessToken}`)
                 .then(({data}) => {
-                    var userCountry = data.features[5].properties.short_code;
-                    var userOutbound = data.features[5].bbox;
+                    let userCountry =  data.features[4].properties.short_code;
+                    let userOutbound = data.features[4].bbox;
+                    if(data.features[5] !=null){
+                        userCountry =  data.features[5].properties.short_code;
+                        userOutbound = data.features[5].bbox;
+                    }
+                    
 
                     this.$forceUpdate();
 

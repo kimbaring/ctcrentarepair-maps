@@ -68,10 +68,31 @@ export default({
         this.pickupCoors = [local.getObject('customer_task').customer_location_coors_long,local.getObject('customer_task').customer_location_coors_lat];
         console.log(this.pickupCoors);
         onValue(ref(db,`/pending_tasks/${local.getObject('customer_task').task_id}`),snapshot=>{
-            if(snapshot.exists()){
-                let snap = snapshot.val();
-                
-
+            if(!snapshot.exists()) return;
+            let snap = snapshot.val();
+            if(snap.accepted_by_id == null) return;
+            console.log('2');
+            axiosReq({
+                method: 'post',
+                url: ciapi + `task/update?task_id=${local.getObject('customer_task').task_id}`,
+                headers:{
+                    PWAuth: local.get('user_token'),
+                    PWAuthUser: local.get('user_id'),
+                },
+                data:{
+                    status:2,
+                    accepted_by_id:snap.accepted_by_id,
+                    emp_location_coors_long:snap.emp_location_coors_long,
+                    emp_location_coors_lat:snap.emp_location_coors_lat
+                }
+            }).catch(()=>{
+                openToast('Something went wrong...', 'danger');
+            }).then(res=>{
+                console.log('2');
+                if(!res.data.success){
+                    openToast('Something went wrong...', 'danger');
+                    return;
+                }
                 if(snap.status > 1 && snap.emp_location_coors_long != null && local.getObject('customer_task').emp_location_coors_long == null){    
                     sendNotification(
                         'Your request has been accepted!',
@@ -79,16 +100,8 @@ export default({
                         '/notifications');
                 }
 
-                local.setInObject('customer_task','accepted_by_id', snap.accepted_by_id);
-                local.setInObject('customer_task','emp_location_coors_lat', snap.emp_location_coors_lat);
-                local.setInObject('customer_task','emp_location_coors_long', snap.emp_location_coors_long);
-
-                if(local.getObject('customer_task').emp_location_coors_long != null) this.$router.replace('/customer/booked');
-
-                
-                
-                
-            }
+                window.location.assign('/customer/booked');
+            }); 
         })
 
         

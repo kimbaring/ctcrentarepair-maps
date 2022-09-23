@@ -2,25 +2,31 @@
     <ion-page>
         <ion-content>
             <div class="section">
-                <a @click="$router.push('/ridesharer/tasks')"><ion-icon :icon="arrowBack"></ion-icon></a>
+                <a @click="$router.push('/delivery/tasks')"><ion-icon :icon="arrowBack"></ion-icon></a>
                 <h3>Task Information</h3>
             </div>
             <div class="ioncardimg">
-            <ion-card>
                 <img src="../../img/carvertical.png" />
+            <ion-card>
                 <ion-card-content>
-                    <h2>Car Owner:</h2>
+                    <h2>Customer:</h2>
                     <h2 :class="(loading) ? 'loading': null">{{task_info.user_name}}</h2>
                     <br />
                     <h2>Created:</h2>
                     <h2 :class="(loading) ? 'loading': null">{{task_info.created_at}}</h2>
                     <br />
+                    <h2>Fragile?</h2>
+                    <h2 :class="(loading) ? 'loading': null">{{(task_info.problems == 'Fragile') ? 'Yes' : 'No'}}</h2>
+                    <br />
+                    <h2>Details:</h2>
+                    <h2 :class="(loading) ? 'loading': null">{{task_info.description}}</h2>
+                    <br />
                     <h2>From:</h2>
                     <h2 :class="(loading) ? 'loading': null">{{task_info.customer_location}}</h2>
-                    <br />
+                    <br/>
                     <h2>To:</h2>
                     <h2 :class="(loading) ? 'loading': null">{{task_info.drop_location}}</h2>
-                    <!-- <ion-button class="viewbutton" @click="$router.push('/ridesharer/tasks/taskdetails/location')" expand="block">View in Map</ion-button> -->
+                    <!-- <ion-button class="viewbutton" @click="$router.push('/delivery/tasks/taskdetails/location')" expand="block">View in Map</ion-button> -->
                     <div class="buttonflex" v-if="allowAccept">
                         <section>
                         <ion-button expand="block" @click="accept" :disabled="formLoading">
@@ -31,11 +37,11 @@
                         </ion-button>
                         </section>
                         <section>
-                        <ion-button expand="block" @click="$router.push('/ridesharer/tasks')" color="dark">Decline</ion-button>
+                        <ion-button expand="block" @click="$router.push('/delivery/tasks')" color="dark">Decline</ion-button>
                         </section>
                     </div>
                     <div class="buttonflex" v-if="!allowAccept && acceptedTask()">
-                        <ion-button expand="block" @click="$router.push('/ridesharer/tasks/taskdetails/location')">Return to this task</ion-button>
+                        <ion-button expand="block" @click="$router.push('/delivery/tasks/taskdetails/location')">Return to this task</ion-button>
                     </div>
                 </ion-card-content>
             </ion-card>
@@ -97,7 +103,7 @@ export default({
     },
     watch:{
         $route(to){
-            if(to.path != '/ridesharer/tasks/taskdetails') return;
+            if(to.path != '/delivery/tasks/taskdetails') return;
             this.loadInfo();
         }
     },
@@ -158,7 +164,7 @@ export default({
                 set(ref(db,'/pending_tasks/'+this.task_info.id+'/emp_location_coors_lat'),location.lat);
                 set(ref(db,'/pending_tasks/'+this.task_info.id+'/accepted_by_id'),local.get('user_id'));
                 local.setObject('accepted_task',this.task_info);
-                this.$router.push('/ridesharer/tasks/taskdetails/location');
+                this.$router.push('/delivery/tasks/taskdetails/location');
                 this.formLoading = false;
             });
 
@@ -169,7 +175,7 @@ export default({
 
 <style scoped>
 
-ion-card{overflow: visible;}
+
 ion-button{--border-radius: 10px;}
 ion-card-content h2:last-of-type{margin-bottom: 20px;}
 
@@ -223,7 +229,6 @@ h3{
     text-align: left;
     font-size: 30px;
     width: 53%;
-    white-space: nowrap;
 }
 h2{
     font-style: normal;
@@ -289,10 +294,11 @@ ion-card-header{
     position: relative;
 }
 .ioncardimg img{
-    position: relative;
-    float:right;
-    margin-top: -20px;
-    z-index: 10;
+    position: absolute;
+    right: -1px;
+    z-index: 1;
+    top: -31px;
+    width: 124px;
 }
 
 .loading{

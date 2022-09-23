@@ -27,7 +27,7 @@
                         <p>{{formatKey(i)}}</p>
                         <p :class="(loading) ? 'loading': null">{{t}}</p>
                     </div>
-                    <div><p>Status</p><p :class="(loading) ? 'loading': null">{{(task.service_type == "Ride Sharer") ? status(task.status,true) : status(task.status,false)}}</p></div>
+                    <div><p>Status</p><p :class="(loading) ? 'loading': null">{{status(task.status)}}</p></div>
                     
                     <div class="info" v-if="task.description != ''">{{task.description}}</div>
                 </div>
@@ -82,7 +82,8 @@ export default({
             //end of ionicons
     
             loading: true,
-            task:{created_at:'01-01-2001 00:00:00',problems:'[""]'}
+            task:{created_at:'01-01-2001 00:00:00',problems:'[""]'},
+            transaction: {basefee:0,appcharge:0,distcharge:0,distkm:0,vat:0,total:0}
         }
     },
     mounted(){
@@ -106,8 +107,7 @@ export default({
             })
             return probs;
         },
-        parseDate(date){
-            console.log(date);    
+        parseDate(date){  
             return dateFormat('%lm %d, %y (%h:%i%a)',date);
         },
         formatKey(key){
@@ -117,14 +117,15 @@ export default({
             }
             return stringArr.join(' '); 
         },
-        status(value,isRideSharer = false){
+        status(value){
             switch (value) {
                 case '0': return 'Cancelled';
                 case '1': return 'Waiting';
                 case '2': return 'Accepted';
                 case '3': 
-                    if(isRideSharer) return 'Trip Started';
-                    else return 'Arrived';
+                    if(this.task.service_type == 'Ride Sharer') return 'Trip Started';
+                    if(this.task.service_type == 'Delivery') return 'Picked up';
+                    else return 'Completed';
                 case '4':
                     return 'Completed'
             }
@@ -135,7 +136,6 @@ export default({
 
             let preloaded = null;
             let preloadedTasks = lStore.get('tasks');
-            
             
             for(let p in preloadedTasks){
                 let el = removeFix(preloadedTasks[p],'task_')
@@ -160,16 +160,38 @@ export default({
                 }).catch(()=>{
                     openToast('Something went wrong!', 'danger');
                 }).then(res=>{
-                    console.log(res.data);
                     if(res.data.msg == 'invalid token') openToast('Invalid token!', 'danger');
                     else if(res.data.success){
                         this.loading = false;
                         this.task = removeFix(res.data.result,"task_");
+                        if(this.task.status == 3 && 
+                        this.task.service_type != 'Ride Sharer' && this.task.service_type != 'Delivery'){
+                            this.fetchTransaction();
+                        }else if(this.task.status == 4){
+                            this.fetchTransaction();
+                        }
                     }
                     
                 });
             }
-            
+        },
+        fetchTransaction(){
+            axiosReq({
+                method:"post",
+                url: "https://www.medicalcouriertransportation.com/rentarepair/api/transactions?trans_id="+local.get('view_details'),
+                headers:{
+                    PWAuth: local.get('user_token'),
+                    PWAuthUser: local.get('user_id')
+                }
+            }).catch(()=>{
+                openToast('Something went wrong!', 'danger');
+            }).then(res=>{
+                if(res.data.msg == 'invalid token') openToast('Invalid token!', 'danger');
+                this.transaction = res.data.result;
+                // else if(res.data.success){
+                    
+                // }
+            });
         }
     },
     watch:{
