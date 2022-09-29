@@ -53,6 +53,8 @@ export default ({
     setInterval(() => {
       this.checkAllGPS();
     }, 5000);
+
+
   },
 
   methods:{
@@ -180,14 +182,8 @@ export default ({
         }
       } else {
          if(this.loginPaths.includes(to)) {
-          switch(local.getObject('user_info').role){
-            case 'Customer': router.replace('/customer/dashboard'); break;
-            case 'Technician': router.replace('/technician/dashboard'); break;
-            case 'Tow Truck Operator': router.replace('/towing/dashboard'); break;
-            case 'Ride Sharer': router.replace('/ridesharer/dashboard'); break;
-            case 'Delivery': router.replace('/delivery/dashboard'); break;
-          }
-          openToast("Please log out properly!", 'danger');
+          if(local.getObject('user_info').role == 'Customer') router.replace('/preload');
+          else router.replace('/preloademployee');
         }
         if (Capacitor.isNativePlatform()) {
           Keyboard.addListener('keyboardWillShow', () => {

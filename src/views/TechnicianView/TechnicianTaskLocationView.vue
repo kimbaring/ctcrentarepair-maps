@@ -59,7 +59,7 @@
 
 <script>
 import {IonButton, IonPage, IonContent,IonInput } from '@ionic/vue';
-import{local,openToast,axiosReq} from '@/functions.js';
+import{local,openToast,axiosReq, lStore} from '@/functions.js';
 import MapComp from '@/views/MapComp.vue';
 import {db} from '@/firebase';
 import {set,ref,get} from 'firebase/database';
@@ -141,14 +141,19 @@ export default {
                 this.km = (res.data.routes[0].distance / 1000).toFixed(1); // convert meters to kilometers
                 this.mins = Math.floor(res.data.routes[0].duration / 60);
                 
-                const baseFee = 75;
-                const appChargeRate = 0.3;
-                const vat = 0.12;
-                this.km = (res.data.routes[0].distance / 1000).toFixed(1);
-                let totalFee = (this.km < 6) ? baseFee: baseFee + ((this.km-5) * 5);
+                let configs = {};
+                lStore.get('config').forEach(el=> {
+                    configs[el.config_field] = el.config_value;
+                });
+                
+                const baseFee = parseFloat(configs.fee_base_charge);
+                const appChargeRate = parseFloat(configs.fee_app_charge);
+                const vat = parseFloat(configs.fee_vat_charge);
+                const d = parseFloat(configs.fee_distance_charge)
+                let totalFee = (this.km < 6) ? baseFee: baseFee + ((this.km-5) * d);
                 const distanceFee = totalFee;
                 const bookFee = (totalFee * appChargeRate);
-                const vatFee = (totalFee * vat);
+                const vatFee = ((totalFee + bookFee) * vat);
                 totalFee = totalFee + bookFee + vatFee;
                 this.feeComputation = [
                     totalFee.toFixed(2),

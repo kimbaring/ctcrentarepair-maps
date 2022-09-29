@@ -39,30 +39,7 @@
             </ion-card>
         </div>
         <div class="announcements">
-            <ion-card>
-                <ion-card-header>
-                <ion-card-title>Today's Announcement</ion-card-title>
-            </ion-card-header>
-                <ion-card-content>
-                    Keep close to Nature's heart... and break clear away, once in awhile, and climb a mountain or spend a week in the woods. Wash your spirit clean. 
-                </ion-card-content>
-            </ion-card>
-            <ion-card>
-                <ion-card-header>
-                <ion-card-title>Today's Announcement</ion-card-title>
-            </ion-card-header>
-                <ion-card-content>
-                    Keep close to Nature's heart... and break clear away, once in awhile, and climb a mountain or spend a week in the woods. Wash your spirit clean. 
-                </ion-card-content>
-            </ion-card>
-            <ion-card>
-                <ion-card-header>
-                <ion-card-title>Today's Announcement</ion-card-title>
-            </ion-card-header>
-                <ion-card-content>
-                    Keep close to Nature's heart... and break clear away, once in awhile, and climb a mountain or spend a week in the woods. Wash your spirit clean. 
-                </ion-card-content>
-            </ion-card>
+            <announcements-comp></announcements-comp>
         </div>
         <div class="ongoingtask" v-if="task != null" >
             <div class="head">
@@ -82,9 +59,7 @@ import {
     IonPage,
     IonContent,
     IonCard,
-    IonCardHeader,
     IonCardContent,
-    IonCardTitle,
     IonProgressBar,
     IonIcon
 } from '@ionic/vue';
@@ -100,6 +75,7 @@ import {
 } from 'ionicons/icons';
 import { local, openToast, axiosReq } from '@/functions';
 import {ref,remove,onValue,query,orderByChild,equalTo, limitToLast} from 'firebase/database';
+import AnnouncementsComp from '@/views/AnnouncementsComp.vue';
 import  router  from '@/router';
 import {db} from '@/firebase';
 import {ciapi} from '@/js/globals';
@@ -111,10 +87,9 @@ export default({
         IonContent,
         IonCard,
         IonProgressBar,
-        IonCardHeader,
         IonCardContent,
-        IonCardTitle,
-        IonIcon
+        IonIcon,
+        AnnouncementsComp
     },
 
     data(){
@@ -161,6 +136,7 @@ export default({
         });
 
         if(this.task == null) this.task = local.getObject('customer_task');
+
     },
     methods:{
         clearTask(){
@@ -361,18 +337,4 @@ align-items: center;
     padding: 20px;
     border-radius: 30px 30px 0 0;
 }
-
-.announcements ion-card{
-    background: #fff;
-    border:1px solid #ccc;
-    box-shadow:none;
-    padding:10px;
-    border-radius:20px;
-}
-.announcements ion-title slot{
-    --font-weight: 700 !important;
-    color: #b7160b;
-}
-
-
 </style>

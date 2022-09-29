@@ -61,6 +61,9 @@ export default({
   mounted(){
     const que = query(ref(db,'/notifications'),orderByChild('user_id'), equalTo(local.get('user_id')));
 
+
+    
+
     onValue(ref(db,'/notifications'), ()=>{
       this.counter = 0;
       let keys = [];

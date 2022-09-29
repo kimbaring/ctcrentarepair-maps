@@ -108,7 +108,7 @@ export default({
             vehicle:{},
             vehicles:[],
             vehicle_search: '',
-            tech_types:["Flat Tire","Engine Problem","Key Locked Inside Vehicle","Dead Battery","Gas Problem","Others"],
+            tech_types:[],
             vehicle_search_results:[],
             formLoading: false,
 
@@ -120,6 +120,12 @@ export default({
         // else 
         local.set('task_linear_path', '/customer/requestdetails');
         this.loadVehicles(this.$route.path);
+
+        lStore.get('config').forEach(el=> {
+            if(el.config_field.includes('task_problems_')) this.tech_types.push(el.config_value);
+        });
+
+        
 
     },
     methods:{

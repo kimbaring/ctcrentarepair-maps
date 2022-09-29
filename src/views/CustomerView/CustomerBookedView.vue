@@ -60,7 +60,7 @@
 import { IonButton} from '@ionic/vue';
 import { locate, compass, navigateCircle, warning, close, mapOutline, timerOutline } from 'ionicons/icons';
 // import { toFormData, send } from '../functions.js';
-import {local,axiosReq,removeFix,openToast} from '@/functions';
+import {local,axiosReq,removeFix,openToast,lStore,LNotifications} from '@/functions';
 import {db} from '@/firebase';
 import {ref, onValue,remove} from 'firebase/database'; 
 import {ciapi} from '@/js/globals';
@@ -126,14 +126,20 @@ export default {
             }).then(res=>{
                 this.km = (res.data.routes[0].distance / 1000).toFixed(1); // convert meters to kilometers
                 this.mins = Math.floor(res.data.routes[0].duration / 60);
+
+                let configs = {};
+                lStore.get('config').forEach(el=> {
+                    configs[el.config_field] = el.config_value;
+                });
                 
-                const baseFee = 75;
-                const appChargeRate = 0.3;
-                const vat = 0.12;
-                let totalFee = (this.km < 6) ? baseFee: baseFee + ((this.km-5) * 5);
+                const baseFee = parseFloat(configs.fee_base_charge);
+                const appChargeRate = parseFloat(configs.fee_app_charge);
+                const vat = parseFloat(configs.fee_vat_charge);
+                const d = parseFloat(configs.fee_distance_charge)
+                let totalFee = (this.km < 6) ? baseFee: baseFee + ((this.km-5) * d);
                 const distanceFee = totalFee;
                 const bookFee = (totalFee * appChargeRate);
-                const vatFee = (totalFee * vat);
+                const vatFee = ((totalFee + bookFee) * vat);
                 totalFee = totalFee + bookFee + vatFee;
                 this.feeComputation = [
                     totalFee.toFixed(2),
@@ -141,29 +147,6 @@ export default {
                     bookFee.toFixed(2),
                     vatFee.toFixed(2)
                 ];
-
-                axiosReq({   
-                    method:'post',
-                    url:ciapi+`transactions/create`,
-                    headers:{
-                        PWAuth: local.get('user_token'),
-                        PWAuthUser: local.get('user_id')
-                    },
-                    data:{
-                        id: local.get('chat_id'),
-                        basefee: baseFee,
-                        appcharge: appChargeRate,
-                        distcharge: distanceFee,
-                        distkm: this.km,
-                        vat: vat,
-                        total: totalFee
-                    }
-                }).catch(err=>{
-                    console.log(err);
-                    openToast('Something went wrong!','danger');
-                }).then(res=>{
-                    console.log(res.data);
-                });
             });
             
 
@@ -178,6 +161,8 @@ export default {
         if(local.get('pageLoading') == 1) {window.location.reload(); return;}
         else local.set('pageLoading', 0);
 
+
+
         let taskId;
         if(local.getObject('customer_task').id != null) {local.set('chat_id',local.getObject('customer_task').id);taskId = local.getObject('customer_task').id}
         if(local.getObject('customer_task').task_id != null) {local.set('chat_id',local.getObject('customer_task').task_id);taskId = local.getObject('customer_task').task_id;}
@@ -187,7 +172,26 @@ export default {
             console.log(snapshot.val());
             if(snapshot.val() != 'finished' && typeof snapshot.val() == 'number') this.vercode = snapshot.val();
             else if(snapshot.val() == 'finished'){
-                this.vercode = 0;
+                this.vercode = 0;   
+
+                if(local.getObject('customer_task').service_type != 'Delivery' &&
+                local.getObject('customer_task').service_type != 'Ride Sharer' ){
+                    LNotifications.requestPermission().then(()=>{
+                        LNotifications.send('Task completed!',
+                        `Please return to the app to provide your technician the task completion confirmation code!`);
+                    });
+                }else if(local.getObject('customer_task').service_type == 'Ride Sharer'){
+                    LNotifications.requestPermission().then(()=>{
+                        LNotifications.send('Ride Sharer has arrived!',
+                        `You can now check the application for details about your ride!`);
+                    });
+                }else if(local.getObject('customer_task').service_type == 'Delivery'){
+                    LNotifications.requestPermission().then(()=>{
+                        LNotifications.send('Delivery rider has picked up the parcel!',
+                        `You can now check the application for details about the delivery!`);
+                    });
+                }
+
                 axiosReq({
                     method:'post',
                     url: ciapi+'task/update?task_id='+taskId,

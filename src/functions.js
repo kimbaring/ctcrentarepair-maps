@@ -1,6 +1,8 @@
 // import './jspdf.min.js';
 import axios from 'axios';
 import {toastController} from '@ionic/vue';
+import {LocalNotifications} from '@capacitor/local-notifications';
+import { Capacitor } from "@capacitor/core";
 
 async function axiosReq(params){
     for(let p in params){
@@ -10,6 +12,40 @@ async function axiosReq(params){
     }
     return await axios(params);
 }
+
+
+
+const LNotifications = {
+    granted: false,
+    requestPermission(){
+        return new Promise(res=>{
+            LocalNotifications.requestPermissions().then(permission=>{
+                if(permission.display != 'granted') return;
+                LNotifications.granted = true;
+                if(Capacitor.getPlatform()== 'android'){
+                    LocalNotifications.createChannel({
+                        id: 'test',
+                        name: 'Reminders',
+                        description: 'Reminders you set within App',
+                        importance: 4
+                    })
+
+                    res(LNotifications.granted);
+                } 
+            });
+        });
+    },
+    send(title,body){
+        if(!LNotifications.granted) return;
+        LocalNotifications.schedule({
+            notifications:[{
+                id: new Date().getTime(),
+                title: title,
+                body: body
+        }]});
+    }
+
+};
 
 
 function elementLoad(selector){
@@ -394,5 +430,6 @@ export {
     elementLoad,
     formatDateString,
     lStore,
-    bubbleSort
+    bubbleSort,
+    LNotifications
 }; 

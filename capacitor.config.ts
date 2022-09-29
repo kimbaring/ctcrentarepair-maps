@@ -6,6 +6,11 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   bundledWebRuntime: false,
   plugins: {
+    LocalNotifications: {
+      smallIcon: "ic_launcher",
+      iconColor: "#B7160B",
+      sound: "beep.wav",
+    },
     SplashScreen: {
       launchShowDuration: 4000,
       launchAutoHide: true,

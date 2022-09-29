@@ -41,7 +41,6 @@
 import { IonContent, IonPage, IonCard,IonCardHeader, IonCardContent, IonButton, IonInput, IonSpinner, IonIcon } from '@ionic/vue';
 import { axiosReq, validateForm,openToast, local } from '@/functions';
 import {eye, eyeOff} from 'ionicons/icons';
-import router from '@/router';
 import { ciapi, needEmailVerif } from '@/js/globals';
 import{ signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/firebase';
@@ -109,13 +108,8 @@ export default ({
               local.set('user_id',res.data.user_id);
               local.set('user_token',res.data.token);
               local.setObject('user_info', res.data.info);
-              switch(res.data.info.role){
-                case 'Customer': router.replace('/preload'); break;
-                case 'Technician': router.replace('/technician/dashboard'); break;
-                case 'Tow Truck Operator': router.replace('/towing/dashboard'); break;
-                case 'Ride Sharer': router.replace('/ridesharer/dashboard'); break;
-                case 'Delivery': router.replace('/delivery/dashboard'); break;
-              }
+              if(res.data.info.role == 'Customer') window.location.replace('/preload');
+              else window.location.replace('/preloademployee');
             }
         });
         

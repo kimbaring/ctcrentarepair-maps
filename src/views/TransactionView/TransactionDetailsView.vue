@@ -30,9 +30,41 @@
                     <div><p>Status</p><p :class="(loading) ? 'loading': null">{{status(task.status)}}</p></div>
                     
                     <div class="info" v-if="task.description != ''">{{task.description}}</div>
+                    <ion-button v-if="task.service_type == 'Technician'&& false && allowPrint" @click="print">Dowload Receipt PDF</ion-button>
                 </div>
             </ion-card-content>
         </ion-card>
+        <div class="content technician" v-if="transaction.basefee != 0">
+        <img src="@/img/logo.png" alt="" />
+        <h1>Official Receipt</h1>
+        <div class="col2">
+            <span>Customer: <span class="red">{{task.user_name}}</span></span>
+            <span>Date: <span class="red">{{parseDate(task.created_at)}}</span></span>
+            <span>Service: <span class="red">{{task.service_type}}</span></span>
+            <span>Transaction ID: <span class="red">{{task.id}}</span></span>
+            
+        </div>
+        <div class="box">
+            <div class="boxcell"><strong class="block">Problems: </strong>{{(task.service_type =='Delivery') ? ((task.problems == 'Fragile') ? 'Yes': ''):problems()}}</div>
+            <div class="boxcell" v-if="task.description"><strong class="block">More Information:</strong>
+                {{task.description}}
+            </div>
+            <div class="boxcell">
+                <strong class="block">Payment Breakdown:</strong>
+                <div class="col2price">
+                    <span>Distance Fee</span>
+                    <span>$75 + ($5 x {{decimal((transaction.distkm < 6) ? transaction.distkm : 0,2)}}km) = ${{decimal(transaction.distcharge)}}</span>
+                    <span>Booking Fee</span>
+                    <span>${{decimal(transaction.distcharge)}} + 30% = ${{decimal(transaction.distcharge * 0.3)}}</span>
+                    <span>VAT Fee</span>
+                    <span>${{decimal(transaction.distcharge)}} + 12% = ${{decimal(transaction.distcharge * 0.12)}}</span>
+                    <span><strong>Total</strong></span>
+                    <span><strong>${{decimal(transaction.total)}}</strong></span>
+                </div>
+
+            </div>
+        </div>
+    </div>
     </ion-content>
 </ion-page>
 </template>
@@ -43,10 +75,12 @@ import {
     IonPage,
     IonContent,
     IonCard,
+    IonButton,
     IonCardHeader,
     IonCardContent,
     IonCardSubtitle,
     IonCardTitle,
+    IonIcon
 } from '@ionic/vue';
 import { 
     bookOutline,
@@ -56,6 +90,7 @@ import {
     arrowBack
 } from 'ionicons/icons';
 import {axiosReq,local, openToast,dateFormat,removeFix, lStore} from '@/functions';
+import * as html2pdf from 'html2pdf.js';
 
 
 
@@ -69,6 +104,8 @@ export default({
         IonCardContent,
         IonCardSubtitle,
         IonCardTitle,
+        IonButton,
+        IonIcon
     },
 
     data(){
@@ -83,7 +120,8 @@ export default({
     
             loading: true,
             task:{created_at:'01-01-2001 00:00:00',problems:'[""]'},
-            transaction: {basefee:0,appcharge:0,distcharge:0,distkm:0,vat:0,total:0}
+            transaction: {basefee:0,appcharge:0,distcharge:0,distkm:0,vat:0,total:0},
+            allowPrint:false
         }
     },
     mounted(){
@@ -144,11 +182,12 @@ export default({
                     this.loading = false;
                     break;
                 }
-            }
+            }   
             
 
             if(preloaded != null) {
                 this.task = preloaded;
+                this.fetchTransaction();
             }else{
                 axiosReq({
                     method:"post",
@@ -176,6 +215,7 @@ export default({
             }
         },
         fetchTransaction(){
+
             axiosReq({
                 method:"post",
                 url: "https://www.medicalcouriertransportation.com/rentarepair/api/transactions?trans_id="+local.get('view_details'),
@@ -187,11 +227,30 @@ export default({
                 openToast('Something went wrong!', 'danger');
             }).then(res=>{
                 if(res.data.msg == 'invalid token') openToast('Invalid token!', 'danger');
-                this.transaction = res.data.result;
-                // else if(res.data.success){
-                    
-                // }
+                this.transaction = removeFix(res.data.result,'trans_');
+                this.allowPrint = true;
             });
+        },
+        decimal(val){
+            return parseFloat(val).toFixed(2);
+        },
+        print(){
+            let opt = {
+                margin: [10,10,10,10],
+                filename: `RentARepair-${this.task.id}.pdf`,
+                image: { type: 'jpeg', quality: 2 },
+                html2canvas: {
+                    dpi: 300,
+                    scale:2,
+                    letterRendering: true,
+                    useCORS: true
+                },
+                jsPDF: { unit: 'mm', orientation: 'portrait',format:'letter'},
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+            document.querySelector('.content').style.display = 'block';
+            html2pdf(document.querySelector('.content'),opt).save();
+            setTimeout(()=>document.querySelector('.content').style.display = 'none',50);
         }
     },
     watch:{
@@ -322,5 +381,21 @@ ion-card-header{
     100%{left:100%}
 }
 
+.content{font-family: sans-serif;padding: 20px;max-width: 700px;margin: 0 auto;z-index: -1;background: #fff;color:#222;display: none;}
+.content h1{font-size: 20px;text-align: center;color:#b7170b;margin:0 0 20px;padding: 10px;}
+.content .col2{display: grid;grid-template-columns: 1fr 1fr;}
+.content .col2 span {font-weight: 700;margin: 10px 0;}
+.content .col2price{display: grid;grid-template-columns: 1fr 2fr;row-gap: 5px;}
+.content .col2price span:nth-of-type(even){quotes: none;color:#b7170b;text-align: right;}
+.content .col2price span{padding: 5px 0 0;}
+.content .col2price span:last-of-type{border-top: 2px solid #000;padding: 5px 0 0;}
+.content .red{color:#b7170b;}
+.content img{width: 200px;display: block;margin: 0 auto;}
+.content .box{border:3px solid #aaa;margin: 20px 0;}
+.content .boxcell{padding: 15px;}
+.content .boxcell:not(:last-child){border-bottom:3px solid #aaa}
+.content .block{display: block;margin:0 0 5px}
+.content .block:not(:first-child){margin:10px 0 5px}
+ion-button{--background: #b7160b;--border-radius:30px;}
 
 </style>

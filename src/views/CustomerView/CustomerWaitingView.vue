@@ -25,7 +25,7 @@
 <script>
 import {IonHeader,IonContent,IonTitle,IonToolbar} from '@ionic/vue';
 // import { toFormData, send } from '../functions.js';
-import{local,axiosReq,openToast} from '@/functions.js';
+import{local,axiosReq,openToast,LNotifications} from '@/functions.js';
 import {db} from '@/firebase';
 import {ciapi} from '@/js/globals'; 
 import {ref, onValue,remove } from 'firebase/database';
@@ -94,6 +94,12 @@ export default({
                     return;
                 }
                 if(snap.status > 1 && snap.emp_location_coors_long != null && local.getObject('customer_task').emp_location_coors_long == null){    
+
+                    LNotifications.requestPermission().then(()=>{
+                        LNotifications.send('Your request has been accepted!',
+                        `Please wait patiently for your ${local.getObject('customer_task').service_type} to arrive...`);
+                    });
+
                     sendNotification(
                         'Your request has been accepted!',
                         `Please wait patiently for your ${local.getObject('customer_task').service_type} to arrive...`,

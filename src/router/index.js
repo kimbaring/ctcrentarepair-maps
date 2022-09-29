@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import HomePage from '../views/HomePage.vue'
 import PreLoad from '../views/PreLoad.vue'
+import PreLoadEmployee from '../views/PreLoadEmployee.vue'
 import LoginPage from '../views/LoginRegisterView/LoginPage.vue'
 import RegisterPage from '../views/LoginRegisterView/RegisterPage.vue';
 import RegisterCustomer from '../views/LoginRegisterView/RegisterCustomer.vue';
@@ -74,7 +75,7 @@ import DeliveryAddWalletView from '@/views/DeliveryView/DeliveryAddWalletView.vu
 import DeliveryTaskFinished from '@/views/DeliveryView/DeliveryTaskFinished.vue';
 import DeliveryTripStarted from '@/views/DeliveryView/DeliveryTripStarted.vue';
 
-
+import TestView from '@/views/TestView.vue';
 
 
 
@@ -86,9 +87,19 @@ const routes = [
     component: UserMap
   },
   {
+    path: '/test',
+    name: 'test',
+    component: TestView
+  },
+  {
     path: '/preload',
-    name:'preload',
+    name:'PreLoad',
     component: PreLoad
+  },
+  {
+    path: '/preloademployee',
+    name:'PreLoadEmployee',
+    component: PreLoadEmployee
   },
   {
     path: '/chat',
@@ -472,5 +483,6 @@ const router = createRouter({
   routes
 })
 
-export default router
+export default router;
+export {routes};
 

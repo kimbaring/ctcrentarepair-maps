@@ -14,7 +14,8 @@
 
 <script>
 import { IonContent, IonPage} from '@ionic/vue';
-import preload from '@/preload';
+import {preloadEmployee} from '@/preload';
+import {local} from '@/functions';
 
 export default ({
   name: 'PreLoadEmployee',
@@ -29,21 +30,22 @@ export default ({
     }
   },
   created(){
-    preload(res=>{
+    preloadEmployee(res=>{
       switch(res){
         case 'config': this.loadLabel = 'App Configurations';break; 
         case 'user': this.loadLabel = 'User Data';break;
-        case 'cars': this.loadLabel = 'Car Data';break;
-        case 'task': this.loadLabel = 'Tasks';break;
-        case 'ann': this.loadLabel = 'Announcements';break;
-        case 'notifications': this.loadLabel = 'Notifications';break;
       }
-
-      
-      this.loadPercent+=16.67;
+      this.loadPercent+=50;
       document.querySelector('.loader-inner').style.width = this.loadPercent+'%';
 
-      if(this.loadPercent >= 100) setTimeout(()=>this.$router.replace('/customer/dashboard'), 300);
+      if(this.loadPercent == 100) {
+        switch(local.getObject('user_info').role){
+          case 'Technician': this.$router.replace('/technician/dashboard'); break;
+          case 'Tow Truck Operator': this.$router.replace('/towing/dashboard'); break;
+          case 'Ride Sharer': this.$router.replace('/ridesharer/dashboard'); break;
+          case 'Delivery': this.$router.replace('/delivery/dashboard'); break;
+        }
+      }
     });
   }
 });
