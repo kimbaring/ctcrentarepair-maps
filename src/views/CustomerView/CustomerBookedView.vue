@@ -170,9 +170,10 @@ export default {
         onValue(ref(db,'/finish-notifs/'+local.get('chat_id')),snapshot=>{
             if(!snapshot.exists()) return;
             console.log(snapshot.val());
-            if(snapshot.val() != 'finished' && typeof snapshot.val() == 'number') this.vercode = snapshot.val();
-            else if(snapshot.val() == 'finished'){
-                this.vercode = 0;   
+
+            
+            if(snapshot.val() != 'finished' && typeof snapshot.val() == 'number'){
+                this.vercode = snapshot.val();
 
                 if(local.getObject('customer_task').service_type != 'Delivery' &&
                 local.getObject('customer_task').service_type != 'Ride Sharer' ){
@@ -191,7 +192,10 @@ export default {
                         `You can now check the application for details about the delivery!`);
                     });
                 }
-
+            }
+            else if(snapshot.val() == 'finished'){
+                this.vercode = 0;
+                
                 axiosReq({
                     method:'post',
                     url: ciapi+'task/update?task_id='+taskId,

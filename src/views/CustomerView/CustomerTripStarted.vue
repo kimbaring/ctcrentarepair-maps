@@ -28,7 +28,7 @@
 
 <script>
 import {IonPage,IonContent} from '@ionic/vue';
-import {axiosReq, local, removeFix,openToast} from '@/functions';
+import {axiosReq, local, removeFix,openToast, LNotifications} from '@/functions';
 import {db} from '@/firebase';
 import {ciapi} from '@/js/globals';
 import {onValue,ref,remove} from 'firebase/database';
@@ -100,6 +100,13 @@ export default ({
                     openToast('Something went wrong...', 'danger');
                     return;
                 }
+
+                LNotifications.requestPermission().then(()=>{
+                    LNotifications.send('Task completed!',
+                    `Thank you for choosing RentARepair for your transportation needs.!`);
+                });
+
+
                 remove(ref(db,'/finish-notifs/'+this.taskId));
                 local.remove('customer_task');
                 setTimeout(()=>window.location.assign('/customer/finished'),200);

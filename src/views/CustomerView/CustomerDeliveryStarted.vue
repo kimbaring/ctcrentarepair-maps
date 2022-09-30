@@ -28,7 +28,7 @@
 
 <script>
 import {IonPage,IonContent} from '@ionic/vue';
-import {axiosReq, local, removeFix, openToast} from '@/functions';
+import {axiosReq, local, removeFix, openToast,LNotifications} from '@/functions';
 import {db} from '@/firebase';
 import {ciapi} from '@/js/globals';
 import {onValue,ref,remove} from 'firebase/database';
@@ -49,9 +49,9 @@ export default ({
             emp:{firstname:'',lastname:''},
             taskId:0
         }
-    },
+    },  
     mounted(){
-        local.set('task_linear_path','/customer/trip');
+        local.set('task_linear_path','/customer/delivery');
         this.taskId = local.getObject('customer_task').task_id || local.getObject('customer_task').id;
 
         axiosReq({
@@ -100,6 +100,13 @@ export default ({
                     openToast('Something went wrong...', 'danger');
                     return;
                 }
+
+                LNotifications.requestPermission().then(()=>{
+                    LNotifications.send('Task completed!',
+                    `Thank you for choosing RentARepair for your delivery needs!`);
+                });
+
+                
                 remove(ref(db,'/finish-notifs/'+this.taskId));
                 local.remove('customer_task');
                 setTimeout(()=>window.location.assign('/customer/finished'),200);
