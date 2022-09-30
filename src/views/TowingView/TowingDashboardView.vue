@@ -65,10 +65,11 @@ import {
     carSportOutline,
     constructOutline
 } from 'ionicons/icons';
-import { local } from '@/functions';
+import { local,axiosReq } from '@/functions';
 import  router  from '@/router';
+import {ciapi} from '@/js/globals';
 import { db} from '@/firebase.js';
-import {get, child, ref,onValue,query,orderByChild,equalTo, limitToLast} from 'firebase/database';
+import {get, child, ref,onValue,query,orderByChild,equalTo, limitToLast,remove} from 'firebase/database';
 
 export default({
     name: "CustomerDashboard",
@@ -113,6 +114,25 @@ export default({
                 this.task = snapshot.val()[Object.keys(snapshot.val())[0]];
                 local.setObject('accepted_task',this.task);
                 local.set('view_details',this.task.id);
+
+                get(ref(db,'/finish-notifs/'+this.task.id)).then(snapshot=>{
+                    if(!snapshot.exists()) return;
+                    if(snapshot.val() == 'finished');
+                    remove(ref(db,`/finish-notifs/${this.task.id}`));
+                    remove(ref(db,`/pending_tasks/${this.task.id}`));
+                    local.remove('accepted_task');
+                    local.remove('task_linear_path');
+
+                    axiosReq({
+                        method:'post',
+                        url: ciapi+'task/update?task_id='+this.task.id,
+                        headers:{
+                            PWAuth: local.get('user_token'),
+                            PWAuthUser: local.get('user_id')
+                        },
+                        data:{status:3}
+                    }).then(()=>this.task = null);
+                });
             }
         });
     },

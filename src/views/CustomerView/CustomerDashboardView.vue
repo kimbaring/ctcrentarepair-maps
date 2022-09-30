@@ -74,7 +74,7 @@ import {
     cubeOutline
 } from 'ionicons/icons';
 import { local, openToast, axiosReq } from '@/functions';
-import {ref,remove,onValue,query,orderByChild,equalTo, limitToLast} from 'firebase/database';
+import {ref,remove,onValue,query,orderByChild,equalTo, limitToLast,get} from 'firebase/database';
 import AnnouncementsComp from '@/views/AnnouncementsComp.vue';
 import  router  from '@/router';
 import {db} from '@/firebase';
@@ -132,6 +132,25 @@ export default({
                     case 1: local.set('task_linear_path','/customer/waiting');break;
                     case 2: local.set('task_linear_path','/customer/booked');break;
                 }
+                get(ref(db,'/finish-notifs/'+this.task.id)).then(snapshot=>{
+                    if(!snapshot.exists()) return;
+                    if(snapshot.val() == 'finished');
+                    remove(ref(db,`/finish-notifs/${this.task.id}`));
+                    remove(ref(db,`/pending_tasks/${this.task.id}`));
+                    
+                    local.remove('customer_task');
+                    local.remove('task_linear_path');
+
+                    axiosReq({
+                        method:'post',
+                        url: ciapi+'task/update?task_id='+this.task.id,
+                        headers:{
+                            PWAuth: local.get('user_token'),
+                            PWAuthUser: local.get('user_id')
+                        },
+                        data:{status:(this.task.service_type == 'Ride Sharer' || this.task.service_type == 'Delivery') ? 4 : 3}
+                    }).then(()=>this.task = null);
+                });
             }
         });
 

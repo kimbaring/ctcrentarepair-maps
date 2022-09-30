@@ -59,11 +59,13 @@ export default ({
   min-height: 550px;
   position: relative;
   background: url('@/img/backgroundrentarepair.jpg');
+  background-size: cover;
 }
 
 img{
   display: block;
   margin: 0 auto 20px;
+  max-width:200px;
 }
 
 p{text-align: center;}
