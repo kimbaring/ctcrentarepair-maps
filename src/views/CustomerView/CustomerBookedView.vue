@@ -131,11 +131,17 @@ export default {
                 lStore.get('config').forEach(el=> {
                     configs[el.config_field] = el.config_value;
                 });
+
+                let role = local.getObject('customer_task').service_type.replaceAll(' ','').toLowerCase();
+
+                let taskId;
+                if(local.getObject('customer_task').id != null) {local.set('chat_id',local.getObject('customer_task').id);taskId = local.getObject('customer_task').id}
+                if(local.getObject('customer_task').task_id != null) {local.set('chat_id',local.getObject('customer_task').task_id);taskId = local.getObject('customer_task').task_id;}
                 
-                const baseFee = parseFloat(configs.fee_base_charge);
-                const appChargeRate = parseFloat(configs.fee_app_charge);
+                const baseFee = parseFloat(configs[`fee_${role}_base_charge`]);
+                const appChargeRate = parseFloat(configs[`fee_${role}_app_charge`]);
                 const vat = parseFloat(configs.fee_vat_charge);
-                const d = parseFloat(configs.fee_distance_charge)
+                const d = parseFloat(configs[`fee_${role}_distance_charge`])
                 let totalFee = (this.km < 6) ? baseFee: baseFee + ((this.km-5) * d);
                 const distanceFee = totalFee;
                 const bookFee = (totalFee * appChargeRate);
@@ -147,6 +153,26 @@ export default {
                     bookFee.toFixed(2),
                     vatFee.toFixed(2)
                 ];
+
+                axiosReq({
+                    method:'post',
+                    url:ciapi+'transactions/create',
+                    headers:{
+                        PWAuthUser: local.get('user_id'),
+                        PWAuth: local.get('user_token'),
+                    },
+                    data:{
+                        id: taskId,
+                        basefee: baseFee,
+                        appcharge: appChargeRate,
+                        distcharge: distanceFee,
+                        distkm: this.km,
+                        vat: parseFloat(configs.fee_vat_charge),
+                        total: totalFee
+                    }
+                }).then(res=>{
+                    console.log(res.data);
+                })
             });
             
 
@@ -231,7 +257,7 @@ export default {
 
         axiosReq({
             method:"post",
-            url: "https://www.medicalcouriertransportation.com/rentarepair/api/task?task_id="+taskId,
+            url: ciapi+"task?task_id="+taskId,
             headers:{
                 PWAuth: local.get('user_token'),    
                 PWAuthUser: local.get('user_id')

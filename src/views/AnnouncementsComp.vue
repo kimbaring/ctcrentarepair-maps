@@ -4,16 +4,13 @@
         </div>
         <div v-else>
             <div class="announcements_box " v-for="a in announcements" :key="a.id">
-                <img src="../img/clientbackground.jpg" />
+                <img :src="(a.imgsrc != null && a.imgsrc != '') ? a.imgsrc : 'https://www.medicalcouriertransportation.com/rentarepair/uploads/default.jpg'" />
                 <div class="content">
                     <h2>{{a.title}}</h2>
                     <p>{{a.description}}</p>
                 </div>  
             </div>
         </div>
-        
-
-        
 </template>
 
 <script>

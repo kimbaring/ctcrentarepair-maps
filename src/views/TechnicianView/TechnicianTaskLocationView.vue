@@ -146,10 +146,10 @@ export default {
                     configs[el.config_field] = el.config_value;
                 });
                 
-                const baseFee = parseFloat(configs.fee_base_charge);
-                const appChargeRate = parseFloat(configs.fee_app_charge);
+                const baseFee = parseFloat(configs.fee_technician_base_charge);
+                const appChargeRate = parseFloat(configs.fee_technician_app_charge);
                 const vat = parseFloat(configs.fee_vat_charge);
-                const d = parseFloat(configs.fee_distance_charge)
+                const d = parseFloat(configs.fee_technician_distance_charge)
                 let totalFee = (this.km < 6) ? baseFee: baseFee + ((this.km-5) * d);
                 const distanceFee = totalFee;
                 const bookFee = (totalFee * appChargeRate);
