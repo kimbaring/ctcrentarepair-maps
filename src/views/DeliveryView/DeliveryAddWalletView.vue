@@ -39,7 +39,8 @@ import {
     IonContent,
     IonInput,
 } from '@ionic/vue';
-import{ local } from '@/functions.js';
+import{ axiosReq, local, openToast } from '@/functions.js';
+import {ciapi} from '@/js/globals';
 import {push, db} from '@/firebase.js';
 import {get, child, ref} from 'firebase/database';
 
@@ -70,7 +71,6 @@ export default({
       "https://www.paypal.com/sdk/js?client-id=AUEkhwjZikNAwxm23SBgQfIjqcxwjPm6ZDtHq9JJwt1z-4GwwrEUl7wtc6Cr_8CY6F9F5DWECzHyh3GL";
     script.addEventListener("load", this.setLoaded);
     document.body.appendChild(script);
-    console.log(this.setLoaded);
     },
     methods: {
     setLoaded: function() {
@@ -103,12 +103,43 @@ export default({
                     this.userwallets.wallet = parseInt(snapshot.val().wallet) + parseInt(this.amount);
                     this.userwallets.user_id = this.userid;
                     push(`userwallet/${this.userid}`, this.userwallets);
+
                     this.$router.push('/delivery');
+
+                    axiosReq({
+                        method:ciapi+'users/wallet/update?wallet_id='+local.get('user_id'),
+                        headers:{
+                            PWAuth: local.get('user_token'),
+                            PWAuthUser: local.get('user_id')
+                        },
+                        data:{
+                            amount: this.userwallets.wallet
+                        }
+                    }).then(()=>{
+                        this.$router.push('/delivery');
+                    }).catch(()=>{
+                        openToast('Something went wrong!','danger');
+                    });
                 } else {
                     this.userwallets.wallet = this.amount;
                     this.userwallets.user_id = this.userid;
                     push(`userwallet/${this.userid}`, this.userwallets);
-                    this.$router.push('/delivery');
+                    
+
+                    axiosReq({
+                        method:ciapi+'users/wallet/update?wallet_id='+local.get('user_id'),
+                        headers:{
+                            PWAuth: local.get('user_token'),
+                            PWAuthUser: local.get('user_id')
+                        },
+                        data:{
+                            amount: this.userwallets.wallet
+                        }
+                    }).then(()=>{
+                        this.$router.push('/delivery');
+                    }).catch(()=>{
+                        openToast('Something went wrong!','danger');
+                    });
                 }
                 }).catch((error) => {
                 console.error(error);

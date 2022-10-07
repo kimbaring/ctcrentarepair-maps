@@ -14,18 +14,18 @@
             <h2 class="ion-text-center title">Chat</h2>
 
             <div class="box_wrap">
-                <div class="box_inner" :class="{ overflowHide : overflowHide }">
+                <div class="box_inner" :class="{ overflowHide : overflowHide }" @scroll="showArrowDown">
                     <ion-list :class="{ appHeightFix: fixHeight }">
                         <div class="" id="content">
                             <div class="" id="autoLink" :class="{zoomImg: (zoomKey == message.ID),box_user1: (!isSender(message.Sender)), box_user2: (isSender(message.Sender))}"  v-for="message in messageList" :key="message.key" slot="end" lines="none">
                                 <ion-thumbnail v-if="message.Image">
                                     <ion-img @click="showSingle(message.ID);" :src="message.Image" :data-key="message.ID"></ion-img>
-                                    <a v-if="(isSender(message.Sender))" @click="removeTextOption(); showButton2 = false;showButtonId2 = message.ID"><ion-icon :icon="ellipsisVertical"></ion-icon></a>
+                                    <a v-if="(isSender(message.Sender))" @click="removeImageOption(); showButton2 = false;showButtonId2 = message.ID"><ion-icon :icon="ellipsisVertical"></ion-icon></a>
                                 </ion-thumbnail>
                                 <ion-item class="ion-text-end" lines="none">
                                     <ion-label slot="end" class="ion-text-wrap">
                                         <p id="autoLink" v-if="message.Message != ''" v-html="message.Message"></p>
-                                        <a v-if="message.Message != ''" @click="removeImageOption(); showButton = false;showButtonId = message.ID">
+                                        <a v-if="message.Message != ''" @click="removeTextOption(); showButton = false;showButtonId = message.ID">
                                             <ion-icon v-if="(isSender(message.Sender))" :icon="ellipsisVertical"></ion-icon>
                                         </a>
                                         <small>{{ dateString(message.Send_Date) }}</small></ion-label>
@@ -37,6 +37,9 @@
                         <p class="scrollBottom"></p>
                     </ion-list>
                 </div>
+
+                <a @click="scrollArrowBottom" :class="(showScroll) ? 'remove' : 'showScrollDown'" href="javascript:;"><ion-icon :icon="arrowDownCircle" color="customred" size="large"></ion-icon></a>
+
                 <ion-grid :class="(actionIconToggle) ? 'action_icon' : 'actionIconToggle'">
                     <ion-row>
                         <ion-col>
@@ -89,6 +92,7 @@
                             </ion-col>
                         </ion-row>
                     </ion-grid>
+
                     <ion-grid v-if="imageFile != null || currentImg != ''" :class="{ close : closePendingImg }">
                         <ion-row>
                             <ion-col size="3">
@@ -108,10 +112,8 @@
                         <div class="actionIcon_controller">
                             <a @click="showActionIcon" href="javascript:;"><ion-icon :icon="addCircle"></ion-icon></a>
                         </div>
-                        <ion-input id="inputValue" class="ion-padding" v-model="showMessage" @keyup.enter="sendMessage" type="text" placeholder="Type something"></ion-input>
-                        <ion-button slot="end" @click="sendMessage" color="customred">
-                            <ion-icon :icon="send"></ion-icon>
-                        </ion-button>
+                        <input id="inputValue" class="input_text" v-model="showMessage" @keyup.enter="sendMessage" type="text" placeholder="Type a message...">
+                        <a class="submit_btn" href="javascript:;" slot="end" @click="sendMessage"><ion-icon :icon="send"></ion-icon></a>
                     </ion-item>
                 </div>
             </div>
@@ -122,8 +124,8 @@
 </template>
 
 <script>
-import { IonPage, IonHeader, IonButtons, IonContent, IonItem, IonLabel, IonList, IonIcon, IonInput, IonButton, IonThumbnail, IonImg, IonGrid, IonRow, IonCol, IonSpinner } from '@ionic/vue';
-import { personCircle, arrowBackOutline, chatboxEllipses, send, image, trash, create, ellipsisVertical, backspace, camera, addCircle, download } from 'ionicons/icons';
+import { IonPage, IonHeader, IonButtons, IonContent, IonItem, IonLabel, IonList, IonIcon, IonButton, IonThumbnail, IonImg, IonGrid, IonRow, IonCol, IonSpinner, alertController } from '@ionic/vue';
+import { personCircle, arrowBackOutline, chatboxEllipses, send, image, trash, create, ellipsisVertical, backspace, camera, addCircle, download, arrowDownCircle } from 'ionicons/icons';
 import Autolinker from 'autolinker';
 import VueEasyLightbox from 'vue-easy-lightbox';
 import { Camera, CameraResultType } from '@capacitor/camera';
@@ -134,7 +136,7 @@ import { getDatabase, ref, remove, onValue, set, onChildAdded, query, orderByChi
 import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL, deleteObject, uploadString } from "firebase/storage";
 
 export default ({
-    components: { IonPage, IonHeader, IonButtons,IonContent, IonItem, IonLabel, IonList, IonIcon, IonInput, IonButton, IonThumbnail, IonImg, IonGrid, IonRow, IonCol, VueEasyLightbox, IonSpinner },
+    components: { IonPage, IonHeader, IonButtons,IonContent, IonItem, IonLabel, IonList, IonIcon, IonButton, IonThumbnail, IonImg, IonGrid, IonRow, IonCol, VueEasyLightbox, IonSpinner },
     setup() {
         return {
             personCircle, 
@@ -148,11 +150,46 @@ export default ({
             camera, 
             addCircle, 
             download,
-            arrowBackOutline
+            arrowBackOutline,
+            arrowDownCircle
         }
     },
     data() {
+        const messageEmpty = async () => {
+            const alert = await alertController.create({
+                header: 'Message',
+                message: 'Required Field!',
+                buttons: ['OK']
+            });
+            await alert.present();
+        }
+
+        const confirmDelete = async (ID) => {
+            const alert = await alertController.create({
+                header: 'Are you sure you want to delete?',
+                buttons: [
+                    {
+                        text: 'Cancel',
+                        role: 'cancel'
+                    },
+                    {
+                        text: 'OK',
+                        role: 'confirm'
+                    },
+                ]
+            });
+
+            await alert.present()
+
+            const { role } = await alert.onDidDismiss();
+
+            this.confirmDeletetion = role;
+            this.deleteText(ID);
+        }
         return {
+            confirmDeletetion: '',
+            confirmDelete,
+            messageEmpty,
             sendFile: '',
             showMessage: '',
             messageList: [],
@@ -175,7 +212,9 @@ export default ({
             addWrapClass: false,
             isTyping: false,
             actionIconToggle: true,
-            role: local.getObject('user_info').role
+            role: local.getObject('user_info').role,
+            showScroll: true,
+            confirmDeletion: false
         }
     },
     watch:{
@@ -186,6 +225,22 @@ export default ({
         }
     },
     methods: {
+        showArrowDown() {
+            let element = document.querySelector('.box_inner');
+
+            if(element.scrollTop > element.scrollHeight - 600) {
+                this.showScroll = true;
+            }else {
+                this.showScroll = false;
+            }
+        },
+        scrollArrowBottom() {
+            document.querySelector('.box_inner').scrollTo({
+                top: document.querySelector('.box_inner').scrollHeight,
+                left: 0,
+                behavior: 'smooth'
+            });
+        },
         backBtn(){
             switch(local.getObject('user_info').role){
                 case 'Customer': window.location.assign('/customer/booked');break;
@@ -266,6 +321,7 @@ export default ({
         },
         sendMessage() {
             if(this.showMessage == '' && this.currentImg == '') {
+                this.messageEmpty();
                 return;
             }
 
@@ -340,14 +396,15 @@ export default ({
             );
         },
         deleteText(ID) {
-            
+            if(this.confirmDeletetion == '') this.confirmDelete(ID);
 
-            if(!confirm('Are you sure you want to delete?')) {
-                this.showButton = true;
+            if(this.confirmDeletetion != 'confirm') {
+                this.confirmDeletetion = '';
                 return;
             }
 
             const db = getDatabase();
+
             for(let msg in this.messageList){
                 if(this.messageList[msg].ID == ID){
                     remove(ref(db, `/Messages/${local.get('chat_id')}/msgs/${msg}`));
@@ -357,14 +414,13 @@ export default ({
 
             this.showButton = true;
 
+            this.confirmDeletetion = '';
         },
         deleteImg(ID) {
             if(!confirm('Are you sure you want to delete?')) {
                 this.showButton2 = true;
                 return;
             }
-
-            
 
             const db = getDatabase();
             for(let msg in this.messageList){
@@ -415,12 +471,14 @@ export default ({
         },
         removeTextOption() {
             this.showButton = true;
+            this.actionIconToggle = true;
         },
         removeImageOption() {
             this.showButton2 = true;
         },
         showActionIcon() {
             this.actionIconToggle = false;
+            this.showButton = true;
         }
     },
     mounted() {
@@ -493,6 +551,7 @@ export default ({
 </script>
 
 <style scoped>
+.showScrollDown{display: block;position: absolute; bottom: 58px; right: 0; z-index: 99; left: 0; text-align: center;width: 32px; height: 32px; margin: 0 auto;}
 
 ion-back-button{color: #fff}
 ion-header{color:#fff;}
@@ -506,7 +565,8 @@ ion-buttons{background: #b7160b; padding: 12px 0 0 12px;}
 .box_inner{height: 50vh; overflow-y: scroll; position: relative;}
 .box_inner ion-list{ padding: 12px 8px !important;background: none;}
 .box_submit{position: absolute; bottom: -49px; left: 0; right: 0;}
-.box_submit ion-item{--background: #e3e3e3 !important;border-radius: 0 0 20px 20px;}
+.box_submit::before{content: ''; width: 100%; height: 10px; position: absolute; top: -10px; left: 0; background: #fff;}
+.box_submit ion-item{border-radius: 0 0 20px 20px;}
 
 .box_user1 ion-item small{display: block; font-size: 9px; color: #9f9f9f; font-style: italic; margin: 8px 0 0 0;}
 [class^="box_user"] ion-item a{position: absolute; left: revert; text-decoration: none; color: #555; top: 23px;cursor: pointer;}
@@ -524,19 +584,19 @@ ion-buttons{background: #b7160b; padding: 12px 0 0 12px;}
 .remove{display: none;}
 .file_wrap{position: relative;margin-bottom: 6px;cursor: pointer;}
 .file_wrap > input{font-size: 0; position: absolute; height: 25px; --color: none !important; --border: none !important; cursor: pointer; opacity: 0; width: 100%; left: 0; right: 0; text-align: center; margin: 0 auto;}
-.file_wrap ion-icon{color: #979797;font-size: 22px;}
-.file_wrap:hover ion-icon, .file_wrap2:hover ion-icon p{color: #B7160B;}
-.file_wrap p{color: #555; margin: 0; font-size: 11px; position: absolute; left: 0; right: 0; bottom: -7px;}
+.file_wrap ion-icon{color: #979797; display: block; margin: 0 auto; font-size: 20px;}
+/* .file_wrap:hover ion-icon, .file_wrap2:hover ion-icon p{color: #B7160B;} */
+.file_wrap p{color: #555; margin: 0; font-size: 13px; position: absolute; left: 0; right: 0; bottom: -15px;}
 .file_wrap2{position: relative;margin-bottom: 6px;cursor: pointer;}
 .file_wrap2 > input{font-size: 0; position: absolute; height: 25px; --color: none !important; --border: none !important; cursor: pointer; opacity: 0; width: 100%; left: 0; right: 0; text-align: center; margin: 0 auto;}
-.file_wrap2 ion-icon{color: #979797;font-size: 22px;}
+.file_wrap2 ion-icon{color: #979797; display: block; margin: 0 auto; font-size: 20px;}
 .file_wrap2:hover ion-icon, .file_wrap2:hover ion-icon p{color: #B7160B;}
-.file_wrap2 p{color: #555; margin: 0; font-size: 11px; position: absolute; left: 0; right: 0; bottom: -7px;}
+.file_wrap2 p{color: #555; margin: 0; font-size: 13px; position: absolute; left: 0; right: 0; bottom: -15px;}
 .file_wrap3{position: relative;margin-bottom: 6px;cursor: pointer;}
 .file_wrap3 > input{font-size: 0; position: absolute; height: 25px; --color: none !important; --border: none !important; cursor: pointer; opacity: 0; width: 100%; left: 0; right: 0; text-align: center; margin: 0 auto;}
-.file_wrap3 ion-icon{color: #979797;font-size: 22px;}
+.file_wrap3 ion-icon{color: #979797; display: block; margin: 0 auto; font-size: 20px;}
 .file_wrap3:hover ion-icon, .file_wrap2:hover ion-icon p{color: #B7160B;}
-.file_wrap3 p{color: #555; margin: 0; font-size: 11px; position: absolute; left: 0; right: 0; bottom: -7px;}
+.file_wrap3 p{color: #555; margin: 0; font-size: 13px; position: absolute; left: 0; right: 0; bottom: -15px;}
 .zoomImg{position: fixed !important; top: 20px; left: 0; right: 0; text-align: center; margin: 0 auto !important; width: 100% !important; z-index: 9999; background: #e3e3e3; min-height: 500px !important; height: auto;}
 .zoomImg ion-img{object-fit: contain !important;}
 [class^="box_user"] ion-thumbnail{cursor: pointer; position: relative; box-shadow: 0px 0px 6px #8e8e8e; --border-radius: 10px !important; width: 200px; margin: 25px 18px 0 auto; max-width: 100%; min-height: 180px;}
@@ -547,7 +607,9 @@ ion-buttons{background: #b7160b; padding: 12px 0 0 12px;}
 .close{display: none;}
 .closeAttach{position: absolute; right: 1px; top: -2px; color: #fff;cursor: pointer;}
 .uploadProgress{color: #000; position: absolute; top: 5px; left: 0; right: 0; text-align: center; font-size: 13px; font-weight: bold;}
-ion-input{color: #555; font-size: 14px; padding-left: 8px !important;}
+.input_text{color: #464646; font-size: 14px; width: 100%; background: #ddd; border-radius: 30px; margin-bottom: 6px; border: none; padding: 14px 10px 14px 16px !important;}
+.native-input.sc-ion-input-md{padding: 13px 0 !important;}
+.submit_btn{background: none; color: red; border: none; box-shadow: none !important; font-size: 23px; padding: 0px 0 0 6px; position: relative; margin: 0 !important;}
 .overflowHide{overflow: hidden !important;}
 .box_submit ion-thumbnail{position: relative;}
 .action_wrap ion-icon{display: block; margin: 0 auto; font-size: 20px;}
@@ -561,11 +623,16 @@ ion-input{color: #555; font-size: 14px; padding-left: 8px !important;}
 .showTyping{color: #6f6f6f;position: absolute;bottom: 0;left: calc(100% + 10px);}
 .addClass{background: #fff; min-height: 25px;}
 
-.box_user1{  width: max-content;}   
+.box_user1{  width: max-content;}
 .box_user1 ion-item{margin: 8px 0;}
 .box_user1 ion-label{margin: 0 !important;width: 100%;text-align: left;}
 .box_user1 ion-label p{background: linear-gradient(to bottom, #cacaca, #eee); max-width: 200px; width: 100%; padding: 10px; border-radius: 10px 10px 10px 0; min-height: 45px;color:#222}
-.actionIcon_controller ion-icon{font-size: 22px; color: #979797; margin-top: 5px;}
+.actionIcon_controller ion-icon{font-size: 28px; position: relative; left: -3px; top: 0; color: #b7160b;}
 .action_icon{display: none;text-align: center; bottom: 0 !important; background: linear-gradient(#ececec,white) !important;}
-.actionIconToggle{display: block; bottom: 0 !important; text-align: center;}
+.actionIconToggle{display: block; bottom: 0 !important; text-align: center;min-height: 56px;}
+
+input:focus-visible {
+    outline: none !important;
+    border: none !important;
+}
 </style>

@@ -4,7 +4,7 @@
         </div>
         <div v-else>
             <div class="announcements_box " v-for="a in announcements" :key="a.id">
-                <img :src="(a.imgsrc != null && a.imgsrc != '') ? a.imgsrc : 'https://www.medicalcouriertransportation.com/rentarepair/uploads/default.jpg'" />
+                <img :src="(a.imgsrc != null && a.imgsrc != '') ? a.imgsrc : defaultImg" />
                 <div class="content">
                     <h2>{{a.title}}</h2>
                     <p>{{a.description}}</p>
@@ -29,13 +29,14 @@ export default({
                 title:'',
                 description:'',
                 imgsrc:''
-            }]
+            }],
+            defaultImg: ''
         };
     },
     mounted(){
         this.loadAnnouncements();
         this.announcements = lStore.get('announcements');
-
+        this.defaultImg = lStore.get('config').ann_defimg;
     },
     methods:{
         loadAnnouncements(){

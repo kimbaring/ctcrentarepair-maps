@@ -39,9 +39,10 @@ import {
     IonContent,
     IonInput,
 } from '@ionic/vue';
-import{ local } from '@/functions.js';
+import{ axiosReq, local, openToast } from '@/functions.js';
 import {push, db} from '@/firebase.js';
 import {get, child, ref} from 'firebase/database';
+import { ciapi } from '@/js/globals';
 
 
 
@@ -103,12 +104,42 @@ export default({
                     this.userwallets.wallet = parseInt(snapshot.val().wallet) + parseInt(this.amount);
                     this.userwallets.user_id = this.userid;
                     push(`userwallet/${this.userid}`, this.userwallets);
-                    this.$router.push('/towing');
+                    
+                    axiosReq({
+                        method:'post',
+                        url:ciapi+'users/wallet/update?wallet_id='+local.get('user_id'),
+                        headers:{
+                            PWAuth: local.get('user_token'),
+                            PWAuthUser: local.get('user_id')
+                        },
+                        data:{
+                            amount: this.userwallets.wallet
+                        }
+                    }).then(()=>{
+                        this.$router.push('/towing');
+                    }).catch(()=>{
+                        openToast('Something went wrong!','danger');
+                    });
                 } else {
                     this.userwallets.wallet = this.amount;
                     this.userwallets.user_id = this.userid;
                     push(`userwallet/${this.userid}`, this.userwallets);
-                    this.$router.push('/towing');
+
+                    axiosReq({
+                        method:'post',
+                        url:ciapi+'users/wallet/update?wallet_id='+local.get('user_id'),
+                        headers:{
+                            PWAuth: local.get('user_token'),
+                            PWAuthUser: local.get('user_id')
+                        },
+                        data:{
+                            amount: this.userwallets.wallet
+                        }
+                    }).then(()=>{
+                        this.$router.push('/towing');
+                    }).catch(()=>{
+                        openToast('Something went wrong!','danger');
+                    });
                 }
                 }).catch((error) => {
                 console.error(error);
