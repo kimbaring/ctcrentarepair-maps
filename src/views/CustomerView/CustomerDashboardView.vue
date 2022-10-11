@@ -1,4 +1,3 @@
-
 <template>
 <ion-page>
     <ion-content :fullscreen="true">
@@ -126,8 +125,7 @@ export default({
         limitToLast(1));
         
         onValue(que,snapshot=>{
-            if(!snapshot.exists()) local.remove('customer_task');
-            else{
+            if(snapshot.exists()){
                 this.task = snapshot.val()[Object.keys(snapshot.val())[0]];
                 local.setObject('customer_task',this.task);
                 switch (this.task.status){

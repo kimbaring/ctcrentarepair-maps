@@ -3,14 +3,82 @@ import axios from 'axios';
 import {toastController} from '@ionic/vue';
 import {LocalNotifications} from '@capacitor/local-notifications';
 import { Capacitor } from "@capacitor/core";
+import { auth} from '@/firebase';
+import { ciapi } from '@/js/globals';
+import { signOut } from 'firebase/auth';
 
 async function axiosReq(params){
-    for(let p in params){
-        if(p === 'data'){
-            params[p] = toFormData(params[p]);
-        }
+    let resolved = null;
+
+    if(local.get('user_id') != null){
+        resolved = await axios({
+            method:'post',
+            url: ciapi+'users/validate',
+            headers:{
+                PWAuth: local.get('user_token'),
+                PWAuthUser: local.get('user_id')
+            }
+        });
+
     }
-    return await axios(params);
+    
+
+    console.log(resolved);
+
+    if(local.get('user_id') != null){
+        if(resolved.data.success === true ){
+            for(let p in params){
+                if(p === 'data'){
+                    params[p] = toFormData(params[p]);
+                }
+            }
+    
+            return await axios(params);
+        }else{
+            logout();
+        }
+    }else{
+        for(let p in params){
+            if(p === 'data'){
+                params[p] = toFormData(params[p]);
+            }
+        }
+
+        return await axios(params);
+    }
+
+
+
+    
+    
+}
+
+function logout(){
+
+    axiosReq({
+        method:'post',
+        url: ciapi+'users/logout'.toLowerCase(),
+        headers:{
+            PWAuth: local.get('user_token'),
+            PWAuthUser: local.get('user_id')
+        }
+    }).catch(()=>{
+        openToast('Something went wrong...', 'danger');
+    }).
+    then(()=>{
+        signOut(auth).then(() => {
+            openToast('Logout Successful', 'success');
+            localStorage.clear();
+            window.localStorage.clear();
+            
+            window.location.replace('/login');
+            this.formLoading1 = false;
+        }).catch(()=> {
+            openToast('Something went wrong...', 'danger');
+        });
+    });
+
+    
 }
 
 

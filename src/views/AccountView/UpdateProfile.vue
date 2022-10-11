@@ -11,7 +11,6 @@
                 <ion-input v-model="user.lastname" placeholder="Last Name"></ion-input>
                 <ion-input v-model="user.username" placeholder="Username"></ion-input>
                 <ion-input v-model="user.email" placeholder="Email"></ion-input>
-                <ion-button expand="block" @click="$router.push('/customer/changepassword')">Change Password</ion-button>
                 <ion-button expand="block" @click="reset">Reset</ion-button>
                 <ion-button expand="block" class="save" @click="save">Save</ion-button>
             </div>
