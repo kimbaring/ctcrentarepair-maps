@@ -1,4 +1,4 @@
-import{axiosReq,local,removeFix} from '@/functions';
+import{axiosReq,local,removeFix,calcFlyDist} from '@/functions';
 import{push} from '@/firebase';
 import{ciapi} from '@/js/globals';
 
@@ -37,8 +37,22 @@ function mapsData(long,lat,callback){
     })
 }
 
+function priorityScore(coors1,coors2,requestDateTime){
+    let dist = calcFlyDist(coors1,coors2);
+    let requestTime = new Date(requestDateTime).getTime();
+    let waitTime = Math.floor((Date.now() - requestTime) / 120000);
+    let prioScore = 10;
+    let prioScoreDist = (dist <= 5) ? Math.floor(dist) * -0.5 : -2.5 + Math.floor(dist - 5) * -1;
+    let prioScoreWait = (waitTime <= 5) ? waitTime  * 1 : waitTime * 2;
+    prioScore = prioScore + (prioScoreDist + prioScoreWait);
+    /* if(prioScore > 10) prioScore = 10;
+    if(prioScore < 0) prioScore = 0; */
+    return prioScore;
+}
+
 
 export {
     sendNotification,
-    mapsData
+    mapsData,
+    priorityScore
 };

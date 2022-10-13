@@ -485,6 +485,27 @@ function bubbleSort(array,isDescending = false){
 }
 
 
+export function calcFlyDist(coors1, coors2) {
+    let R = 6371; // km
+    let dLat = toRad(Math.abs(coors2[1]-coors1[1]));
+    let dLon = toRad(Math.abs(coors2[0]-coors1[0]));
+    let lat1 = toRad(coors1[1]);
+    let lat2 = toRad(coors2[1]);
+
+    let a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2); 
+    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    let d = R * c;
+    return d;
+}
+
+// COMP FUNCTIONS FOR calcFlyDist
+function toRad(Value){
+    return Value * Math.PI / 180;
+}
+// END OF COMP FUNCTIONS FOR calcFlyDist
+
+
 export { 
     axiosReq,
     validateForm,

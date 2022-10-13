@@ -26,6 +26,10 @@
                     <br/>
                     <h2>To:</h2>
                     <h2 :class="(loading) ? 'loading': null">{{task_info.drop_location}}</h2>
+                    <br />
+                    <h2>Wallet Cost: <strong>${{feeComputation[2]}}</strong></h2>
+                    <h2>Remaining Wallet Balance: <strong>${{this.wallet}}</strong></h2>
+                    <h2>Cash to Collect: <strong>${{feeComputation[0]}}</strong></h2>
                     <!-- <ion-button class="viewbutton" @click="$router.push('/delivery/tasks/taskdetails/location')" expand="block">View in Map</ion-button> -->
                     <div class="buttonflex" v-if="allowAccept">
                         <section>
@@ -67,7 +71,7 @@ import {
     logOutOutline,
     arrowBack
 } from 'ionicons/icons';
-import{local,dateFormat} from '@/functions';
+import{local,dateFormat,axiosReq,lStore, openToast} from '@/functions';
 import{db} from '@/firebase';
 import{get,onValue,query,ref,set} from 'firebase/database';
 
@@ -95,11 +99,76 @@ export default({
             task_info:{},
             loading:true,
             formLoading: false,
-            allowAccept: true
+            allowAccept: true,
+            feeComputation: [0,0,0,0]
         }
     },
     created(){
         this.loadInfo();
+    },
+    mounted(){
+        const getLocation = () => new Promise(
+                (resolve, reject) => {
+                    window.navigator.geolocation.getCurrentPosition(
+                        position => {
+                            const location = {
+                                lat:position.coords.latitude,
+                                long:position.coords.longitude
+                            };
+                            resolve(location); // Resolve with location. location can now be accessed in the .then method.
+                        },
+                        err => {
+                            this.formResponse = `${err.message}`;
+                            this.openToast();
+                            reject(err) // Reject with err. err can now be accessed in the .catch method.
+                        }
+                    );
+                }
+        );
+
+        getLocation().then(location => {
+            this.location = location;
+            const token = 'pk.eyJ1Ijoic3BlZWR5cmVwYWlyIiwiYSI6ImNsNWg4cGlzaDA3NTYzZHFxdm1iMTJ2cWQifQ.j_XBhRHLg-CcGzah7uepMA';
+
+            if(this.task_info.service_type == 'Ride Sharer' || this.task_info.service_type == 'Delivery'){
+                this.location.end_long = this.task_info.drop_location_coors_long;
+                this.location.end_lat = this.task_info.drop_location_coors_lat;
+            }else{
+                this.location.end_long = this.location.long;
+                this.location.end_lat = this.location.lat;
+            }
+
+            axiosReq({   
+                method:'get',
+                url:`https://api.mapbox.com/directions/v5/mapbox/driving/${this.location.long},${this.location.lat};${this.location.end_long},${this.location.end_lat}?steps=true&geometries=geojson&access_token=${token}`,
+            }).then(res=>{
+                this.km = (res.data.routes[0].distance / 1000).toFixed(1); // convert meters to kilometers
+                this.mins = Math.floor(res.data.routes[0].duration / 60);
+                
+                let configs = {};
+                lStore.get('config').forEach(el=> {
+                    configs[el.config_field] = el.config_value;
+                });
+                
+                const baseFee = parseFloat(configs.fee_delivery_base_charge);
+                const appChargeRate = parseFloat(configs.fee_delivery_app_charge);
+                const vat = parseFloat(configs.fee_vat_charge);
+                const d = parseFloat(configs.fee_delivery_distance_charge)
+                let totalFee = (this.km < 6) ? baseFee: baseFee + ((this.km-5) * d);
+                const distanceFee = totalFee;
+                const bookFee = (totalFee * appChargeRate);
+                const vatFee = ((totalFee + bookFee) * vat);
+                totalFee = totalFee + bookFee + vatFee;
+                this.feeComputation = [
+                    totalFee.toFixed(2),
+                    distanceFee.toFixed(2),
+                    bookFee.toFixed(2),
+                    vatFee.toFixed(2)
+                ];
+
+                console.log(this.feeComputation);
+            });
+        });
     },
     watch:{
         $route(to){
@@ -118,10 +187,16 @@ export default({
             this.loading = true;
             const que = query(ref(db,'/pending_tasks/'+local.get('view_details')));
             const que2 = query(ref(db,`/available/${local.getObject('user_info').role.replaceAll(' ','_')}/${local.get('user_id')}`));
+            const que3 = query(ref(db,'/userwallet/'+local.get('user_id')));
             onValue(que2,snapshot=>{           
                 console.log(snapshot.exists())
                 if(snapshot.exists()) this.allowAccept = true;
                 else this.allowAccept = false;
+            })
+            onValue(que3,snapshot=>{           
+                if(!snapshot.exists()) {this.wallet = 0;return}
+                console.log(snapshot.val());
+                this.wallet = snapshot.val().wallet;
             })
             onValue(que,()=>{
                 get(que).then(snapshot=>{
@@ -129,7 +204,8 @@ export default({
                         this.task_info = snapshot.val();
                         this.task_info.created_at = dateFormat('%lm %d,%y (%h:%i%a)',this.task_info.created_at);
                         this.loading = false;
-                    }
+                    }else this.$router.replace('/delivery/tasks');
+                    
                 })
             });
         },
@@ -137,36 +213,27 @@ export default({
         accept(){
 
             this.formLoading = true;
-            
-            const getLocation = () => new Promise(
-                (resolve, reject) => {
-                    window.navigator.geolocation.getCurrentPosition(
-                        position => {
-                            const location = {
-                                lat:position.coords.latitude,
-                                long:position.coords.longitude
-                            };
-                            resolve(location); // Resolve with location. location can now be accessed in the .then method.
-                        },
-                        err => {
-                            this.formResponse = `${err.message}`;
-                            this.openToast();
-                            reject(err) // Reject with err. err can now be accessed in the .catch method.
-                        }
-                    );
-                }
-            );
-
-            getLocation().then(location => {
-                set(ref(db,`/available/${local.getObject('user_info').role.replaceAll(' ','_')}/${local.get('user_id')}`),'active');
-                set(ref(db,'/pending_tasks/'+this.task_info.id+'/status'),2);
-                set(ref(db,'/pending_tasks/'+this.task_info.id+'/emp_location_coors_long'),location.long);
-                set(ref(db,'/pending_tasks/'+this.task_info.id+'/emp_location_coors_lat'),location.lat);
-                set(ref(db,'/pending_tasks/'+this.task_info.id+'/accepted_by_id'),local.get('user_id'));
-                local.setObject('accepted_task',this.task_info);
-                this.$router.push('/delivery/tasks/taskdetails/location');
+            if(this.feeComputation[1] == 0){
+                openToast('Please wait for the wallet cost to load!','danger');
                 this.formLoading = false;
-            });
+                return;
+            }
+
+            if(this.wallet < this.feeComputation[2]){
+                openToast('Insufficient wallet balance! Please reload your wallet or find another task that you have sufficient balence to accept.','danger');
+                this.formLoading = false;
+                return;
+            }
+
+        
+            set(ref(db,`/available/${local.getObject('user_info').role.replaceAll(' ','_')}/${local.get('user_id')}`),'active');
+            set(ref(db,'/pending_tasks/'+this.task_info.id+'/status'),2);
+            set(ref(db,'/pending_tasks/'+this.task_info.id+'/emp_location_coors_long'),this.location.long);
+            set(ref(db,'/pending_tasks/'+this.task_info.id+'/emp_location_coors_lat'),this.location.lat);
+            set(ref(db,'/pending_tasks/'+this.task_info.id+'/accepted_by_id'),local.get('user_id'));
+            local.setObject('accepted_task',this.task_info);
+            this.$router.push('/delivery/tasks/taskdetails/location');
+            this.formLoading = false;
 
         }
     }

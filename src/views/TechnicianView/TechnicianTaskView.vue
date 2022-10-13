@@ -42,6 +42,7 @@ import {
     logOutOutline,
 } from 'ionicons/icons';
 import{local,dateFormat} from '@/functions';
+import{priorityScore} from '@/functions-custom';
 import{pull} from '@/firebase';
 import{onValue,query,orderByChild,equalTo,get} from 'firebase/database';
 
@@ -70,17 +71,47 @@ export default({
         }
     },
     mounted(){
-        
-        const que = query(pull('/pending_tasks'),orderByChild('status'), equalTo(1));
-        onValue(que,()=>{
-            get(que).then(snapshot=>{
-                this.availableTasks=[];
-                if(snapshot.exists()) for(let t in snapshot.val()) if(snapshot.val()[t].service_type == 'Technician') this.availableTasks.push(snapshot.val()[t]);
-                this.availableTasks.sort(function(a,b){
-                    return  parseInt(b.id) - parseInt(a.id);
-                });
+
+        const getLocation = () => new Promise(
+            (resolve, reject) => {
+                window.navigator.geolocation.getCurrentPosition(
+                    position => {
+                        const location = {
+                            lat:position.coords.latitude,
+                            long:position.coords.longitude
+                        };
+                        resolve(location); // Resolve with location. location can now be accessed in the .then method.
+                    },
+                    err => {
+                        this.formResponse = `${err.message}`;
+                        this.openToast();
+                        reject(err) // Reject with err. err can now be accessed in the .catch method.
+                    }
+                );
+            }
+        );
+
+        getLocation().then(location => {
+            const que = query(pull('/pending_tasks'),orderByChild('status'), equalTo(1));
+            onValue(que,()=>{
+                get(que).then(snapshot=>{
+                    this.availableTasks=[];
+                    if(snapshot.exists()) for(let t in snapshot.val()) if(snapshot.val()[t].service_type == 'Technician') this.availableTasks.push(snapshot.val()[t]);
+                    this.availableTasks.sort(function(a,b){
+                        let x = [a.customer_location_coors_long,a.customer_location_coors_lat];
+                        let y = [b.customer_location_coors_long,b.customer_location_coors_lat];
+                        let l = [location.long,location.lat];
+                        let ac = a.created_at;
+                        let bc = b.created_at;
+                        return priorityScore(y,l,bc) - priorityScore(x,l,ac);
+                    });
+                })
             })
-        })
+        });
+
+
+        
+        
     },
     methods:{
         date(dateString){
