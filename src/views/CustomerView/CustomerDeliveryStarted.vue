@@ -75,10 +75,11 @@ export default ({
         }).then(res=>{
             this.fee = removeFix(res.data.result,'trans_');
             this.fee.distcharge = parseFloat(this.fee.distcharge).toFixed(2);
-            this.fee.apprate = (this.fee.distcharge * this.fee.appcharge);
+            this.fee.apprate = (parseFloat(this.fee.distcharge) + parseFloat(this.fee.priority_fee)) * parseFloat(this.fee.appcharge);
+            this.fee.priority_fee = parseFloat(this.fee.priority_fee).toFixed(2);
             this.fee.apprate = parseFloat(this.fee.apprate).toFixed(2);
             this.fee.total = parseFloat(this.fee.total).toFixed(2);
-            this.fee.vatcharge = this.fee.distcharge * this.fee.vat;
+            this.fee.vatcharge = (parseFloat(this.fee.distcharge) + parseFloat(this.fee.priority_fee) + parseFloat(this.fee.apprate)) * this.fee.vat;
             this.fee.vatcharge = parseFloat(this.fee.vatcharge).toFixed(2);
         });
 

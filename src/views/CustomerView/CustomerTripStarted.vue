@@ -14,6 +14,8 @@
                 <div class="col2">
                     <span>Distance Fee</span>
                     <span>${{fee.distcharge}}</span>
+                    <span v-if="fee.priority_fee > 0">Priority Fee</span>
+                    <span v-if="fee.priority_fee > 0">${{fee.priority_fee}}</span>
                     <span>Booking Fee</span>
                     <span>${{fee.apprate}}</span>
                     <span>VAT</span>
@@ -75,11 +77,12 @@ export default ({
         }).then(res=>{
             this.fee = removeFix(res.data.result,'trans_');
             this.fee.distcharge = parseFloat(this.fee.distcharge).toFixed(2);
-            this.fee.apprate = (this.fee.distcharge * this.fee.appcharge);
+            this.fee.apprate = (parseFloat(this.fee.distcharge) + parseFloat(this.fee.priority_fee)) * parseFloat(this.fee.appcharge);
             this.fee.apprate = parseFloat(this.fee.apprate).toFixed(2);
             this.fee.total = parseFloat(this.fee.total).toFixed(2);
-            this.fee.vatcharge = this.fee.distcharge * this.fee.vat;
+            this.fee.vatcharge = (parseFloat(this.fee.distcharge) + parseFloat(this.fee.priority_fee) + parseFloat(this.fee.apprate)) * this.fee.vat;
             this.fee.vatcharge = parseFloat(this.fee.vatcharge).toFixed(2);
+            console.log();
         });
 
 

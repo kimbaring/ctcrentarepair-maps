@@ -42,6 +42,8 @@
                     <span>${{feeComputation[1]}}</span>
                     <span>Booking Fee</span>
                     <span>${{feeComputation[2]}}</span>
+                    <span v-if="feeComputation[4]">Priority Fee</span>
+                    <span v-if="feeComputation[4]">${{feeComputation[4]}}</span>
                     <span>VAT</span>
                     <span>${{feeComputation[3]}}</span>
                     <span>Total</span>
@@ -146,20 +148,27 @@ export default {
                     configs[el.config_field] = el.config_value;
                 });
                 
-                const baseFee = parseFloat(configs.fee_towing_base_charge);
-                const appChargeRate = parseFloat(configs.fee_towing_app_charge);
+                let priorityFee = 0;
+                if(this.task_info.priority_fee != null) {
+                    priorityFee = this.task_info.priority_fee;
+                }
+                
+                const baseFee = parseFloat(configs[`fee_towing_base_charge`]);
+                const appChargeRate = parseFloat(configs[`fee_towing_app_charge`]);
                 const vat = parseFloat(configs.fee_vat_charge);
-                const d = parseFloat(configs.fee_towing_distance_charge)
+                const d = parseFloat(configs[`fee_towing_dist_charge`])
                 let totalFee = (this.km < 6) ? baseFee: baseFee + ((this.km-5) * d);
                 const distanceFee = totalFee;
-                const bookFee = (totalFee * appChargeRate);
-                const vatFee = ((totalFee + bookFee) * vat);
-                totalFee = totalFee + bookFee + vatFee;
+                const bookFee = ((totalFee + priorityFee) * appChargeRate);
+                const vatFee = ((totalFee + bookFee + priorityFee) * vat);
+                
+                totalFee = totalFee + bookFee + priorityFee + vatFee;
                 this.feeComputation = [
                     totalFee.toFixed(2),
                     distanceFee.toFixed(2),
                     bookFee.toFixed(2),
-                    vatFee.toFixed(2)
+                    vatFee.toFixed(2),
+                    priorityFee.toFixed(2)
                 ];
             });
         }

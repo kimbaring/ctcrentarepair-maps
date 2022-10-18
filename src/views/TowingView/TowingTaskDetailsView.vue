@@ -20,6 +20,7 @@
                     <br />
                     <h2>Wallet Cost: <strong>${{feeComputation[2]}}</strong></h2>
                     <h2>Remaining Wallet Balance: <strong>${{this.wallet}}</strong></h2>
+                    <h2 v-if="feeComputation[4] > 0">Priority Fee: <strong>${{feeComputation[4]}}</strong></h2>
                     <h2>Cash to Collect: <strong>${{feeComputation[0]}}</strong></h2> 
                     <!-- <ion-button class="viewbutton" @click="$router.push('/towing/tasks/taskdetails/location')" expand="block">View in Map</ion-button> -->
                     <div class="buttonflex" v-if="allowAccept">
@@ -35,7 +36,7 @@
                         <ion-button expand="block" @click="$router.push('/towing/tasks')" color="dark">Decline</ion-button>
                         </section>
                     </div>
-                    <div class="buttonflex" v-if="!allowAccept && acceptedTask()">
+                    <div class="buttonflex" v-if="acceptedTask()">
                         <ion-button expand="block" @click="$router.push('/towing/tasks/taskdetails/location')">Return to this task</ion-button>
                     </div>
                 </ion-card-content>
@@ -131,6 +132,9 @@ export default({
                 this.location.end_lat = this.location.lat;
             }
 
+            this.location.long = this.task_info.customer_location_coors_long;
+            this.location.lat = this.task_info.customer_location_coors_lat;
+
             axiosReq({   
                 method:'get',
                 url:`https://api.mapbox.com/directions/v5/mapbox/driving/${this.location.long},${this.location.lat};${this.location.end_long},${this.location.end_lat}?steps=true&geometries=geojson&access_token=${token}`,
@@ -143,21 +147,29 @@ export default({
                     configs[el.config_field] = el.config_value;
                 });
                 
-                const baseFee = parseFloat(configs.fee_towing_base_charge);
-                const appChargeRate = parseFloat(configs.fee_towing_app_charge);
+                let priorityFee = 0;
+                if(this.task_info.priority_fee != null) {
+                    priorityFee = this.task_info.priority_fee;
+                }
+                
+                const baseFee = parseFloat(configs[`fee_towing_base_charge`]);
+                const appChargeRate = parseFloat(configs[`fee_towing_app_charge`]);
                 const vat = parseFloat(configs.fee_vat_charge);
-                const d = parseFloat(configs.fee_towing_distance_charge)
+                const d = parseFloat(configs[`fee_towing_dist_charge`])
                 let totalFee = (this.km < 6) ? baseFee: baseFee + ((this.km-5) * d);
                 const distanceFee = totalFee;
-                const bookFee = (totalFee * appChargeRate);
-                const vatFee = ((totalFee + bookFee) * vat);
-                totalFee = totalFee + bookFee + vatFee;
+                const bookFee = ((totalFee + priorityFee) * appChargeRate);
+                const vatFee = ((totalFee + bookFee + priorityFee) * vat);
+                
+                totalFee = totalFee + bookFee + priorityFee + vatFee;
                 this.feeComputation = [
                     totalFee.toFixed(2),
                     distanceFee.toFixed(2),
                     bookFee.toFixed(2),
-                    vatFee.toFixed(2)
+                    vatFee.toFixed(2),
+                    priorityFee.toFixed(2)
                 ];
+
 
                 console.log(this.feeComputation);
             });
@@ -220,6 +232,8 @@ export default({
                 this.formLoading = false;
                 return;
             }
+
+            set(ref(db,`/userwallet/${local.getObject('user_id')}/wallet`),this.wallet - this.feeComputation[2]);
 
             set(ref(db,`/available/${local.getObject('user_info').role.replaceAll(' ','_')}/${local.get('user_id')}`),'active');
             set(ref(db,'/pending_tasks/'+this.task_info.id+'/status'),2);

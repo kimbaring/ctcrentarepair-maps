@@ -128,6 +128,7 @@ export default({
             if(snapshot.exists()){
                 this.task = snapshot.val()[Object.keys(snapshot.val())[0]];
                 local.setObject('customer_task',this.task);
+                console.log(this.task);
                 switch (this.task.status){
                     case 1: local.set('task_linear_path','/customer/waiting');break;
                     case 2: local.set('task_linear_path','/customer/booked');break;

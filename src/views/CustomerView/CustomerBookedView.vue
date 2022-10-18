@@ -28,11 +28,13 @@
                     </div>
                 </div>
                 
-                <div class="services" :class="{open: viewBreakdown}">
+                <div class="services" :class="{open: viewBreakdown, withPrioFee: (feeComputation[4] > 0)}">
                     <h3>Distance Fee</h3>
                     <h3>${{feeComputation[1]}}</h3>
                     <h3>Booking Fee</h3>
                     <h3>${{feeComputation[2]}}</h3>
+                    <h3 v-if="feeComputation[4] > 0">Priority Fee</h3>
+                    <h3 v-if="feeComputation[4] > 0">${{feeComputation[4]}}</h3>
                     <h3>VAT</h3>
                     <h3>${{feeComputation[3]}}</h3>
                 </div>
@@ -62,7 +64,7 @@ import { locate, compass, navigateCircle, warning, close, mapOutline, timerOutli
 // import { toFormData, send } from '../functions.js';
 import {local,axiosReq,removeFix,openToast,lStore,LNotifications} from '@/functions';
 import {db} from '@/firebase';
-import {ref, onValue,remove} from 'firebase/database'; 
+import {ref, onValue,remove,get} from 'firebase/database'; 
 import {ciapi} from '@/js/globals';
 
 // Website address
@@ -100,7 +102,7 @@ export default {
             emp_info:{
                 firstname:''
             },
-            feeComputation:{},
+            feeComputation:[0,0,0,0,0],
             viewBreakdown: false
         }
     },
@@ -119,6 +121,7 @@ export default {
         async getRoute(pickup,dropoff){
             const pickupCoords = pickup;
             const dropoffCoords = dropoff;
+            
             const token = 'pk.eyJ1Ijoic3BlZWR5cmVwYWlyIiwiYSI6ImNsNWg4cGlzaDA3NTYzZHFxdm1iMTJ2cWQifQ.j_XBhRHLg-CcGzah7uepMA';
             axiosReq({   
                 method:'get',
@@ -137,22 +140,30 @@ export default {
                 let taskId;
                 if(local.getObject('customer_task').id != null) {local.set('chat_id',local.getObject('customer_task').id);taskId = local.getObject('customer_task').id}
                 if(local.getObject('customer_task').task_id != null) {local.set('chat_id',local.getObject('customer_task').task_id);taskId = local.getObject('customer_task').task_id;}
-                
+
+                let priorityFee = 0;
+                if(local.getObject('customer_task').priority_fee != null) {
+                    priorityFee = local.getObject('customer_task').priority_fee
+                }
+
                 const baseFee = parseFloat(configs[`fee_${role}_base_charge`]);
                 const appChargeRate = parseFloat(configs[`fee_${role}_app_charge`]);
                 const vat = parseFloat(configs.fee_vat_charge);
-                const d = parseFloat(configs[`fee_${role}_distance_charge`])
+                const d = (configs[`fee_${role}_distance_charge`] != null) ? configs[`fee_${role}_distance_charge`] : configs[`fee_${role}_dist_charge`]
                 let totalFee = (this.km < 6) ? baseFee: baseFee + ((this.km-5) * d);
                 const distanceFee = totalFee;
-                const bookFee = (totalFee * appChargeRate);
-                const vatFee = ((totalFee + bookFee) * vat);
-                totalFee = totalFee + bookFee + vatFee;
+                const bookFee = ((totalFee + priorityFee) * appChargeRate);
+                const vatFee = ((totalFee + bookFee + priorityFee) * vat);
+                totalFee = totalFee + bookFee + priorityFee + vatFee;
                 this.feeComputation = [
                     totalFee.toFixed(2),
                     distanceFee.toFixed(2),
                     bookFee.toFixed(2),
-                    vatFee.toFixed(2)
+                    vatFee.toFixed(2),
+                    priorityFee.toFixed(2)
                 ];
+
+                
 
                 axiosReq({
                     method:'post',
@@ -167,6 +178,7 @@ export default {
                         appcharge: appChargeRate,
                         distcharge: distanceFee,
                         distkm: this.km,
+                        priority_fee: priorityFee,
                         vat: parseFloat(configs.fee_vat_charge),
                         total: totalFee
                     }
@@ -195,7 +207,6 @@ export default {
         
         onValue(ref(db,'/finish-notifs/'+local.get('chat_id')),snapshot=>{
             if(!snapshot.exists()) return;
-            console.log(snapshot.val());
 
             
             if(snapshot.val() != 'finished' && typeof snapshot.val() == 'number'){
@@ -234,9 +245,6 @@ export default {
                     openToast('Something went wrong!','danger');
                 }).then(()=>{
 
-                    console.log(local.getObject('customer_task').service_type != 'Ride Sharer' &&
-                    local.getObject('customer_task').service_type != 'Delivery');
-
                     if(local.getObject('customer_task').service_type != 'Ride Sharer' && 
                     local.getObject('customer_task').service_type != 'Delivery'){
                         remove(ref(db,'/finish-notifs/'+local.getObject('customer_task').task_id));
@@ -253,19 +261,10 @@ export default {
             }
         });
 
-        console.log(taskId);
 
-        axiosReq({
-            method:"post",
-            url: ciapi+"task?task_id="+taskId,
-            headers:{
-                PWAuth: local.get('user_token'),    
-                PWAuthUser: local.get('user_id')
-            }
-        }).catch(()=>{
-            openToast('Something went wrong!', 'danger');
-        }).then(res=>{
-            let snap = removeFix(res.data.result,'task_');
+        get(ref(db,'/pending_tasks/'+taskId)).then(snapshot=>{
+            if(!snapshot.exists()) return;
+            let snap = snapshot.val();
             local.setInObject('customer_task','accepted_by_id', snap.accepted_by_id);
             local.setInObject('customer_task','emp_location_coors_lat', snap.emp_location_coors_lat);
             local.setInObject('customer_task','emp_location_coors_long', snap.emp_location_coors_long);
@@ -289,13 +288,15 @@ export default {
                     [local.getObject('customer_task').customer_location_coors_long,local.getObject('customer_task').customer_location_coors_lat],
                     [local.getObject('customer_task').drop_location_coors_long,local.getObject('customer_task').drop_location_coors_lat]
                 );
+
+                
             }else{
                 this.getRoute(
                     [local.getObject('customer_task').customer_location_coors_long,local.getObject('customer_task').customer_location_coors_lat],
                     [local.getObject('customer_task').emp_location_coors_long,local.getObject('customer_task').emp_location_coors_lat]
                 );
             }
-        });
+        })
 
         
                     
@@ -406,6 +407,8 @@ export default {
   left: 0;
 }
 
+.withPrioFee.open{height: 150px;}
+
 
 .submit_btn::after{
     content: "";
@@ -466,6 +469,4 @@ ion-toolbar{--background:#b7160b; color: #fff}
 ion-input{--background: #fff;--color: #333;}
 .col2{display: flex;justify-content: space-between;}
 .col2 > *{width: 48%;} */
-
-
 </style>

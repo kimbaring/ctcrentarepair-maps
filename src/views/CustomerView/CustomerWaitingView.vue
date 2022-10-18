@@ -7,28 +7,36 @@
         </ion-header>
         <ion-content>
             <MapComp
+            class="mapcomp"
             hideForm="true"
             rerender="true"
             v-if="$route.path == '/customer/waiting'"
             :pinPickupCoorsLong="pickupCoors[0]"
             :pinPickupCoorsLat="pickupCoors[1]"
             ></MapComp>
-            <div class="cancelBooking" v-if="showCancelModal">
-                <p>Our employees seem to be busy this time. Do you want to cancel your booking?</p>
-                <ion-button class="" @click="cancelBook">Yes</ion-button>
-                <ion-button @click="showCancelModal = false">No</ion-button>
-            </div> 
+            <div class="priority" v-if="!prioConfirm">
+                <h2>In A Rush?</h2>
+                <p>Get your {{role}} request prioritized. Every ${{distCharge}} you add, more {{role2}}s  will see your request on the priority section of their task list.</p>
+                <p>Priority Fee: <strong>${{prioFee}}</strong><br />
+                Range: <strong>Inside {{prioFee/distCharge}}km radius</strong></p>
+                <ion-range :snaps="true" :min="1" :max="10" @ionChange="prioChange">
+                    <ion-icon slot="start" :icon="removeCircleSharp"></ion-icon>
+                    <ion-icon slot="end" :icon="addCircleSharp"></ion-icon>
+                </ion-range>
+                <ion-button @click="confirmPrio">Confirm</ion-button>
+            </div>
         </ion-content>
     </ion-page>
 </template>
 
 <script>
-import {IonHeader,IonContent,IonTitle,IonToolbar} from '@ionic/vue';
+import {IonHeader,IonContent,IonTitle,IonToolbar,IonIcon,IonRange} from '@ionic/vue';
+import {addCircleSharp,removeCircleSharp} from 'ionicons/icons';
 // import { toFormData, send } from '../functions.js';
-import{local,axiosReq,openToast,LNotifications} from '@/functions.js';
+import{local,axiosReq,openToast,LNotifications,lStore} from '@/functions.js';
 import {db} from '@/firebase';
 import {ciapi} from '@/js/globals'; 
-import {ref, onValue,remove } from 'firebase/database';
+import {ref, onValue,set } from 'firebase/database';
 import {sendNotification} from '@/functions-custom';
 import MapComp from '@/views/MapComp';
 // Website address
@@ -52,17 +60,44 @@ export default({
         IonContent,
         IonTitle,
         IonToolbar,
-        MapComp
+        MapComp,
+        IonIcon,
+        IonRange
     },
     data() {
         return {
             pickupCoors: [],
-            showCancelModal:false
+            role: '',
+            role2: '',
+            distCharge: 0,
+            prioFee: 0,
+            prioConfirm: false,
+
+            addCircleSharp,
+            removeCircleSharp
         }
     },
     mounted(){
         local.set('task_linear_path', '/customer/waiting');
-        local.set('pageLoading',local.get('pageLoading') + 1); 
+        local.set('pageLoading',local.get('pageLoading') + 1);
+        if(local.getObject('customer_task').priority_fee != null) this.prioConfirm = true;
+
+        this.role = local.getObject('customer_task').service_type.replaceAll(' ','').toLowerCase();
+        switch(this.role){
+            case 'towing': this.role2 = 'tow truck operator'; break;
+            case 'delivery': this.role2 = 'delivery rider'; break;
+            default: this.role2 = this.role;break;
+        }
+
+        let configs = lStore.get('config'); 
+        for(let c in configs){
+            if(configs[c].config_field == `fee_${this.role}_distance_charge` || configs[c].config_field == `fee_${this.role}_dist_charge`){
+                
+                this.distCharge = configs[c].config_value;
+                break;
+            }
+        }
+
         if(local.get('pageLoading') == 1) {window.location.reload(); return;}
         else local.set('pageLoading', 0);
         this.pickupCoors = [local.getObject('customer_task').customer_location_coors_long,local.getObject('customer_task').customer_location_coors_lat];
@@ -71,7 +106,6 @@ export default({
             if(!snapshot.exists()) return;
             let snap = snapshot.val();
             if(snap.accepted_by_id == null) return;
-            console.log('2');
             axiosReq({
                 method: 'post',
                 url: ciapi + `task/update?task_id=${local.getObject('customer_task').task_id}`,
@@ -88,7 +122,6 @@ export default({
             }).catch(()=>{
                 openToast('Something went wrong...', 'danger');
             }).then(res=>{
-                console.log('2');
                 if(!res.data.success){
                     openToast('Something went wrong...', 'danger');
                     return;
@@ -129,31 +162,24 @@ export default({
         // //     set(ref(db,'/pending_tasks/'+local.getObject('customer_task').task_id+'/accepted_by_id'),local.get('user_id'));
         // // }, 5000);
 
-        setInterval(()=>{
-            this.showCancelModal = true;
-        },5000); 
     },
     methods:{
-        cancelBook(){
-            axiosReq({
-                method: 'post',
-                url: ciapi + `task/delete?task_id=${local.getObject('customer_task').task_id}`,
-                headers:{
-                    PWAuth: local.get('user_token'),
-                    PWAuthUser: local.get('user_id'),
-                }
-            }).catch(()=>{
-                openToast('Something went wrong...', 'danger');
-            }).then(res=>{
-                console.log(res.data);
-                remove(ref(db,`/pending_tasks/${local.getObject('customer_task').task_id}`));
-                local.remove('customer_task');
-                local.remove('task_linear_path');
-                this.$router.replace('/customer/dashboard')
-            });
-            this.showCancelModal = false;
-        }
+        prioChange(knob){
+            this.prioFee = knob.detail.value * this.distCharge;
+        },
+        confirmPrio(){
+            this.prioConfirm = true;
 
+            let taskId;
+            if(local.getObject('customer_task').id != null) {local.set('chat_id',local.getObject('customer_task').id);taskId = local.getObject('customer_task').id}
+            if(local.getObject('customer_task').task_id != null) {local.set('chat_id',local.getObject('customer_task').task_id);taskId = local.getObject('customer_task').task_id;}
+
+            set(ref(db,'/pending_tasks/'+taskId+'/priority_fee'),this.prioFee);
+            set(ref(db,'/pending_tasks/'+taskId+'/priority'),this.prioFee/this.distCharge);
+            local.setInObject('customer_task','priority_fee',this.prioFee);
+            local.setInObject('customer_task','priority',this.prioFee/this.distCharge);
+
+        }
     }
 });
 </script>
@@ -376,5 +402,33 @@ ion-button {
 }
 
 ion-button{--background: #b7170b;color:#fff;--padding-top:20px;--padding-bottom:20px}
+
+ion-range{position: relative;padding: 0 40px}
+ion-range ion-icon:first-of-type{position: absolute;left:0;}
+ion-range ion-icon:last-of-type{position: absolute;right:0;}
+
+.priority{position:absolute;width: calc(100% - 20px);bottom:0;background:#fff;color:#222;position: absolute;bottom: 0;background: #fff;color: #222;z-index: 122;padding: 15px;box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);margin: 0 10px 10px;border-radius:5px;}
+.priority h2{margin: 5px 0 10px;font-size:20px;}
+
+ion-range::part(tick) {
+  background: #222;
+}
+
+ion-range::part(tick-active) {
+  background: #b7170b;
+}
+
+ion-range::part(knob) {
+    background: #b7170b;
+}
+
+ion-range::part(bar) {
+    background: #ccc;
+}
+
+ion-range::part(bar-active) {
+    background: #b7170b;
+}
+
 
 </style>
